@@ -1,2 +1,0 @@
-# QAAxpertReleases
-Releases to QA
