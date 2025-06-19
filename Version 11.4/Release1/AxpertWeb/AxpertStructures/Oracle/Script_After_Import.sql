@@ -1,12 +1,16 @@
+<<
 CREATE OR REPLACE TYPE Axpdef_tstruct_rec_obj AS OBJECT (
   dcname    VARCHAR2(100),
   rowno     NUMBER,
   recordid  NUMBER
 );
+>>
 
-
+<<
 CREATE OR REPLACE TYPE Axpdef_tstruct_rec AS TABLE OF Axpdef_tstruct_rec_obj;
+>>
 
+<<
 CREATE OR REPLACE FUNCTION fn_tstruct_getdcrecid (
   ptransid    IN VARCHAR2,
   precordid   IN NUMBER,
@@ -69,10 +73,9 @@ BEGIN
   RETURN;
 END;
 
+>>
 
-
-
-
+<<
 CREATE OR REPLACE FUNCTION axp_fn_get_scolname (
     v_sql       IN VARCHAR2,
     modeofentry IN VARCHAR2
@@ -96,7 +99,9 @@ BEGIN
 
     RETURN scolname;
 END axp_fn_get_scolname;
+>>
 
+<<
 CREATE OR REPLACE PROCEDURE pr_executescript_new(ptablename varchar2) IS TYPE reftyp IS REF CURSOR;
 sqlstmt reftyp;
 rec clob;
@@ -116,8 +121,9 @@ temp1 := 'drop table ' || ptablename;
 
 EXECUTE IMMEDIATE temp1;
 END;
+>>
 
-
+<<
 CREATE OR REPLACE PROCEDURE Pr_insertsql_new(ptablename VARCHAR)
 IS
 sqlstmt VARCHAR(4000); -- Increased size to accommodate long queries
@@ -147,3 +153,4 @@ WHEN OTHERS THEN
 DBMS_OUTPUT.PUT_LINE('Error: ' || SQLERRM);
 RAISE;
 END;
+>>

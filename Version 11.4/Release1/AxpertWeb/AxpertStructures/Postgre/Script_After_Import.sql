@@ -1,3 +1,4 @@
+<<
 CREATE OR REPLACE FUNCTION fn_tstruct_getdcrecid(ptransid character varying, precordid numeric, pdcstring character varying)
  RETURNS TABLE(dcname character varying, rowno numeric, recordid numeric)
  LANGUAGE plpgsql
@@ -49,7 +50,9 @@ return;
 END; 
 $function$
 ;
+>>
 
+<<
 CREATE OR REPLACE FUNCTION fn_ruledefv3_masking(pmaskstring text)
  RETURNS text
  LANGUAGE plpgsql
@@ -88,7 +91,9 @@ return array_to_string(v_maskstringary,chr(10)) ;
 end;
 $function$
 ;
+>>
 
+<<
 CREATE OR REPLACE FUNCTION fn_ruledefv3_scriptgen(pcmd character varying, pfldstring text)
  RETURNS text
  LANGUAGE plpgsql
@@ -110,3 +115,4 @@ end if;
 END;
 $function$
 ;
+>>
