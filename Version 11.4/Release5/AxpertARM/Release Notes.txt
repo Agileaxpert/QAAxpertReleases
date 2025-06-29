@@ -1,0 +1,10 @@
+Following points are fixed in this release:
+
+1) Task ID-012376-QA-In Cards, The chart properties functionality changes are not being reflected in dashboard and homepage.
+2) Data lising page - No Data Found - Changed UI
+3) List views permission issue in SQL server.
+4) Global variables error in listing page.
+5) Payazzure charts properties.
+
+Note: Appsettings.json is modified.
+     -New SSO feature is added using JWKS file. Refer file 'ARM - JWT authentication Tokens.docx' for more details.
