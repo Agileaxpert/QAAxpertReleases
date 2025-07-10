@@ -790,7 +790,7 @@
     <script src="../js/datatables.min.js"></script>
     <script src="../js/Entity-Filter.min.js?v=7"></script>
     <script src="../js/Entity-common.min.js?v=9"></script>
-    <script src="../js/Entity.min.js?v=21"></script>
+    <script src="../js/Entity.min.js?v=20"></script>
 
     <script type="text/javascript">
         /* Variables from mainpage */
