@@ -25,7 +25,6 @@ Task ID-012472 -SaaS- Fixes for following points:
 4) Check Box UI fix 
 5) Right side panel not hiding in Data Page
 6) Connected data not coming for some screens.
-7) Global import Hidden characters and Newline characters issue
 
 Note:
 Following files are released in ARM to maintain the developer versioning:

@@ -7,8 +7,6 @@ Fixes for following points is released:
 5) Task ID-012366 - Right side panel not hiding in Data Page
 6) Connecteddata not coming for some screens.
 
-7) Global import Hidden characters and Newline characters issue
-
 Note:
 Following files are released in ARM to maintain the developer versioning:
 
