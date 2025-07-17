@@ -484,8 +484,7 @@ v_final_sqls := array_append(v_final_sqls,v_sql1);
   
     return array_to_string(v_final_sqls,'^^^') ;
 
-END;
-$function$
+END;$function$
 ;
 
 >>
