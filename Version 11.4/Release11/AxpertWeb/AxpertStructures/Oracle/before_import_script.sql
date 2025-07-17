@@ -6,7 +6,7 @@ CREATE TABLE ax_userconfigdata (
    keyname VARCHAR2(100),
    username VARCHAR2(100),
    value CLOB
-);
+)
 
 >>
 
@@ -17,6 +17,6 @@ UPDATE AXDIRECTSQL SET SQLTEXT='SELECT touser, fromuser, taskname, eventdatetime
 from vw_pegv2_alltasks where case when cstatus=''Active'' then lower(touser) else lower(username) end = lower( :username)) 
 WHERE rno BETWEEN 1 AND 100
 order by edatetime desc 
-' WHERE SQLNAME='ds_homepage_activelist';
+' WHERE SQLNAME='ds_homepage_activelist'
 
 >>
