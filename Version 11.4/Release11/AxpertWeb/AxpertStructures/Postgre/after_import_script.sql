@@ -46,16 +46,8 @@ v_dac_cnd varchar;
 
 begin
 
-/*
----pflds - tbl1=fldname~normalized~source_table~source_fld~mandatory|fldname~normalized~source_table~source_fld~mandatory^
-		tb12=fldname~normalized~source_table~source_fld~mandatory|fldname~normalized~source_table~source_fld~mandatory
- */
+
 	
-/* pfilter
-search field|operator search text^ 
-fldname~normalized~sourcetable~sourcefld~datatype~listedfield~tablename| operator search text^
-*/
-		
 
 	select tablename into v_primarydctable from axpdc where tstruct = ptransid and dname ='dc1';
 
@@ -204,8 +196,6 @@ END; $function$
 
 <<
 
--- DROP FUNCTION fn_axpanalytics_metadata(varchar, varchar, varchar);
-
 CREATE OR REPLACE FUNCTION fn_axpanalytics_metadata(ptransid character varying, psubentity character varying DEFAULT 'F'::character varying, planguage character varying DEFAULT 'English'::character varying)
  RETURNS SETOF axpdef_axpanalytics_mdata
  LANGUAGE plpgsql
@@ -255,7 +245,7 @@ begin
 
 	for r in execute v_sql
 		loop	    	
-			RETURN NEXT r; -- return current row of select
+			RETURN NEXT r; 
 		END LOOP;	
 	
 
@@ -301,7 +291,7 @@ select concat('select distinct axpflds.tstruct transid,coalesce(lf.compcaption,t
 
 	    for r in execute v_subentitysql
       		loop	    	
-        		RETURN NEXT r; -- return current row of select        		
+        		RETURN NEXT r; 
         	END LOOP;
 
 
@@ -315,8 +305,6 @@ END; $function$
 >>
 
 <<
-
--- DROP FUNCTION fn_axpanalytics_se_listdata(varchar, text, numeric, numeric);
 
 CREATE OR REPLACE FUNCTION fn_axpanalytics_se_listdata(pentity_transid character varying, pflds_keyval text, ppagesize numeric DEFAULT 50, ppageno numeric DEFAULT 1)
  RETURNS text
@@ -356,18 +344,12 @@ v_fldname_dcjoinsary varchar[] DEFAULT  ARRAY[]::varchar[];
 
 begin	
 
-	/*
-	 * transid=fldlist=dependfld~depvalue~dependtblname~dependfldprops++transid2=fldlist=dependfld~depvalue
-	 * pflds_keyval - transid=tablename!~fldname~normalized~source_table~source_fld~allowempty|fldname2~normalized~source_table~source_fld~allowempty^tablename2!~fldname~normalized~srctbl~srcfld~allowempty=dependfld~dependval++
-	 * transid2=tablename!~fldname~normalized~source_table~source_fld~allowempty|fldname2~normalized~source_table~source_fld~allowempty=dependfld~dependval		 
-	 */
-	
-	
-	FOR rec in select unnest(string_to_array(pflds_keyval,'++')) fldkeyvals ---- multiple transid split   	 
+
+	FOR rec in select unnest(string_to_array(pflds_keyval,'++')) fldkeyvals 
     loop
 	    	
 	    	v_pflds_transid := split_part(rec.fldkeyvals,'=',1) ;	    	
-	    	v_pflds_flds := split_part(rec.fldkeyvals,'=',2) ;--tablename=~fldname~normalized~source_table~source_fld~mandatory|fldname2~normalized~source_table~source_fld~mandatory^tablename2=~fldname~normalized~srctbl~srcfld~mandatory
+	    	v_pflds_flds := split_part(rec.fldkeyvals,'=',2) ;
 	    	v_pflds_keyvalue := split_part(rec.fldkeyvals,'=',3) ;
 	    	v_pflds_keytable := split_part(v_pflds_keyvalue,'~',3) ;  	    
 			v_keyvalue_fname := split_part(v_pflds_keyvalue,'~',1);
@@ -399,7 +381,7 @@ begin
 				order by dcname ,ordno)a group by a.tablename;				
 		    end if;
 	    
-	    for rec1 in select unnest(string_to_array(case when v_pflds_flds='All' then v_allflds else v_pflds_flds end,'^')) tblflds --single transid & single table split --tablename=~fldname~normalized~source_table~source_fld~mandatory|fldname2~normalized~source_table~source_fld~mandatory 
+	    for rec1 in select unnest(string_to_array(case when v_pflds_flds='All' then v_allflds else v_pflds_flds end,'^')) tblflds 
 	    	loop		    			    			    			     
 		    		v_fldname_table := 	split_part(rec1.tblflds,'!~',1);
 		    		v_fldname_tblflds := 	split_part(rec1.tblflds,'!~',2);
@@ -420,7 +402,7 @@ begin
 		
 		    			    	
 			    FOR rec2 in			    	
-    				select unnest(string_to_array(v_fldname_tblflds,'|')) fldname--tablename=~fldname~normalized~source_table~source_fld~mandatory
+    				select unnest(string_to_array(v_fldname_tblflds,'|')) fldname
 						loop							
 							v_fldname_col := split_part(rec2.fldname,'~',1);
 							v_fldname_normalized := split_part(rec2.fldname,'~',2);

@@ -55,16 +55,6 @@ v_dac_normalizedjoinreq numeric;
  begin
  
  
-/*
----pflds - tbl1=fldname~normalized~source_table~source_fld~mandatory|fldname~normalized~source_table~source_fld~mandatory^
-		tb12=fldname~normalized~source_table~source_fld~mandatory|fldname~normalized~source_table~source_fld~mandatory
- */
-	
-/* pfilter
-search field|operator search text^ 
-fldname~normalized~sourcetable~sourcefld~datatype~listedfield~tablename| operator search text^
-*/
-
 	select tablename into v_primarydctable from axpdc where tstruct = ptransid and dname ='dc1';	
 
 	select count(1) into v_fldname_transidcnd from axpflds where tstruct = ptransid and dcname ='dc1' and lower(fname)='transid';
@@ -150,8 +140,8 @@ END LOOP;
 			FOR rec IN
     			(select column_value as ifilter from table(string_to_array(pfilter,'^')) )
 			    loop		    	
-			    	v_filter_srcfld := split_part(rec.ifilter,'|',1); -- tstfm~empcode~F~~
-			    	v_filter_srctxt := split_part(rec.ifilter,'|',2);--   = 'EMP-001'
+			    	v_filter_srcfld := split_part(rec.ifilter,'|',1); 
+			    	v_filter_srctxt := split_part(rec.ifilter,'|',2);
 			    	v_filter_col := split_part(v_filter_srcfld,'~',1);
 				    v_filter_normalized := split_part(v_filter_srcfld,'~',2);
  				    v_filter_sourcetbl := split_part(v_filter_srcfld,'~',3);
@@ -271,9 +261,9 @@ select axpflds.tstruct transid,coalesce(lf.compcaption,t.caption) formcap, fname
 -- If subentities are requested.  
   if psubentity ='T' then		
 
- -- Iterate over distinct subentity data structures.   
+
     FOR rec IN (
-        select distinct a.dstruct ,a.rtype,dprimarytable--,dc.tablename,a.dfield,a.rtype,a.mfield
+        select distinct a.dstruct ,a.rtype,dprimarytable
 		from axentityrelations a 
 		join axpdc dc on a.dstruct = dc.tstruct 
 		where  mstruct = ptransid )
