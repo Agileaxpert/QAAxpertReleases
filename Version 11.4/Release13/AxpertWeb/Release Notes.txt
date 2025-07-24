@@ -20,3 +20,4 @@ This results in loss of the originally uploaded files after save.
 TASK-0081 -Support(GCMS)- There is always an exception "Clear in-memory keys and try again" when loading DMG Registration screen from menu.
 When checking in redis, only this transid related keys are missing and we tried clearing all keys once to check if it is resolving. 
 
+TASK-0417 -QA- Iview Picklist and dynamic filter parameters ui is not proper
