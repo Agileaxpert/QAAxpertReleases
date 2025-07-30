@@ -2359,6 +2359,14 @@ public class TStructData
                                                     Directory.CreateDirectory(destinationDir);
                                                 }
                                                 string destinationPath = Path.Combine(destinationDir, destValue);
+
+                                                // Delete if file already exists
+                                                string targetPath = Path.Combine(Path.GetDirectoryName(destinationPath), imgName);
+                                                if (File.Exists(targetPath))
+                                                {
+                                                    File.Delete(targetPath);
+                                                }
+
                                                 Microsoft.VisualBasic.FileIO.FileSystem.RenameFile(destinationPath, imgName);
                                             }
                                             catch (Exception ex)
