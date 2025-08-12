@@ -33,7 +33,7 @@
     <script src="../Js/helper.min.js?v=170"></script>
     <script src="../assets/js/loadingoverlay.min.js?v=3" type="text/javascript"></script>
     <script type="text/javascript" src="../Js/common.min.js?v=157"></script>
-    <script src="../Js/process.min.js?v=330"></script>
+    <script src="../Js/process.min.js?v=331"></script>
     <script type="text/javascript" src="../Js/lang/content-<%=langType%>.js?v=64"></script>
     <script type="text/javascript">
         history.go(1); // disable the browser's back button

@@ -6231,34 +6231,44 @@ function AssignJQueryEvents(dcArray,_calledFrom="") {
                         MainBlur($(instance.element));
                     }
                 });
-
-                $j(dvId + " .flatpickr-input.fldtimestamp").flatpickr({
-                    dateFormat: tsFormat,
-                    enableTime: true,
-                    time_24hr: true,
-                    enableSeconds: true, 
-                    allowInput: true,
-                    defaultHour: new Date().getHours(),
-                    defaultMinute: new Date().getMinutes(),
-                    defaultSeconds: new Date().getSeconds(),
-                    onPreCalendarPosition: function (selectedDates, dateStr, instance) {
-                        let $input = $(instance.element);
-                        let inputVal = $input.val();
-                        if (inputVal && inputVal.trim() !== "") {
-                            instance.setDate(inputVal, false, tsFormat);
-                        } else {
-                            instance.clear();
+                $j(dvId + " .flatpickr-input.fldtimestamp").each(function () {
+                    let fp = flatpickr(this, {  
+                        dateFormat: tsFormat,
+                        enableTime: true,
+                        time_24hr: true,
+                        enableSeconds: true,
+                        allowInput: true,
+                        defaultHour: new Date().getHours(),
+                        defaultMinute: new Date().getMinutes(),
+                        defaultSeconds: new Date().getSeconds(),
+                        onPreCalendarPosition: function (selectedDates, dateStr, instance) {
+                            let $input = $(instance.element);
+                            let inputVal = $input.val();
+                            if (inputVal && inputVal.trim() !== "") {
+                                instance.setDate(inputVal, false, tsFormat);
+                            } else {
+                                instance.clear();
+                            }
+                        },
+                        onOpen: function (selectedDates, dateStr, instance) {
+                            if (dateStr != null && dateStr != "")
+                                instance.setDate(dateStr);
+                            MainFocus($(instance.element));
+                        },
+                        onClose: function (selectedDates, dateStr, instance) {
+                            MainBlur($(instance.element));
                         }
-                    },
-                    onOpen: function (selectedDates, dateStr, instance) {
-                        if (dateStr != null && dateStr != "")
-                            instance.setDate(dateStr);
-                        MainFocus($(instance.element));
-                    },
-                    onClose: function (selectedDates, dateStr, instance) {
-                        MainBlur($(instance.element));
-                    }
+                    });
+
+                    // Attach icon click handler
+                    $j(this)
+                        .closest(".input-group")
+                        .find(".spanDateTime")
+                        .on("click", function () {
+                            fp.open();
+                        });
                 });
+
 
                 $j(dvId + " .tstOnlyTime").flatpickr({
                     enableTime: true,

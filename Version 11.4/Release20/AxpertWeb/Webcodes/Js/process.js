@@ -934,7 +934,7 @@ function CallAction(actionName, fileup, confirmmsg, remarks, manRemarks, dsignac
         } 
         try {
             let actInd = $j.inArray(actionName, tstActionName);
-            if (typeof actScriptActive != "undefined" && actScriptActive[actInd] != "true") {
+            if (actInd > -1 && typeof actScriptActive != "undefined" && actScriptActive[actInd] != "true") {
                 showAlertDialog("error", 'Script is not Active, please check the defintion.');
                 ShowDimmer(false);
                 AxWaitCursor(false);
@@ -1024,7 +1024,8 @@ function CallAction(actionName, fileup, confirmmsg, remarks, manRemarks, dsignac
             }
             let fcScriptInd = $j.inArray(actionName, SFCActionName);
             if (fcScriptInd>-1 && typeof SFormControls != "undefined" && typeof SFormControls[fcScriptInd] != "undefined" && (SFormControls[fcScriptInd].toLowerCase().startsWith("loadform(") || SFormControls[fcScriptInd].toLowerCase().startsWith("loadformanddata(") || SFormControls[fcScriptInd].toLowerCase().startsWith("loadiview(") || SFormControls[fcScriptInd].toLowerCase().startsWith("loadpage(") || SFormControls[fcScriptInd].toLowerCase().startsWith("openpage("))) {
-                EvaluateScriptFormControl(SFormControls[fcScriptInd]);
+                if (typeof SFCIsActive != "undefined" && SFCIsActive[fcScriptInd] == "true")
+                    EvaluateScriptFormControl(SFormControls[fcScriptInd]);
 
                 EnableToolBarBtns();
                 actionCallbackFlag = actionCallFlag;

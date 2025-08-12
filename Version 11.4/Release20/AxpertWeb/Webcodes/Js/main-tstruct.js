@@ -9627,11 +9627,13 @@ function DoScriptFormControl(componentName, eventType) {
                 if (elem == "On Form Load" && rid == "0") {
                     isScriptFormLoad = "true";
                     var sfcExp = SFormControls[idx];
-                    EvaluateScriptFormControl(sfcExp);
+                    if (typeof SFCIsActive != "undefined" && SFCIsActive[idx] == "true")
+                        EvaluateScriptFormControl(sfcExp);
                 } else if (elem == "On Data Load" && rid != "0") {
                     isScriptFormLoad = "true";
                     var sfcExp = SFormControls[idx];
-                    EvaluateScriptFormControl(sfcExp);
+                    if (typeof SFCIsActive != "undefined" && SFCIsActive[idx] == "true")
+                        EvaluateScriptFormControl(sfcExp);
                 }
             });
         } else if (componentName != "") {
@@ -9642,7 +9644,8 @@ function DoScriptFormControl(componentName, eventType) {
                 if (elem == sfcfName && SFCApply[idx] == eventType) {
                     isScriptFormLoad = "false";
                     var sfcExp = SFormControls[idx];
-                    EvaluateScriptFormControl(sfcExp, componentName);
+                    if (typeof SFCIsActive != "undefined" && SFCIsActive[idx] == "true")
+                        EvaluateScriptFormControl(sfcExp, componentName);
                 }
             });
         }

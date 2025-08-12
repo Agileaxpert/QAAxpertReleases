@@ -4782,6 +4782,14 @@ public class TStructDef
                         actapply = actionNode.Attributes["apply"].Value.ToString();
                     if (actionNode.Attributes["applyon"] != null)
                         actapplyon = actionNode.Attributes["applyon"].Value.ToString();
+                    string isfscriptActive = "true";
+                    if (actionNode.Attributes["active"] != null)
+                    {
+                        isfscriptActive = actionNode.Attributes["active"].Value;
+                        if (isfscriptActive != string.Empty)
+                            isfscriptActive = isfscriptActive.ToLower();
+                    }
+
                     if (actionNode.HasChildNodes)
                     {
                         try
@@ -4802,6 +4810,7 @@ public class TStructDef
                     script_fc.Append("SFCApply[" + srConNo + "]=" + "\"" + actapply + "\"; ");
                     script_fc.Append("SFCFldNames[" + srConNo + "]=" + "\"" + actapplyon + "\"; ");
                     script_fc.Append("SFCActionName[" + srConNo + "]=" + "\"" + actionNode.Name.ToString() + "\"; ");
+                    script_fc.Append("SFCIsActive[" + srConNo + "]=" + "\"" + isfscriptActive + "\"; ");
                     srConNo++;
                 }
                 else
@@ -4834,9 +4843,13 @@ public class TStructDef
                         rapidFormLoadActionXML += actionNode.OuterXml;
 
                     if (actionNode.Attributes["active"] != null)
+                    {
                         act.scriptActive = actionNode.Attributes["active"].Value;
+                        if (act.scriptActive != string.Empty)
+                            act.scriptActive = act.scriptActive.ToLower();
+                    }
                     else
-                        act.scriptActive = "True";
+                        act.scriptActive = "true";
 
                     if (actionNode.Attributes["pushtoqueue"] != null)
                         act.pushtoQueue = actionNode.Attributes["pushtoqueue"].Value;

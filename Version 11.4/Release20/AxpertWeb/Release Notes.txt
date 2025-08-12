@@ -24,6 +24,8 @@ TASK-0836 -PayAzzure- While performing a bulk upload using aximport, the process
 
 TASK-0677 -GCMS- The user is experiencing Hindi font display issues when exporting a report to PDF via the default export button in the iView. While the Word export renders the Hindi text correctly, the PDF shows unreadable characters.
 
+TASK-0598 -Trustline- The OTP is generated twice very rarely, and the OTP generated first is accepted by the system during login. 
+
 
 AxpertStudio:
 -------------
