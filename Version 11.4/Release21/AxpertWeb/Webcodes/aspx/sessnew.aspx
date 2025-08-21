@@ -1,4 +1,4 @@
-<%@ Page Language="VB" AutoEventWireup="false" CodeFile="sess.aspx.vb" Inherits="sess" %>
+﻿<%@ Page Language="VB" AutoEventWireup="false" CodeFile="sessnew.aspx.vb" Inherits="sessnew" %>
 
 <!DOCTYPE html>
 <html>
@@ -124,7 +124,6 @@
             }
         }
         let appSessUrl = top.window.location.href.toLowerCase().substring("0", top.window.location.href.indexOf("/aspx/"));
-        localStorage.setItem('logged_in-' + appSessUrl, 'no');
         let duplicateUser = localStorage.getItem("duplicateUser-" + appSessUrl);
         if (typeof duplicateUser != "undefined" && duplicateUser != null)
             duplicateUser = duplicateUser.replace(/[^a-zA-Z0-9_\-\/]/g, "");
@@ -144,7 +143,7 @@
             if (typeof duplicateUser != "undefined" && duplicateUser != "") {
                 try {
                     $.ajax({
-                        url: 'sess.aspx/ClearSessExpiry',
+                        url: 'sessnew.aspx/ClearSessExpiry',
                         type: 'POST',
                         cache: false,
                         async: true,
@@ -268,7 +267,7 @@
                 </div>
 
 
-                <div class="d-flex align-items-center pt-2" runat="server" id="dvSessLogin">
+                <div class="d-flex align-items-center pt-2">
                     <a href="<%=loginStr %>" class="btn btn-lg btn-primary m-auto w-50" id="btnSessLogin">
                         <asp:Label ID="lblsesslogin" runat="server" meta:resourcekey="lblsesslogin">Log in</asp:Label>
                     </a>
