@@ -11,6 +11,11 @@ Note: 1. Cards definition screen 'Refresh Interval' withdrawn
 
 TASK-1128 -BMRCL- Custom HTML home page performance issue
 
+TASK-0997 -BAFCO- As current SSO requirement mandates that the username in the axusers table must be the user's email ID, we request a feature to use the existing username in axusers table to be used as login through SSO instead of email ID. 
+Please note the following points for SSO login enabled Users:
+1. EmailID is mandatory in 'AxUsers' table in 'Email' column and it should be unique. 
+2. Once Axpert Application Authenticated with SSO, then value in 'UserName' column will be used for further identification of the loggedin User for that particular session. 
+
 TASK-0943 -BAFCO- Forget Password Redirecting to Microsoft Login Portal
 
 TASK-1014 -BAFCO- Mobile App Bafco 11.4 - Calendar icon is not shown in Date fields in Grid Dc and calendar format is different for header

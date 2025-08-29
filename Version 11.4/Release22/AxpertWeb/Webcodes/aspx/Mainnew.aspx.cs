@@ -402,9 +402,13 @@ public partial class aspx_Mainnew : System.Web.UI.Page
                     }
 
                     Session["project"] = signinProj = loginHelper.proj;
-                    Session["user"] = loginHelper.user;
-                    Session["username"] = loginHelper.user;
-                    user = loginHelper.user;
+
+
+                    //Session["user"] = loginHelper.user;
+                    //Session["username"] = loginHelper.user;
+                    //user = loginHelper.user;
+
+
                     Session["pwd"] = loginHelper.password;
                     Session["nsessionid"] = Session.SessionID;
                     sid = Session.SessionID;
@@ -3561,10 +3565,12 @@ public partial class aspx_Mainnew : System.Web.UI.Page
         string errlog = string.Empty;
         result = loginHelper.result;
         Session["project"] = loginHelper.proj;
-        Session["user"] = loginHelper.user;
-        Session["username"] = loginHelper.user;
+
+        //Session["user"] = loginHelper.user;
+        //Session["username"] = loginHelper.user;
+        //thmUser = loginHelper.user;
+
         proj = loginHelper.proj;
-        thmUser = loginHelper.user;
         thmSid = sid;
         Session["pwd"] = loginHelper.password;
         Session["nsessionid"] = sid;
@@ -3668,6 +3674,9 @@ public partial class aspx_Mainnew : System.Web.UI.Page
         }
         else
         {
+            Session["user"] = loginHelper.user;
+            Session["username"] = loginHelper.user;
+            thmUser = loginHelper.user;
             ParseStringResult(result);
         }
 
@@ -3960,6 +3969,18 @@ public partial class aspx_Mainnew : System.Web.UI.Page
         xmlDoc.LoadXml(result);
 
         XmlNode resultNode = xmlDoc.SelectSingleNode("/result");
+
+        if (resultNode.Attributes["username"] != null)
+        {
+            loginHelper.user = resultNode.Attributes["username"].Value;
+            Session["user"] = loginHelper.user;
+            Session["username"] = loginHelper.user;
+            user = loginHelper.user;
+            thmUser = loginHelper.user;
+        }
+
+
+
         if (resultNode.Attributes["theme"] != null)
             ApplyTheme(resultNode.Attributes["theme"].Value);
         if (resultNode.Attributes["nickname"] != null)
