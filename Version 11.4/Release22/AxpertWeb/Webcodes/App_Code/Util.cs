@@ -368,6 +368,22 @@ namespace Util
             return str;
         }
 
+        public string EscapeHtmlButKeepBr(string input)
+        {
+            if (string.IsNullOrEmpty(input))
+                return input;
+            string temp = input
+                .Replace("<br>", "___BR1___")
+                .Replace("<br/>", "___BR2___")
+                .Replace("<br />", "___BR3___");
+            temp = temp.Replace("<", "&lt;").Replace(">", "&gt;");
+            temp = temp.Replace("___BR1___", "<br>")
+                       .Replace("___BR2___", "<br/>")
+                       .Replace("___BR3___", "<br />");
+
+            return temp;
+        }
+
         public string CheckSplChrInputXML(string str)
         {
             if (str != null && str != "")

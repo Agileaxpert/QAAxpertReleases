@@ -1632,6 +1632,9 @@ function chkLoginFormNew(e) {
                 let _clDetails = _clLocale + "*" + _clTimezone + "^" + $("#hdnProjLang").val() + "*" + _cldt;
                 $("#hdnClientDt").val(_clDetails);
             } catch (ex) { }
+
+            const _thisEncpVal = encryptLoginDetails($j("#axPassword").val());
+            $("#hdnPuser").val(_thisEncpVal);
             GetProcessTime();
             $("#browserElapsTime").val(browserElapsTime);
             return true;
@@ -1731,6 +1734,8 @@ function chkNextForm() {
                     return false;
                 }
             } else {
+                const _thisEncVal = encryptLoginDetails($j("#axUserName").val());
+                $("#hdnUserName").val(_thisEncVal);         
                 GetProcessTime();
                 $("#browserElapsTime").val(browserElapsTime);
                 return true;
@@ -1745,6 +1750,8 @@ function chkNextForm() {
                 return false;
             }
         } else {
+            const _thisEncVal = encryptLoginDetails($j("#axUserName").val());
+            $("#hdnUserName").val(_thisEncVal);
             GetProcessTime();
             $("#browserElapsTime").val(browserElapsTime);
             return true;
@@ -1840,8 +1847,13 @@ function chkoptauth() {
             contentType: "application/json; charset=utf-8",
             dataType: "json",
             success: function (response) {
-                if (response.d == "success")
+                if (response.d == "success") {
+                    const _thisEncVal = encryptLoginDetails($("#hdnUserName").val());
+                    $("#hdnUserName").val(_thisEncVal);
+                    const _thisEncpVal = encryptLoginDetails($("#hdnPuser").val());
+                    $("#hdnPuser").val(_thisEncpVal);
                     $("#btnOTPLogin").click();
+                }
                 else if (response.d == "InvalidOTP")
                     showAlertDialog("error", "Invalid OTP");
                 else if (response.d == "OTPexpired")
@@ -1917,6 +1929,13 @@ function btnResendOTP() {
             _btnResendotp.style.pointerEvents = "none";
         }
         $("#axOTPpwd").attr("required", false);
+
+        const _thisEncVal = encryptLoginDetails($("#hdnUserName").val());
+        $("#hdnUserName").val(_thisEncVal);
+        if ($("#hdnPuser").val() != "") {
+            const _thisEncpVal = encryptLoginDetails($("#hdnPuser").val());
+            $("#hdnPuser").val(_thisEncpVal);
+        }
         $("#btnResendOtp").click();
     } catch (ex) { }
 }
@@ -2027,4 +2046,30 @@ function handleNextAction(event, isValidProject) {
         return;
     }
 
+}
+
+function encryptLoginDetails(thisVal) {
+    const aesKey = CryptoJS.lib.WordArray.random(16);
+    const iv = CryptoJS.lib.WordArray.random(16);
+    var encrypted = CryptoJS.AES.encrypt(thisVal, aesKey, {
+        iv: iv,
+        mode: CryptoJS.mode.CBC,
+        padding: CryptoJS.pad.Pkcs7
+    });
+    const combined = iv.concat(encrypted.ciphertext);
+    const base64Cipher = CryptoJS.enc.Base64.stringify(combined);
+    const encryptor = new JSEncrypt();
+    let _pbKey = $("#hdnEncKey").val();
+    _pbKey = _pbKey.replace(/\\n/g, '\n');
+    encryptor.setPublicKey(_pbKey);
+    const encryptedAesKey = encryptor.encrypt(CryptoJS.enc.Base64.stringify(aesKey));
+    if (encryptedAesKey) {
+        const payload = JSON.stringify({
+            key: encryptedAesKey,
+            data: base64Cipher
+        });
+        return payload;
+    } else {
+        return thisVal;
+    }
 }

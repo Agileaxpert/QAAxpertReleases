@@ -1018,7 +1018,7 @@ $(document).ready(function (event) {
                 createAutoComplete(appGlobalVarsObject._CONSTANTS.search.staging.div);
             }
         } catch (ex) { }
-        //ShowDimmer(false);
+        ShowDimmer(false);
         $('#middle1').on('load', function () {
             $(this).contents().find("html").on('click', function (event) {
                 $("#Li1").removeClass("open");
@@ -1801,7 +1801,8 @@ function getKeysWithPrefix(prefix) {
     return matchingKeys;
 }
 function LoadIframe(src, isautoprocess = false) {
-    ShowDimmer(true);
+    if (typeof src != "undefined" && src.toLowerCase().indexOf('iview.aspx?') == -1 && src.toLowerCase().indexOf('tstruct.aspx?') == -1 && src.toLowerCase().indexOf('htmlpages.aspx?') == -1 && src.toLowerCase().indexOf('page.aspx?') == -1)
+        ShowDimmer(true);
     setTimeout(function () {
         try {
             var _el = document.getElementById('middle1');
@@ -2124,13 +2125,14 @@ function LoadIframe(src, isautoprocess = false) {
         if (src.indexOf('tstruct.aspx') > -1) {
             loadFrame();
         }
-        if (src.indexOf('htmlPages.aspx') > -1) {
+        if (src.toLowerCase().indexOf('htmlpages.aspx') > -1 || src.toLowerCase().indexOf('page.aspx?') > -1) {
             loadFrame();
         }
 
-        if (src.indexOf('dashBoardTemplate.html') > -1 || src.indexOf('calendarTemplate.html') > -1) {
+        if (src.indexOf('dashBoardTemplate.html') > -1 || src.indexOf('calendarTemplate.html') > -1 || src.indexOf('/HTMLPages/') > -1 || src.indexOf('processflow.aspx?calendar=t') > -1 || src.indexOf('processflow.aspx?dashboard=t') > -1) {
             try {
-                ShowDimmer(false);
+                //ShowDimmer(false);
+                callParentNew("ShowDimmer(false)", "function");
             } catch (ex) { }
         }
 

@@ -38,6 +38,16 @@ Note 3 : Issue occurs in postgres and oracle schema's aswell.
 
 TASK-1090 -QA- Issue Description :Product Issue Mobile : Under Utilities, when user click on "Field Captions" or ">" symbol, the page is getting refreshed instead of displaying the following options "Visible"/ "Hidden".
 
+TASK-0669 -BMRCL-Resending this ticket again with reference to the old task #67, where since it was returned back saying attachment not working.
+1. Usernames can be enumerated by manipulating the “axPassword” and “hdnPuser” parameters in the request, indicating insufficient access control mechanisms. Additionally, login attempts using a default password for the enumerated users resulted in a response stating “User not activated” confirming user enumeration is possible without proper account protection.
+   Note: UserName and Password has been handled through encryption to avoid tampering.				
+2. The default Internet Information Services (IIS) page is exposed, as shown  below.	
+   Note: In web.config below key needs to be enabled and verify this point. 				
+    web.config key: <add name="Strict-Transport-Security" value="max-age=31536000; includeSubDomains; preload" />
+
+TASK-1392 -QA- Saving and Loading data not happening properly if the data having special characters ('<', '>')
+
+
 ARM:
 ----
 TASK-1193 -- Enhancement: Home page loading performance improvement along with Application back button and Loader issues in some scenarios. Please note the following points with respective this change.

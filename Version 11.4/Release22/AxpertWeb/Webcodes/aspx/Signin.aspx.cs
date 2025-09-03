@@ -26,6 +26,9 @@ using System.Security.Cryptography;
 using System.Security;
 using System.Text.RegularExpressions;
 using Newtonsoft.Json;
+using Org.BouncyCastle.Crypto.Parameters;
+using Org.BouncyCastle.Math;
+using Org.BouncyCastle.OpenSsl;
 
 public partial class Signin : System.Web.UI.Page
 {
@@ -132,6 +135,78 @@ public partial class Signin : System.Web.UI.Page
             multipleAccessCode = "true";
         else
             multipleAccessCode = "false";
+
+
+        if (IsPostBack)
+        {
+            try
+            {
+                if (Session["loginPrivateKey-" + Session.SessionID] == null && ViewState["loginPrivateKey-Ecnrypt"] != null)
+                {
+                    Session["loginPrivateKey-" + Session.SessionID] = ViewState["loginPrivateKey-Ecnrypt"];
+                    ViewState.Remove("loginPrivateKey-Ecnrypt");
+                }
+                if (hdnUserName.Value != "")
+                {
+                    var payload = Newtonsoft.Json.JsonConvert.DeserializeObject<dynamic>(hdnUserName.Value);
+                    string encryptedAesKey = payload.key;
+                    string aesEncryptedData = payload.data;
+
+                    using (RSA rsa = RSA.Create())
+                    {
+                        rsa.FromXmlString(Session["loginPrivateKey-" + Session.SessionID].ToString());
+                        byte[] encryptedKeyBytes = Convert.FromBase64String(encryptedAesKey);
+                        byte[] decryptedKeyBytes = rsa.Decrypt(encryptedKeyBytes, RSAEncryptionPadding.Pkcs1);
+                        string aesKeyBase64 = Encoding.UTF8.GetString(decryptedKeyBytes);
+                        byte[] keyBytes = Convert.FromBase64String(aesKeyBase64);
+
+                        // Decrypt AES data
+                        byte[] aesBytes = Convert.FromBase64String(aesEncryptedData);
+                        var decrypted = DecryptWithAesBase64(aesEncryptedData, keyBytes);
+                        hdnUserName.Value = decrypted;
+                        axUserName.Value = decrypted;
+                    }
+                }
+                if (hdnPuser.Value != "")
+                {
+                    var payload = Newtonsoft.Json.JsonConvert.DeserializeObject<dynamic>(hdnPuser.Value);
+                    string encryptedAesKey = payload.key;
+                    string aesEncryptedData = payload.data;
+
+                    using (RSA rsa = RSA.Create())
+                    {
+                        rsa.FromXmlString(Session["loginPrivateKey-" + Session.SessionID].ToString());
+                        byte[] encryptedKeyBytes = Convert.FromBase64String(encryptedAesKey);
+                        byte[] decryptedKeyBytes = rsa.Decrypt(encryptedKeyBytes, RSAEncryptionPadding.Pkcs1);
+                        string aesKeyBase64 = Encoding.UTF8.GetString(decryptedKeyBytes);
+                        byte[] keyBytes = Convert.FromBase64String(aesKeyBase64);
+
+                        // Decrypt AES data
+                        byte[] aesBytes = Convert.FromBase64String(aesEncryptedData);
+                        var decrypted = DecryptWithAesBase64(aesEncryptedData, keyBytes);
+                        hdnPuser.Value = decrypted;
+                    }
+                }
+            }
+            catch (Exception)
+            {
+                ViewState["StopProcessing"] = true;
+                string msg = "Could not process the request. Please try again.";
+                ClientScript.RegisterStartupScript(this.GetType(), "Javascript", "javascript:SetLoginErrorMsg(\"" + msg + "\");", true);
+                return;
+            }
+        }
+        else
+        {
+            if (ViewState["StopProcessing"] != null)
+                ViewState.Remove("StopProcessing");
+            var rsa = new RSACryptoServiceProvider(4096);
+            string xmlPublicKey = rsa.ToXmlString(false);
+            Session["loginPrivateKey-" + Session.SessionID] = rsa.ToXmlString(true);
+            hdnEncKey.Value = ConvertXmlPublicKeyToPem(xmlPublicKey).Replace("\r", "").Replace("\n", "\\n");
+        }
+
+
         if (!IsPostBack)
         {
             if (Util.Util.CheckCrossScriptingInString(Request.QueryString.ToString()))
@@ -477,6 +552,55 @@ public partial class Signin : System.Web.UI.Page
         AddCustomLinks();
     }
 
+    public string ConvertXmlPublicKeyToPem(string xml)
+    {
+        var rsa = new RSACryptoServiceProvider();
+        rsa.FromXmlString(xml);
+        var parameters = rsa.ExportParameters(false);
+
+        var keyParam = new RsaKeyParameters(
+            false, // isPrivate = false
+            new BigInteger(1, parameters.Modulus),
+            new BigInteger(1, parameters.Exponent)
+        );
+
+        using (var sw = new StringWriter())
+        {
+            var pemWriter = new PemWriter(sw);
+            pemWriter.WriteObject(keyParam); // <-- This gives PKCS#8
+            pemWriter.Writer.Flush();
+            return sw.ToString(); // This can be safely embedded in JS
+        }
+    }
+    public static string DecryptWithAesBase64(string base64Cipher, byte[] keyBytes)
+    {
+        try
+        {
+            var cipherBytes = Convert.FromBase64String(base64Cipher);
+
+            using (var aes = Aes.Create())
+            {
+                aes.Key = keyBytes;
+                aes.Mode = CipherMode.CBC;
+                aes.Padding = PaddingMode.PKCS7;
+
+                byte[] iv = cipherBytes.Take(16).ToArray(); // First 16 bytes = IV
+                byte[] actualCipher = cipherBytes.Skip(16).ToArray();
+
+                aes.IV = iv;
+
+                using (var decryptor = aes.CreateDecryptor())
+                {
+                    var decryptedBytes = decryptor.TransformFinalBlock(actualCipher, 0, actualCipher.Length);
+                    return Encoding.UTF8.GetString(decryptedBytes);
+                }
+            }
+        }
+        catch (Exception)
+        {
+            throw new Exception("Could not process the request. Please try again.");
+        }
+    }
     protected void checkSecurityVal(string _curValue)
     {
         try
@@ -1235,6 +1359,8 @@ public partial class Signin : System.Web.UI.Page
 
     protected void btnSubmit_Click(object sender, EventArgs e)
     {
+        if (ViewState["StopProcessing"] != null && (bool)ViewState["StopProcessing"])
+            return;
         isMobDevice = hdnMobDevice.Value;
         hybridGUID = hdnHybridGUID.Value;
         hybridDeviceId = hdnHybridDeviceId.Value;
@@ -1608,6 +1734,7 @@ public partial class Signin : System.Web.UI.Page
         }
         else if ((isotp == "true" && _otpauthDb == "true" && (login.result.IndexOf(" firsttime=\"1\"") == -1 && login.result.IndexOf(" firsttime=\"2\"") == -1 && login.result.IndexOf(" firsttime=\"3\"") == -1)) || (isotp == "true" && _otpauthDb == "true" && (login.result.IndexOf(" firsttime=\"1\"") > -1 || login.result.IndexOf(" firsttime=\"2\"") > -1 || login.result.IndexOf(" firsttime=\"3\"") > -1) && _pwdAut == "false"))
         {
+            ViewState["loginPrivateKey-Ecnrypt"] = Session["loginPrivateKey-" + Session.SessionID].ToString();
             login.otpauthlogin = "T";
             foreach (var item in Session)
             {
@@ -2071,6 +2198,8 @@ public partial class Signin : System.Web.UI.Page
 
     protected void WindowsBtn_Click(object sender, EventArgs e)
     {
+        if (ViewState["StopProcessing"] != null && (bool)ViewState["StopProcessing"])
+            return;
         checkSecurityVal(hdnProjLang.Value);
         checkSecurityVal(hdnProjName.Value);
         if (ConfigurationManager.AppSettings["axThemeFolder"] != null && ConfigurationManager.AppSettings["axThemeFolder"].ToString() != "")
@@ -2391,6 +2520,8 @@ public partial class Signin : System.Web.UI.Page
 
     protected void btnNext_Click(object sender, EventArgs e)
     {
+        if (ViewState["StopProcessing"] != null && (bool)ViewState["StopProcessing"])
+            return;
         bool allowLogin = true;
 
         axOTPAuthCahrs = string.Empty;
@@ -2751,6 +2882,8 @@ public partial class Signin : System.Web.UI.Page
 
     protected void btnOTPLogin_Click(object sender, EventArgs e)
     {
+        if (ViewState["StopProcessing"] != null && (bool)ViewState["StopProcessing"])
+            return;
         if (hdnOtpauth.Value != string.Empty)
         {
             Util.Util utils = new Util.Util();
@@ -2900,6 +3033,8 @@ public partial class Signin : System.Web.UI.Page
     }
     protected void btnResendOtp_Click(object sender, EventArgs e)
     {
+        if (ViewState["StopProcessing"] != null && (bool)ViewState["StopProcessing"])
+            return;
         checkSecurityVal(hdnProjLang.Value);
         checkSecurityVal(hdnProjName.Value);
         if (ConfigurationManager.AppSettings["axThemeFolder"] != null && ConfigurationManager.AppSettings["axThemeFolder"].ToString() != "")

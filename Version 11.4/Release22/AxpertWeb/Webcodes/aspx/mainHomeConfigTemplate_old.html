@@ -158,9 +158,6 @@ Home Cunfiguration Page Templete
                 <!--begin::Aside menu-->
                 <div class="aside-menu flex-column-fluid">
                     <!--begin::Aside Menu-->
-                    <div class="Axpert_logo">
-                        <img alt="Logo" class="mh-40px " src="../images/axAppLogo-full.png">
-                    </div>
                     <!--begin::Menu-->
                     <div class="menu menu-column menu-fit menu-rounded menu-title-gray-400 menu-icon-gray-300 menu-state-white menu-state-icon-warning menu-state-bullet-warning menu-hover-bg-dark menu-arrow-gray-400 fw-light fs-6 my-5 mt-lg-2 mb-lg-0" data-kt-menu="true">
                         <div class="menu-fit menu-link-no-padding hover-scroll-y hover-scroll-x ms-lg-n5--- me-lg-n10--- ps-lg-2 pe-lg-3 dark-scroll" data-kt-scroll="true" data-kt-scroll-activate="{default: false, lg: true}" data-kt-scroll-height="auto" data-kt-scroll-wrappers="#kt_aside_menu" data-kt-scroll-offset="20px" data-kt-scroll-dependencies="#webAxAppLogo, #kt_aside_footer">
@@ -192,40 +189,6 @@ Home Cunfiguration Page Templete
             <div class="wrapper d-flex flex-column flex-row-fluid position-relative bg-light">
                 <!--begin::Header-->
                 <div class="header" data-kt-sticky="true" data-kt-sticky-name="header" data-kt-sticky-offset="{default: '0px', lg: '0px'}" data-kt-sticky-animation="false">
-
-                    <div id="Header_Top">
-
-                        <div class="Product-info-section">
-                            <a href="javascript:void(0);" id="Product_logo" class="d-lg-none---" onclick="" title="Axpert">
-
-                                <img alt="Logo" src="../images/loginlogo.png" class="mh-25px ">
-                                <h3 class=" Product-Title">Agile ERP</h3>
-
-                            </a>
-                        </div>
-
-
-
-                        <div class="d-flex">
-
-                            <!--<div class="Application_Parameter-Section">
-                                <a href="#" class="Application_Parameter-Items">
-                                    Agile Labs
-                                </a>
-                                <a href="#" class="Application_Parameter-Items">
-                                    Bangalore
-                                </a>
-                                <a href="#" class="Application_Parameter-Items">
-                                    2024
-                                </a>
-                            </div>-->
-                            <!--begin::User-->
-                            <!--end::User -->
-
-
-                        </div>
-                    </div>
-
                     <!--begin::Container-->
                     <div class="container-fluid d-flex align-items-stretch justify-content-between">
                         <!--begin::Logo bar-->
@@ -250,10 +213,9 @@ Home Cunfiguration Page Templete
                             <!--end::Aside toggler-->
                             <!--begin::Logo-->
                             <a href="javascript:void(0);" id="mobileAxAppLogo" class="d-lg-none---">
-                                <div class="d-flex align-items-center">
-                                    <img alt="Logo" src="../images/loginlogo.png" class="mh-40px ">
-
-                                    <h3 class="d-flex mh-40px m-2 text-dark fw-boldest fs-1 align-items-center text-break overflow-hidden divTitle">
+                                <div class="d-flex">
+                                    <img alt="Logo" src="../images/loginlogo.png" class="mh-50px ">
+                                    <h3 class="d-flex mh-50px m-2 text-dark fw-boldest fs-1 align-items-center text-break overflow-hidden divTitle">
                                         AxpertWeb
                                     </h3>
                                 </div>
@@ -273,7 +235,7 @@ Home Cunfiguration Page Templete
                             <!--begin::Search-->
                             <div class="search-bar d-flex align-items-stretch me-1">
                                 <!--begin::Search-->
-                                <div id="kt_header_search" class="d-flex align-items-center w-100 w-lg-300px w-xl-500px" data-kt-search-keypress="true" data-kt-search-min-length="2" data-kt-search-enter="enter" data-kt-search-layout="menu" data-kt-search-responsive="sm" data-kt-menu-trigger="auto" data-kt-menu-permanent="true" data-kt-menu-placement="bottom-start" data-kt-search="true" data-kt-menu-backdrop="true">
+                                <div id="kt_header_search" class="d-flex align-items-center w-100 w-lg-300px" data-kt-search-keypress="true" data-kt-search-min-length="2" data-kt-search-enter="enter" data-kt-search-layout="menu" data-kt-search-responsive="sm" data-kt-menu-trigger="auto" data-kt-menu-permanent="true" data-kt-menu-placement="bottom-start" data-kt-search="true" data-kt-menu-backdrop="true">
                                     <!--begin::Tablet and mobile search toggle-->
                                     <div data-kt-search-element="toggle" class="d-flex d-lg-none align-items-center">
                                         <div class="">
@@ -317,7 +279,7 @@ Home Cunfiguration Page Templete
                                     </form>
                                     <!--end::Form-->
                                     <!--begin::Menu-->
-                                    <div data-kt-search-element="content" class="menu menu-sub menu-sub-dropdown w-400px w-md-400px py-7 px-7 overflow-hidden" data-kt-menu="true">
+                                    <div data-kt-search-element="content" class="menu menu-sub menu-sub-dropdown w-300px w-md-350px py-7 px-7 overflow-hidden" data-kt-menu="true">
                                         <!--begin::Wrapper-->
                                         <!--begin::Heading-->
                                         <div class="d-flex flex-stack fw-bold mb-4">
@@ -472,8 +434,9 @@ Home Cunfiguration Page Templete
                                          data-kt-menu-trigger="click" data-kt-menu-overflow="true"
                                          data-kt-menu-placement="bottom-end" data-kt-menu-backdrop="true" title="Notifications"
                                          onclick="signalrServiceinit.init()">
-                                        <img src="../images/icons/notification.png"
-                                             class="notif-new" />
+                                        <span class="material-icons material-icons-style material-icons-1x" title="Notifications">
+                                            notifications
+                                        </span>
                                         <div id="notifyCountForBlink" class="justify-content-center d-none">
                                         </div>
                                     </div>
@@ -500,402 +463,169 @@ Home Cunfiguration Page Templete
                                 <div class="d-flex align-items-center ms-1 ms-lg-2">
                                     <!--begin::Menu wrapper-->
                                     <div class="btn btn-icon btn-active-light-primary w-30px h-30px w-md-40px h-md-40px" id="AllUserOptions" data-kt-menu-trigger="click" data-kt-menu-attach="parent" data-kt-menu-placement="bottom-end" data-kt-menu-backdrop="true">
-                                        <img src="../images/icons/useroptions.png"
-                                             class="notif-new" />
+                                        <span class="material-icons material-icons-style material-icons-1" title="Options">
+                                            workspaces
+                                        </span>
                                     </div>
                                     <!--begin::Menu-->
-                                    <div class="UserOptions menu menu-sub menu-sub-dropdown menu-column w-sm-250px w-md-450px w-lg-450px overflow-sm-auto "
-                                         data-kt-menu="true">
-                                        <!-- min-h-150px h-sm-150px h-md-500px -->
-                                        <div class="card-body py-5 ">
-                                            <!--begin::Scroll-->
-                                            <div class="mh-450px scroll-y me-n5 pe-5">
-                                                <!--begin:Nav-->
-                                                <div class="row g-0">
-                                                    <!--begin:Item-->
-                                                    <!--<div id="Adminconsole" class="col-md-4 col-sm-6 col-6">
-                                                        <a href="javascript:void(0);" class="d-flex flex-column flex-center h-100 p-6 bg-hover-light border-end border-bottom border-0">
-                                                            <span class="material-icons material-icons-style material-icons-3x material-icons-primary mb-2">
-                                                                admin_panel_settings
-                                                            </span>
-                                                            <span class="divTitle fs-5 fw-bold text-gray-800 mb-0">Administration</span>
-                                                            <span class="divSubTitle fs-7 text-gray-400">Console</span>
-                                                        </a>
-                                                    </div>-->
-
-                                                    <div id="developerworkbench" class="col-md-4 col-sm-6 col-6">
-                                                        <a href="javascript:void(0);"
-                                                           class="d-flex flex-column flex-center h-100 p-6 bg-hover-light border-bottom border-0">
-                                                            <span class="material-icons material-icons-style material-icons-3x material-icons-primary mb-2">
-                                                                developer_mode
-                                                            </span>
-                                                            <img src="../images/icons/axpertStudio.png"
-                                                                 loading="lazy" alt="Code " title="Code " width="64"
-                                                                 height="64">
-                                                            <span class="divTitle fs-5 fw-bold text-gray-800 mb-0">Axpert Studio</span>
-                                                            <span class="divSubTitle fs-7 text-gray-400">Developer</span>
-                                                        </a>
-                                                    </div>
-
-                                                    <div id="configurationStudio" class="col-md-4 col-sm-6 col-6">
-                                                        <a href="javascript:void(0);" class="d-flex flex-column flex-center h-100 p-6 bg-hover-light border-bottom border-0">
-                                                            <img src="../images/icons/configuration.png">
-                                                            <span class="divTitle fs-5 fw-bold text-gray-800 mb-0">Configuration</span>
-                                                            <span class="divSubTitle fs-7 text-gray-400">Studio</span>
-
-                                                        </a>
-                                                    </div>
-
-                                                    <!--<div id="pluginCustomCode" class="col-md-4 col-sm-6 col-6">
-                                                        <a href="javascript:void(0);" class="d-flex flex-column flex-center h-100 p-6 bg-hover-light border-bottom border-0">
-                                                            <img src="../images/icons/plugin.png">                                                           <span class="divTitle fs-5 fw-bold text-gray-800 mb-0">Plugin</span>
-                                                            <span class="divSubTitle fs-7 text-gray-400">Custom Code</span>
-                                                        </a>
-                                                    </div>-->
-                                                    <!--end:Item-->
-                                                    <!--begin:Item-->
-                                                    <div id="ImportData" class="col-md-4 col-sm-6 col-6">
-                                                        <a href="javascript:void(0);" class="d-flex flex-column flex-center h-100 p-6 bg-hover-light border-end border-0">
-                                                            <img src="../images/icons/import.png">
-                                                            <span class="divTitle fs-5 fw-bold text-gray-800 mb-0">Import</span>
-                                                            <span class="divSubTitle fs-7 text-gray-400">Data</span>
-                                                        </a>
-                                                    </div>
-                                                    <!--end:Item-->
-                                                    <!--begin:Item-->
-                                                    <div id="ExportData" class="col-md-4 col-sm-6 col-6">
-                                                        <a href="javascript:void(0);" class="d-flex flex-column flex-center h-100 p-6 bg-hover-light border-0">
-                                                            <img src="../images/icons/export.png">
-                                                            <span class="divTitle fs-5 fw-bold text-gray-800 mb-0">Export</span>
-                                                            <span class="divSubTitle fs-7 text-gray-400">Data</span>
-                                                        </a>
-                                                    </div>
-                                                    <!--end:Item-->
-                                                    <!--begin:Item-->
-                                                    <!--$.axpertUI.cardsPage.editSaveCardDesignToggle();-->
-                                                    <div id="arrangeCards" class="col-md-4 col-sm-6 col-6" onclick="LoadIframe('processflow.aspx?dashboard=t&edit=t');" data-kt-menu-dismiss="true">
-                                                        <a href="javascript:void(0);" class="d-flex flex-column flex-center h-100 p-6 bg-hover-light border-0">
-                                                            <img src="../images/icons/dashboard.png">                                                    <span class="divTitle fs-5 fw-bold text-gray-800 mb-0">Dashboard</span>
-                                                            <span class="divSubTitle fs-7 text-gray-400">Cards Setting</span>
-                                                        </a>
-                                                    </div>
-                                                    <!--end:Item-->
-                                                    <!--begin:Item-->
-                                                    <div id="refreshMenu" class="col-md-4 col-sm-6 col-6" data-kt-menu-dismiss="true">
-                                                        <a href="javascript:void(0);" class="d-flex flex-column flex-center h-100 p-6 bg-hover-light border-0">
-                                                            <img src="../images/icons/refreshMenu.png">
-                                                            <span class="divTitle fs-5 fw-bold text-gray-800 mb-0">Refresh Menu</span>
-                                                            <span class="divSubTitle fs-7 text-gray-400">Menu</span>
-                                                        </a>
-                                                    </div>
-                                                    <!--end:Item-->
-                                                    <!--begin:Item-->
-                                                    <div id="refreshVarParam" class="col-md-4 col-sm-6 col-6" data-kt-menu-dismiss="true">
-                                                        <a href="javascript:void(0);" class="d-flex flex-column flex-center h-100 p-6 bg-hover-light border-0">
-                                                            <img src="../images/icons/refreshApp.png">
-                                                            <span class="divTitle fs-5 fw-bold text-gray-800 mb-0">Refresh Application</span>
-                                                            <span class="divSubTitle fs-7 text-gray-400">Variables</span>
-                                                        </a>
-                                                    </div>
-                                                    <!--end:Item-->
-                                                    <!--begin:Item-->
-                                                    <div id="qrCodeBtnWrapper" class="col-md-4 col-sm-6 col-6" data-kt-menu-dismiss="true" data-kt-menu-trigger="hover" data-kt-menu-placement="left-start">
-                                                        <a href="javascript:void(0);" class="d-flex flex-column flex-center h-100 p-6 bg-hover-light border-0">
-                                                            <img src="../images/icons/QRCode.png">
-                                                            <span class="divTitle fs-5 fw-bold text-gray-800 mb-0">QR Code</span>
-                                                            <span class="divSubTitle fs-7 text-gray-400">QR Code</span>
-                                                        </a>
-                                                        <!--begin::Menu sub-->
-                                                        <div class="menu-sub menu-sub-dropdown w-auto mw-300px py-4">
-                                                            <!--begin::Menu item-->
-                                                            <div class="menu-item px-3 text-center">
-                                                            </div>
-                                                            <!--end::Menu item-->
-                                                        </div>
-                                                        <!--end::Menu sub-->
-                                                    </div>
-                                                    <!--end:Item-->
-                                                    <!--begin:Item-->
-                                                    <div id="executionLog" class="col-md-4 col-sm-6 col-6" data-kt-menu-dismiss="true">
-                                                        <div class="bg-hover-light">
-                                                            <a href="javascript:void(0);" class="d-flex flex-column flex-center h-10 0p-0 pt-6 border-0">
-                                                                <img src="../images/icons/showExecution.png">
-                                                                <span class="divTitle fs-5 fw-bold text-gray-800 mb-0 d-none">Show Execution</span>
-                                                                <span class="divSubTitle fs-7 text-gray-400 d-none">Trace</span>
-                                                            </a>
-                                                            <div id="chkexecshowlog" class="d-flex menu-content px-3 pb-6-- flex-center flex-column">
-                                                                <label class="form-check form-switch form-check-custom form-check-solid">
-                                                                    <input class="form-check-input w-30px h-20px" type="checkbox" value="" name="trace">
-                                                                    <span id="imgExecLogTrace" class="form-check-label fs-5 fw-bold text-gray-800 mb-0" title="Show Execution Trace On">Show Execution</span>
-                                                                </label>
-                                                                <span class="fs-7 text-gray-400">Trace</span>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                    <!--end:Item-->
-                                                    <!--begin:Item-->
-                                                    <div id="showLog" class="col-md-4 col-sm-6 col-6" data-kt-menu-dismiss="true">
-                                                        <div class="bg-hover-light">
-                                                            <a href="javascript:void(0);" class="d-flex flex-column flex-center h-10 0p-0 pt-6 border-0">
-                                                                <img src="../images/icons/showLogs.png">
-                                                                <span class="divTitle fs-5 fw-bold text-gray-800 mb-0 d-none">Show Logs</span>
-                                                                <span class="divSubTitle fs-7 text-gray-400 d-none">Log</span>
-                                                            </a>
-                                                            <div id="chkshowlog" class="d-flex menu-content px-3 pb-6 flex-center flex-column">
-                                                                <label class="form-check form-switch form-check-custom form-check-solid">
-                                                                    <input class="form-check-input w-30px h-20px" type="checkbox" value="" name="trace">
-                                                                    <span id="imgTogTrace" class="form-check-label fs-5 fw-bold text-gray-800 mb-0" title="Trace On">Show Logs</span>
-                                                                </label>
-                                                                <span class="fs-7 text-gray-400">Trace</span>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                    <!--end:Item-->
-                                                </div>
-                                                <!--end:Nav-->
+                                    <div class="menu menu-sub menu-sub-dropdown menu-column w-sm-250px w-md-350px w-lg-450px overflow-sm-auto min-h-150px h-sm-150px h-md-500px" data-kt-menu="true">
+                                        <!--begin:Nav-->
+                                        <div class="row g-0">
+                                            <!--begin:Item-->
+                                            <div id="developerworkbench" class="col-md-4 col-sm-6 col-6">
+                                                <a href="javascript:void(0);" class="d-flex flex-column flex-center h-100 p-6 bg-hover-light border-bottom border-0">
+                                                    <span class="material-icons material-icons-style material-icons-3x material-icons-primary mb-2">
+                                                        developer_mode
+                                                    </span>
+                                                    <span class="divTitle fs-5 fw-bold text-gray-800 mb-0">Axpert Studio</span>
+                                                    <span class="divSubTitle fs-7 text-gray-400">Developer</span>
+                                                </a>
                                             </div>
+
+                                            <div id="configurationStudio" class="col-md-4 col-sm-6 col-6">
+                                                <a href="javascript:void(0);" class="d-flex flex-column flex-center h-100 p-6 bg-hover-light border-bottom border-0">
+                                                    <span class="material-icons material-icons-style material-icons-3x material-icons-primary mb-2">
+                                                        toggle_on
+                                                    </span>
+                                                    <span class="divTitle fs-5 fw-bold text-gray-800 mb-0">Configuration</span>
+                                                    <span class="divSubTitle fs-7 text-gray-400">Studio</span>
+                                                </a>
+                                            </div>
+
+                                            <!--end:Item-->
+                                            <!--begin:Item-->
+                                            <div id="ImportData" class="col-md-4 col-sm-6 col-6">
+                                                <a href="javascript:void(0);" class="d-flex flex-column flex-center h-100 p-6 bg-hover-light border-end border-0">
+                                                    <span class="material-icons material-icons-style material-icons-3x material-icons-primary mb-2">
+                                                        file_download
+                                                    </span>
+                                                    <span class="divTitle fs-5 fw-bold text-gray-800 mb-0">Import</span>
+                                                    <span class="divSubTitle fs-7 text-gray-400">Data</span>
+                                                </a>
+                                            </div>
+                                            <!--end:Item-->
+                                            <!--begin:Item-->
+                                            <div id="ExportData" class="col-md-4 col-sm-6 col-6">
+                                                <a href="javascript:void(0);" class="d-flex flex-column flex-center h-100 p-6 bg-hover-light border-0">
+                                                    <span class="material-icons material-icons-style material-icons-3x material-icons-primary mb-2">
+                                                        file_upload
+                                                    </span>
+                                                    <span class="divTitle fs-5 fw-bold text-gray-800 mb-0">Export</span>
+                                                    <span class="divSubTitle fs-7 text-gray-400">Data</span>
+                                                </a>
+                                            </div>
+                                            <!--end:Item-->
+                                            <!--begin:Item-->
+                                            <!--$.axpertUI.cardsPage.editSaveCardDesignToggle();-->
+                                            <div id="arrangeCards" class="col-md-4 col-sm-6 col-6" onclick="LoadIframe('processflow.aspx?dashboard=t&edit=t');" data-kt-menu-dismiss="true">
+                                                <a href="javascript:void(0);" class="d-flex flex-column flex-center h-100 p-6 bg-hover-light border-0">
+                                                    <span class="material-icons material-icons-style material-icons-3x material-icons-primary mb-2">
+                                                        grid_view
+                                                    </span>
+                                                    <span class="divTitle fs-5 fw-bold text-gray-800 mb-0">Dashboard</span>
+                                                    <span class="divSubTitle fs-7 text-gray-400">Cards Setting</span>
+                                                </a>
+                                            </div>
+                                            <!--end:Item-->
+                                            <!--begin:Item-->
+                                            <div id="refreshMenu" class="col-md-4 col-sm-6 col-6" data-kt-menu-dismiss="true">
+                                                <a href="javascript:void(0);" class="d-flex flex-column flex-center h-100 p-6 bg-hover-light border-0">
+                                                    <span class="material-icons material-icons-style material-icons-3x material-icons-primary mb-2">
+                                                        refresh
+                                                    </span>
+                                                    <span class="divTitle fs-5 fw-bold text-gray-800 mb-0">Refresh Menu</span>
+                                                    <span class="divSubTitle fs-7 text-gray-400">Menu</span>
+                                                </a>
+                                            </div>
+                                            <!--end:Item-->
+                                            <!--begin:Item-->
+                                            <div id="refreshVarParam" class="col-md-4 col-sm-6 col-6" data-kt-menu-dismiss="true">
+                                                <a href="javascript:void(0);" class="d-flex flex-column flex-center h-100 p-6 bg-hover-light border-0">
+                                                    <span class="material-icons material-icons-style material-icons-3x material-icons-primary mb-2">
+                                                        published_with_changes
+                                                    </span>
+                                                    <span class="divTitle fs-5 fw-bold text-gray-800 mb-0">Refresh Application</span>
+                                                    <span class="divSubTitle fs-7 text-gray-400">Variables</span>
+                                                </a>
+                                            </div>
+                                            <!--end:Item-->
+                                            <!--begin:Item-->
+                                            <div id="qrCodeBtnWrapper" class="col-md-4 col-sm-6 col-6" data-kt-menu-dismiss="true" data-kt-menu-trigger="hover" data-kt-menu-placement="left-start">
+                                                <a href="javascript:void(0);" class="d-flex flex-column flex-center h-100 p-6 bg-hover-light border-0">
+                                                    <span class="material-icons material-icons-style material-icons-3x material-icons-primary mb-2">
+                                                        qr_code_2
+                                                    </span>
+                                                    <span class="divTitle fs-5 fw-bold text-gray-800 mb-0">QR Code</span>
+                                                    <span class="divSubTitle fs-7 text-gray-400">QR Code</span>
+                                                </a>
+                                                <!--begin::Menu sub-->
+                                                <div class="menu-sub menu-sub-dropdown w-auto mw-300px py-4">
+                                                    <!--begin::Menu item-->
+                                                    <div class="menu-item px-3 text-center">
+                                                    </div>
+                                                    <!--end::Menu item-->
+                                                </div>
+                                                <!--end::Menu sub-->
+                                            </div>
+                                            <!--end:Item-->
+                                            <!--begin:Item-->
+                                            <div id="executionLog" class="col-md-4 col-sm-6 col-6" data-kt-menu-dismiss="true">
+                                                <div class="bg-hover-light">
+                                                    <a href="javascript:void(0);" class="d-flex flex-column flex-center h-10 0p-0 pt-6 border-0">
+                                                        <span class="material-icons material-icons-style material-icons-3x material-icons-primary mb-2">
+                                                            troubleshoot
+                                                        </span>
+                                                        <span class="divTitle fs-5 fw-bold text-gray-800 mb-0 d-none">Show Execution</span>
+                                                        <span class="divSubTitle fs-7 text-gray-400 d-none">Trace</span>
+                                                    </a>
+                                                    <div id="chkexecshowlog" class="d-flex menu-content px-3 pb-6-- flex-center flex-column">
+                                                        <label class="form-check form-switch form-check-custom form-check-solid">
+                                                            <input class="form-check-input w-30px h-20px" type="checkbox" value="" name="trace">
+                                                            <span id="imgExecLogTrace" class="form-check-label fs-5 fw-bold text-gray-800 mb-0" title="Show Execution Trace On">Show Execution</span>
+                                                        </label>
+                                                        <span class="fs-7 text-gray-400">Trace</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <!--end:Item-->
+                                            <!--begin:Item-->
+                                            <div id="showLog" class="col-md-4 col-sm-6 col-6" data-kt-menu-dismiss="true">
+                                                <div class="bg-hover-light">
+                                                    <a href="javascript:void(0);" class="d-flex flex-column flex-center h-10 0p-0 pt-6 border-0">
+                                                        <span class="material-icons material-icons-style material-icons-3x material-icons-primary mb-2">
+                                                            data_exploration
+                                                        </span>
+                                                        <span class="divTitle fs-5 fw-bold text-gray-800 mb-0 d-none">Show Logs</span>
+                                                        <span class="divSubTitle fs-7 text-gray-400 d-none">Log</span>
+                                                    </a>
+                                                    <div id="chkshowlog" class="d-flex menu-content px-3 pb-6 flex-center flex-column">
+                                                        <label class="form-check form-switch form-check-custom form-check-solid">
+                                                            <input class="form-check-input w-30px h-20px" type="checkbox" value="" name="trace">
+                                                            <span id="imgTogTrace" class="form-check-label fs-5 fw-bold text-gray-800 mb-0" title="Trace On">Show Logs</span>
+                                                        </label>
+                                                        <span class="fs-7 text-gray-400">Trace</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <!--end:Item-->
                                         </div>
+                                        <!--end:Nav-->
                                     </div>
                                     <!--end::Menu-->
                                     <!--end::Menu wrapper-->
                                 </div>
                                 <!--end::Quick links-->
-                                <!--begin::Dev Studio options-->
-                                <div class="d-flex align-items-center ms-1 ms-lg-2" id="axpertstudio">
-                                    <!--begin::Menu wrapper-->
-                                    <div class="btn btn-icon btn-active-light-primary w-30px h-30px w-md-40px h-md-40px" id="AllDevOptions" data-kt-menu-trigger="click" data-kt-menu-attach="parent" data-kt-menu-placement="bottom-end" data-kt-menu-backdrop="true" style="background: #483d8b1a;">
-                                        <img class="notif-new" src="https://cdn-icons-png.flaticon.com/128/3573/3573187.png">
-                                    </div>
-                                    <!--begin::Menu-->
-                                    <div class="DevOptions menu menu-sub menu-sub-dropdown menu-column w-sm-250px w-md-600px w-lg-600px overflow-sm-auto " data-kt-menu="true" style="">
-                                        <!-- min-h-150px h-sm-150px h-md-500px -->
-                                        <div class="card-body py-5 scroll-y me-n5 pe-5">
-                                            <!--begin::Scroll-->
-                                            <!--begin:Nav-->
-                                            <div class="row g-0">
-                                                <!--begin:Item-->
-
-                                                <div id="Tstruct" class="col-md-3 col-sm-6 col-6">
-                                                    <a href="javascript:void(0);" onclick='openDeveloperStudio("tstreact");' title="Tstruct" class="d-flex flex-column flex-center h-100 p-6 bg-hover-light border-bottom border-0">
-                                                        <img loading="lazy" alt="Code " title="Code " width="64" height="64" src="../images/devops/tstruct.png">
-                                                        <span class="divTitle fs-5 fw-bold text-gray-800 mb-0">Tstruct</span>
-                                                        <span class="divSubTitle fs-7 text-gray-400">Forms</span>
-                                                    </a>
-                                                </div>
-
-                                                <div id="Iview" class="col-md-3 col-sm-6 col-6">
-                                                    <a href="javascript:void(0);" onclick='openDeveloperStudio("ivreact");' title="Iview" class="d-flex flex-column flex-center h-100 p-6 bg-hover-light border-bottom border-0">
-                                                        <img src="../images/devops/iview.png">
-                                                        <span class="divTitle fs-5 fw-bold text-gray-800 mb-0">Iview</span>
-                                                        <span class="divSubTitle fs-7 text-gray-400">Reports</span>
-                                                    </a>
-                                                </div>
-
-                                                <!--<div id="Cards" class="col-md-3 col-sm-6 col-6">
-                                                    <a href="javascript:void(0);" onclick='openDeveloperStudio("iaxpcards");' class="d-flex flex-column flex-center h-100 p-6 bg-hover-light border-bottom border-0">
-                                                        <img src="../images/devops/cards.png">
-                                                        <span class="divTitle fs-5 fw-bold text-gray-800 mb-0">Cards</span>
-                                                        <span class="divSubTitle fs-7 text-gray-400">Cards</span>
-                                                    </a>
-                                                </div>-->
-
-                                                <div id="pluginCustomCode" class="col-md-3 col-sm-6 col-6">
-                                                    <a href="javascript:void(0);" onclick="openPluginEditor();" title="Custom Plugins" class="d-flex flex-column flex-center h-100 p-6 bg-hover-light border-bottom border-0">
-                                                        <img src="../images/icons/plugin.png">
-                                                        <span class="divTitle fs-5 fw-bold text-gray-800 mb-0">Custom Plugins</span>
-                                                        <span class="divSubTitle fs-7 text-gray-400">Plugin</span>
-                                                    </a>
-                                                </div>
-
-                                                <div id="CustomPages" class="col-md-3 col-sm-6 col-6">
-                                                    <a href="javascript:void(0);" onclick='openDeveloperStudio("ihplist");' title="Custom Pages" class="d-flex flex-column flex-center h-100 p-6 bg-hover-light border-bottom border-0">
-                                                        <img src="../images/devops/custom-pages.png">
-                                                        <span class="divTitle fs-5 fw-bold text-gray-800 mb-0">Custom Pages</span>
-                                                        <span class="divSubTitle fs-7 text-gray-400">HTML</span>
-                                                    </a>
-                                                </div>
-
-                                                <div id="ADS" class="col-md-3 col-sm-6 col-6">
-                                                    <a href="javascript:void(0);" onclick='openDeveloperStudio("icsqlist");' title="Axpert Data Sources" class="d-flex flex-column flex-center h-100 p-6 bg-hover-light border-bottom border-0">
-                                                        <img src="../images/devops/custom-data-sourse.png">
-                                                        <span class="divTitle fs-5 fw-bold text-gray-800 mb-0">Axpert Data Sources</span>
-                                                        <span class="divSubTitle fs-7 text-gray-400">ADS</span>
-                                                    </a>
-                                                </div>
-
-                                                <div id="APIPlugins" class="col-md-3 col-sm-6 col-6">
-                                                    <a href="javascript:void(0);" onclick='openDeveloperStudio("iexapidef");' title="API Plugins" class="d-flex flex-column flex-center h-100 p-6 bg-hover-light border-bottom border-0">
-                                                        <img src="../images/devops/Api-plugin.png">
-                                                        <span class="divTitle fs-5 fw-bold text-gray-800 mb-0">API Plugins</span>
-                                                        <span class="divSubTitle fs-7 text-gray-400">External APIs</span>
-                                                    </a>
-                                                </div>
-
-                                                <div id="DevOptions" class="col-md-3 col-sm-6 col-6">
-                                                    <a href="javascript:void(0);" onclick='openDeveloperStudio("idop_list");' title="Developer Options" class="d-flex flex-column flex-center h-100 p-6 bg-hover-light border-bottom border-0">
-                                                        <img src="../images/devops/dev-options.png">
-                                                        <span class="divTitle fs-5 fw-bold text-gray-800 mb-0">Dev Options</span>
-                                                        <span class="divSubTitle fs-7 text-gray-400">Dev Options</span>
-                                                    </a>
-                                                </div>
-
-                                                <div id="AxpertJobs" class="col-md-3 col-sm-6 col-6">
-                                                    <a href="javascript:void(0);" onclick='openDeveloperStudio("ijobtsk");' title="Axpert Jobs" class="d-flex flex-column flex-center h-100 p-6 bg-hover-light border-bottom border-0">
-                                                        <img src="../images/devops/axpert-jobs.png">
-                                                        <span class="divTitle fs-5 fw-bold text-gray-800 mb-0">Axpert Jobs</span>
-                                                        <span class="divSubTitle fs-7 text-gray-400">Axpert Jobs</span>
-                                                    </a>
-                                                </div>
-
-                                                <div id="DevLanguages" class="col-md-3 col-sm-6 col-6">
-                                                    <a href="javascript:void(0);" onclick='openDeveloperStudio("iaxlangs");' title="Axpert Languages" class="d-flex flex-column flex-center h-100 p-6 bg-hover-light border-bottom border-0">
-                                                        <img src="../images/devops/languages.png">
-                                                        <span class="divTitle fs-5 fw-bold text-gray-800 mb-0">Languages</span>
-                                                        <span class="divSubTitle fs-7 text-gray-400">Languages</span>
-
-                                                    </a>
-                                                </div>
-
-                                                <div id="DevPublish" class="col-md-3 col-sm-6 col-6">
-                                                    <a href="javascript:void(0);" onclick='openDeveloperStudio("ipublist");' title="Publish" class="d-flex flex-column flex-center h-100 p-6 bg-hover-light border-bottom border-0">
-                                                        <img src="../images/devops/publish.png">
-                                                        <span class="divTitle fs-5 fw-bold text-gray-800 mb-0">Publish</span>
-                                                        <span class="divSubTitle fs-7 text-gray-400">Publish</span>
-
-                                                    </a>
-                                                </div>
-
-                                                <div id="CustomDataType" class="col-md-3 col-sm-6 col-6">
-                                                    <a href="javascript:void(0);" onclick='openDeveloperStudio("icdlist");' title="Custom Data Type" class="d-flex flex-column flex-center h-100 p-6 bg-hover-light border-bottom border-0">
-                                                        <img src="../images/devops/custom-data-type.png">
-                                                        <span class="divTitle fs-5 fw-bold text-gray-800 mb-0">Custom Data Type</span>
-                                                        <span class="divSubTitle fs-7 text-gray-400">Data Type</span>
-                                                    </a>
-                                                </div>
-
-                                                <div id="Appvariables" class="col-md-3 col-sm-6 col-6">
-                                                    <a href="javascript:void(0);" onclick='openDeveloperStudio("iaxvars");' title="Application Variables" class="d-flex flex-column flex-center h-100 p-6 bg-hover-light border-bottom border-0">
-                                                        <img src="../images/devops/app-variables.png">
-                                                        <span class="divTitle fs-5 fw-bold text-gray-800 mb-0">App Variables</span>
-                                                        <span class="divSubTitle fs-7 text-gray-400">App Variables</span>
-                                                    </a>
-                                                </div>
-
-                                                <div id="DevExplorer" class="col-md-3 col-sm-6 col-6">
-                                                    <a href="javascript:void(0);" onclick='openDeveloperStudio("AxDBScript.aspx");' title="Data Base Explorer" class="d-flex flex-column flex-center h-100 p-6 bg-hover-light border-bottom border-0">
-                                                        <img src="../images/devops/DB-Explorer.png">
-                                                        <span class="divTitle fs-5 fw-bold text-gray-800 mb-0">DB Explorer</span>
-                                                        <span class="divSubTitle fs-7 text-gray-400">DB Explorer</span>
-                                                    </a>
-                                                </div>
-
-                                                <div id="ArrangeMenu" class="col-md-3 col-sm-6 col-6">
-                                                    <a href="javascript:void(0);" onclick='openDeveloperStudio("ArrangeMenu.aspx");' title="Arrange Menu" class="d-flex flex-column flex-center h-100 p-6 bg-hover-light border-bottom border-0">
-                                                        <img src="../images/devops/ArrangeMenu.png">
-                                                        <span class="divTitle fs-5 fw-bold text-gray-800 mb-0">Arrange Menu</span>
-                                                        <span class="divSubTitle fs-7 text-gray-400">Arrange Menu</span>
-                                                    </a>
-                                                </div>
-
-                                                <div id="EmailDefinitions" class="col-md-3 col-sm-6 col-6">
-                                                    <a href="javascript:void(0);" onclick='openDeveloperStudio("iemaildef");' title="Email Definitions" class="d-flex flex-column flex-center h-100 p-6 bg-hover-light border-bottom border-0">
-                                                        <img src="../images/devops/email-definition.png">
-                                                        <span class="divTitle fs-5 fw-bold text-gray-800 mb-0">Email Definitions</span>
-                                                        <span class="divSubTitle fs-7 text-gray-400">Definitions</span>
-                                                    </a>
-                                                </div>
-                                                <div id="TableDescriptor" class="col-md-3 col-sm-6 col-6">
-                                                    <a href="javascript:void(0);" onclick='openDeveloperStudio("iad___tbd");' title="Table Type Field Descriptor" class="d-flex flex-column flex-center h-100 p-6 bg-hover-light border-bottom border-0">
-                                                        <img src="../images/devops/table-filed-descriptor.png">
-                                                        <span class="divTitle fs-5 fw-bold text-gray-800 mb-0">Table Field Descriptor</span>
-                                                        <span class="divSubTitle fs-7 text-gray-400">Descriptor</span>
-                                                    </a>
-                                                </div>
-
-                                                <div id="QueueListing" class="col-md-3 col-sm-6 col-6">
-                                                    <a href="javascript:void(0);" onclick='openDeveloperStudio("iad__qls");' title="Queue Listing" class="d-flex flex-column flex-center h-100 p-6 bg-hover-light border-bottom border-0">
-                                                        <img src="../images/devops/queue-Listing.png">
-                                                        <span class="divTitle fs-5 fw-bold text-gray-800 mb-0">Queue Listing</span>
-                                                        <span class="divSubTitle fs-7 text-gray-400">Queue</span>
-                                                    </a>
-                                                </div>
-                                                <div id="MemDBConsole" class="col-md-3 col-sm-6 col-6">
-                                                    <a href="javascript:void(0);" onclick='openDeveloperStudio("iinmemdb");' title="Mem DB Console" class="d-flex flex-column flex-center h-100 p-6 bg-hover-light border-bottom border-0">
-                                                        <img src="../images/devops/Mem-DB-Console.png">
-                                                        <span class="divTitle fs-5 fw-bold text-gray-800 mb-0">Mem DB Console</span>
-                                                        <span class="divSubTitle fs-7 text-gray-400">Mem DB</span>
-                                                    </a>
-                                                </div>
-                                                <!--end:Item-->
-                                            </div>
-                                            <!--end:Nav-->
-                                        </div>
-                                    </div>
-                                </div>
-                                <!--end::Menu-->
-                                <!--end::Menu wrapper-->
-                                <!--end::Dev Studio options-->
                                 <!--begin::User-->
                                 <div class="d-flex align-items-center ms-2 ms-lg-3">
                                     <!--begin::Menu wrapper-->
                                     <div id="mainProfileIcon" class="btn btn-icon profile-menu btn-dark w-30px h-30px w-md-40px h-md-40px position-relative" data-kt-menu-trigger="click" data-kt-menu-attach="parent" data-kt-menu-placement="bottom-end" data-kt-menu-backdrop="true">
-
-                                        <svg id="userNameIconMain" role="presentation" stroke-width="2" focusable="false" class="icon icon-account" viewBox="0 0 22 22" height="24" width="24">
-                                            <circle cx="11" cy="7" r="4" fill="none" stroke="currentColor"></circle>
-                                            <path d="M3.5 19c1.421-2.974 4.247-5 7.5-5s6.079 2.026 7.5 5" fill="none"
-                                                  stroke="currentColor" stroke-linecap="round"></path>
-                                        </svg>
+                                        <span id="userNameIconMain" class="material-icons material-icons-style material-icons-1" title="User Details">
+                                            person
+                                        </span>
                                         <img id="userProfilePicMain" class="mw-30px mh-30px" />
                                     </div>
-
-                                    <div id="userProfile" class="menu-item px-3">
-                                        <div class="menu-content d-flex align-items-center px-3">
-                                            <!--begin::Avatar-->
-                                            <div class="symbol symbol-50px symbol-circle me-5">
-                                                <span id="userNameIcon"
-                                                      class="symbol-label bg-primary text-white fw-boldest fs-3">P</span>
-                                                <img id="userProfilePic"
-                                                     class="symbol-label text-white fw-boldest fs-3" />
-                                            </div>
-                                            <!--end::Avatar-->
-                                            <!--begin::Username-->
-                                            <div id="userName" class="ppn d-flex flex-column">
-                                                <div id="AxNickName"
-                                                     class="fw-bolder d-flex align-items-center fs-5 text-break">
-                                                </div>
-                                                <a id="AxUserEmail" href="javascript:void(0);"
-                                                   class="fw-bold text-muted text-hover-primary fs-7 text-break"></a>
-                                            </div>
-                                            <!--end::Username-->
-                                        </div>
-                                    </div>
                                     <!--begin::User account menu-->
-                                    <div id="ProfileDropdown"
-                                         class="menu menu-sub user-profile-dropmen menu-sub-dropdown menu-column menu-rounded menu-gray-800 menu-state-bg menu-state-primary fw-bold py-4 fs-6 w-275px"
-                                         data-kt-menu="true">
-
-
-
-
-                                        <a onclick="empProfile()" id="Profile-Menu">
-                                            <div class="menu-item ps-3" id="My_Profile">
-                                                <div class="menu-content d-flex align-items-center px-3">
-
-                                                    <div class="symbol symbol-50px symbol-circle ms-5 "
-                                                         id="Avatar_Icon_Drop">
-
-                                                        <img class="symbol-label text-white fw-boldest fs-3"
-                                                             id="userProfilePic_drop"
-                                                             src="../images/icons/profile.png">
-                                                    </div>
-
-                                                    <div class="fw-bolder d-flex align-items-center fs-5 text-break"
-                                                         id="">My Profile</div>
-
-
-                                                </div>
-                                            </div>
-                                        </a>
+                                    <div id="ProfileDropdown" class="menu menu-sub user-profile-dropmen menu-sub-dropdown menu-column menu-rounded menu-gray-800 menu-state-bg menu-state-primary fw-bold py-4 fs-6 w-275px" data-kt-menu="true">
                                         <!--begin::Menu item-->
                                         <div id="userProfile" class="menu-item px-3">
                                             <div class="menu-content d-flex align-items-center px-3">
@@ -935,7 +665,7 @@ Home Cunfiguration Page Templete
                                         <div class="separator my-2"></div>
                                         <!--end::Menu separator-->
                                         <!--begin::Menu item-->
-                                        <div id="GlobalParams" class="menu-item px-5 d-none" data-kt-menu-trigger="hover" data-kt-menu-placement="left-start">
+                                        <div id="GlobalParams" class="menu-item px-5" data-kt-menu-trigger="hover" data-kt-menu-placement="left-start">
                                             <a href="javascript:void(0);" class="menu-link d-flex flex-stack p-5">
                                                 Application Parameters
                                             </a>
@@ -1062,23 +792,6 @@ Home Cunfiguration Page Templete
                         <!--end::Topbar-->
                     </div>
                     <!--end::Container-->
-                    <div class="Application_Parameter-Section">
-                        <div class="Application_Parameter_Wrapper">
-                        </div>
-                        <button type="button"
-                                class="btn btn-icon btn-white btn-color-gray-600 btn-active-primary tb-btn btn-sm"
-                                title="" onclick="" data-kt-menu-trigger="{default:'click', lg: 'hover'}"
-                                data-kt-menu-attach="parent" data-kt-menu-placement="bottom-end">
-                            <span class="material-icons material-icons-style material-icons-2">more_horiz</span>
-                        </button>
-                        <!--begin::Menu-->
-                        <div id="AppGlobalParams"
-                             class="menu menu-sub menu-sub-dropdown menu-column menu-rounded menu-title-gray-700 menu-icon-gray-500 menu-active-bg menu-state-color fw-semibold py-4 fs-base w-150px" data-kt-menu="true" data-kt-element="theme-mode-menu">
-
-                        </div>
-                        <!--end::Menu-->
-                    </div>
-
                 </div>
                 <!--end::Header-->
                 <!--begin::Content-->
@@ -1147,31 +860,12 @@ Home Cunfiguration Page Templete
                         <div class="cardsPlot mb-1">
                             <!-- Customized for  Homepage -->
                             <div id="New-Landing-layout" class="row">
-                                <!-- Top KPI Section starts -->
-                                <div class="cardsPlot mb-8 col-md-12 d-none" id="Homepage_CardsList">
-                                    <!-- card style change option Begin-->
-                                    <div class="cards-style d-none">
-                                        <button type="button" class="btn btn-sm btn-icon btn-primary btn-active-primary btn-custom-border-radius" onclick="" title="" name="smallcards">
-                                            <span class="material-icons material-icons-style material-icons-2">apps</span>
-                                        </button>
-                                        <button type="button" class="btn btn-icon btn-white btn-color-gray-600 btn-active-primary shadow-sm tb-btn btn-sm" title="" onclick="" name="largecards">
-                                            <span class="material-icons material-icons-style material-icons-2">grid_view</span>
-                                        </button>
-                                        <button type="button" class="btn btn-icon btn-white btn-color-gray-600 btn-active-primary shadow-sm tb-btn btn-sm" title="" onclick="" name="colouredcards">
-                                            <span class="material-icons material-icons-style material-icons-2">format_color_fill</span>
-                                        </button>
-                                    </div>
-                                    <!-- card style change option ends -->
+                                <div class="HomePageCards mb-8 col-md-12"></div>
+
+                                <div class="cardsPlot mb-8 col-md-4 d-none" id="Homepage_CardsList">
                                     <div class="row--" id="Homepage_CardsList_Wrapper">
                                     </div>
                                 </div>
-                                <!-- Top KPI Section ends -->
-                                <!-- Left cardslists Starts  -->
-                                <div class="HomePageMenuOptionCards mb-8 col-md-12"></div>
-                                <div class="HtmlPanelCards mb-8 col-md-12"><div class="row"></div></div>
-                                <div class="HomePageCards mb-8 col-md-12"></div>
-                                <!-- Left cardslists ends -->
-
                             </div>
                         </div>
                         <!-- </div> -->
@@ -1249,13 +943,13 @@ Home Cunfiguration Page Templete
 
     var enableMasonry = false;
 
-    /* if (homePageType == "cards") {*/
-    files.js.push("/ThirdParty/lodash.min.js?v=1");
-    files.js.push("/ThirdParty/deepdash.min.js");
-
-    files.js.push("/Js/handlebars.min.js?v=2");
-    files.js.push("/Js/handleBarsHelpers.min.js");
     if (homePageType == "cards") {
+        files.js.push("/ThirdParty/lodash.min.js?v=1");
+        files.js.push("/ThirdParty/deepdash.min.js");
+
+        files.js.push("/Js/handlebars.min.js?v=2");
+        files.js.push("/Js/handleBarsHelpers.min.js");
+
         files.js.push("/Js/AxInterface.min.js?v=13");//min
         files.js.push("/ThirdParty/Highcharts/highcharts.js");
         files.js.push("/ThirdParty/Highcharts/highcharts-3d.js");
@@ -1285,15 +979,13 @@ Home Cunfiguration Page Templete
     if (!customStyleApplied) {
         // files.css.push("/Css/axpertUI.min.css?v=50");
     }
-
-    files.css.push("/Css/LayoutTheme.min.css?v=9");
     files.css.push("/Css/AxNotifications.min.css?v=2");
-    files.css.push("/Css/HomeConfigPageCards.min.css?v=12");
+    files.css.push("/Css/HomeConfigPageCards_old.min.css?v=2");
     files.js.push("/Js/signalr.min.js");
-    files.js.push("/Js/axpertUI_homecards.min.js?v=27");
+    files.js.push("/Js/axpertUI_homecards_old.min.js?v=14");
     files.js.push("/Js/AxNotifications.min.js?v=10");
     files.js.push("/Js/HomeConfigPageCards.min.js?v=15");
-    files.js.push("/Js/Entity-common.min.js?v=11");
+    files.js.push("/Js/AxHtml.min.js?v=2");
     var dirLeft = true;
 
     if ($("body").hasClass("btextDir-rtl")) {
@@ -1307,6 +999,7 @@ Home Cunfiguration Page Templete
             renderTemplete('template.templateContent');
 
             $(function () {
+                objHomePageCards.init();
                 KTDrawer.init();
                 KTMenu.init();
                 KTScroll.init();
@@ -1335,27 +1028,6 @@ Home Cunfiguration Page Templete
                     }
                 });
                 try {
-                    if ($("#hdHomeUrl").val() == "") {
-                        $.ajax({
-                            url: 'mainnew.aspx/GetCardsWithDataOnLoginWS',
-                            type: 'POST',
-                            cache: false,
-                            async: false,
-                            dataType: 'json',
-                            contentType: "application/json",
-                            success: function (data) {
-                                if (data && data.d) {
-                                    $("#cardsData").val(data.d);
-                                } else {
-                                    ShowDimmer(false);
-                                }
-                            },
-                            error: function (er) {
-                                ShowDimmer(false);
-                            }
-                        });
-                    }
-
                     appGlobalVarsObject._CONSTANTS.cardsPage = $.extend(true, {},
                         appGlobalVarsObject._CONSTANTS.cardsPage, {
                         setCards: $("#hdHomeUrl").val() == "" && homePageType == "cards",
@@ -1578,12 +1250,6 @@ Home Cunfiguration Page Templete
                                             title: "Developer"
                                         }
                                     },
-                                    axpertstudio: {
-                                        div: "#axpertstudio",
-                                        title: {
-                                            title: "Axpert Developer Studio"
-                                        }
-                                    },
                                     configurationStudio: {
                                         div: "#configurationStudio",
                                         title: {
@@ -1593,17 +1259,6 @@ Home Cunfiguration Page Templete
                                         subTitle: {
                                             div: ".divSubTitle",
                                             title: "Studio"
-                                        }
-                                    },
-                                    pluginCustomCode: {
-                                        div: "#pluginCustomCode",
-                                        title: {
-                                            div: ".divTitle",
-                                            title: "Plugin"
-                                        },
-                                        subTitle: {
-                                            div: ".divSubTitle",
-                                            title: "Custom Code"
                                         }
                                     },
                                     ArrangeCards: {
@@ -1811,14 +1466,14 @@ Home Cunfiguration Page Templete
                         document.querySelector(".cardsPageWrapper")?.classList.remove('d-none');
                         document.querySelector(".splitter-wrapper")?.classList.add('d-none');
                     }, 0);
-                    if (appGlobalVarsObject._CONSTANTS.cardsPage.setCards && (cardsData.value != "[]" && cardsData.value != "")) {
+                    if (appGlobalVarsObject._CONSTANTS.cardsPage.setCards && cardsData.value != "[]") {
                         document.querySelector(".HomePageCards")?.classList.remove('col-md-12');
-                        document.querySelector(".HomePageCards")?.classList.add('col-md-12');
-                        document.querySelector("#Homepage_CardsList")?.classList.add('col-md-3');
+                        document.querySelector(".HomePageCards")?.classList.add('col-md-8');
+                        document.querySelector("#Homepage_CardsList")?.classList.add('col-md-4');
                         document.querySelector("#Homepage_CardsList")?.classList.remove('d-none');
 
-                        //$(".htmlDomWrapper").removeClass('col-lg-3 col-md-3 col-sm-12 col-xs-3');
-                        //$(".htmlDomWrapper").addClass('col-lg-4 col-md-4 col-sm-12 col-xs-4');
+                        $(".htmlDomWrapper").removeClass('col-lg-3 col-md-3 col-sm-12 col-xs-3');
+                        $(".htmlDomWrapper").addClass('col-lg-4 col-md-4 col-sm-12 col-xs-4');
                     }
                     resetMainPageUI();
                     GetProcessTime();
@@ -1832,62 +1487,7 @@ Home Cunfiguration Page Templete
                 }
 
             });
-
-            if (document.querySelector("#AxGloVarHTML")) {
-                let axGloVarsHtml = document.querySelector("#AxGloVarHTML").innerHTML;
-                document.querySelector(".Application_Parameter_Wrapper").insertAdjacentHTML("afterbegin", axGloVarsHtml);
-
-
-                if (document.querySelector("#AxGloVarPopOverHTML")) {
-                    let axGloVarsPopOverHtml = document.querySelector("#AxGloVarPopOverHTML").innerHTML;
-                    document.querySelector("#AppGlobalParams").insertAdjacentHTML("afterbegin", axGloVarsPopOverHtml);
-                }
-
-
-                setTimeout(function () {
-                    $('.Application_Parameter-Items [data-toggle="tooltip"]').tooltip();
-
-                    BootstrapDialogAppParamsShow = function (url) {
-                        let myModal = new BSModal("ApplicationParams", "Application Params", "<iframe style=\"height: 500px!important;\" src=\"" + url + "\" class='d-flex w-100 h-100'></iframe>", () => {
-                            //shown callback
-                            $(".btn-close").focus();
-                            // $("#btnClose").hide()
-                        }, () => {
-                            //hide callback
-                        });
-
-                        myModal.changeSize("lg");
-                        myModal.hideFooter();
-                        myModal.modalBody.classList.add("p-0", "overflow-hidden");
-                        myModal.close();
-                    }
-
-                    $(document.querySelector(".Application_Parameter-Section")).attr("onclick", $.axpertUI.options.axpertUserSettings.settings.axUserOptions.GlobalParamsonclick.onclick);
-                }, 1)
-            }
-
-            document.querySelectorAll(".cards-style button").forEach(btn => {
-                $(btn).on("click", function () {
-                    document.querySelectorAll(".cards-style button.active").forEach(activeBtn => {
-                        activeBtn.classList.remove("active");
-                    });
-                    if (btn.getAttribute("name") == "smallcards") {
-                        // document.querySelector(".HomePageCards").id = "";
-                        document.querySelector(".HomePageMenuOptionCards").id = "";
-                    }
-                    else if (btn.getAttribute("name") == "largecards") {
-                        // document.querySelector(".HomePageCards").id = "msc";
-                        document.querySelector(".HomePageMenuOptionCards").id = "msc";
-
-                    }
-                    else if (btn.getAttribute("name") == "colouredcards") {
-                        //document.querySelector(".HomePageCards").id = "msc-c";
-                        document.querySelector(".HomePageMenuOptionCards").id = "msc-c";
-                    }
-
-                    btn.classList.add("active");
-                });
-            })
+            //getCompanyLogoDetails();
 
             setTimeout(function () {
                 $("[onclick=LoadIframe\\(\\'loadhomepage\\'\\)]").parents(".menu-item").addClass("hover");
@@ -1920,6 +1520,12 @@ Home Cunfiguration Page Templete
 
             }, 100);
 
+
+            //$.axpertUI.cardsPage._addCardHeader = function (cardElement, card) {
+            //    cardElement.find(".mainHeading").attr("title", (card["cardname"] || "")).find("headerContent").replaceWith(card["cardname"] || "");
+            //    cardElement.attr("title", (card["cardname"] || ""));
+            //}
+
             setTimeout(function () {
                 let appUrl = top.window.location.href.toLowerCase().substring("0", top.window.location.href.indexOf("/aspx/"));
                 if (typeof localStorage["middleIframeUrL-" + appUrl] != "undefined" && localStorage["middleIframeUrL-" + appUrl] != "" && localStorage["middleIframeUrL-" + appUrl].toString().indexOf("err.aspx") == -1) {
@@ -1928,10 +1534,11 @@ Home Cunfiguration Page Templete
                 }
 
             }, 100);
-
-
+            try {
+                //setCustomLanguageSelection();
+                //loadCustomCards();
+            } catch (ex) { }
         }
     });
-
     //End HomePage Code
 </script>
