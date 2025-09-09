@@ -13061,7 +13061,10 @@ function tstHtmlDummyLoad(_transid) {
                 let _thsiifId = window.frameElement.id;
                 if (_thsiifId == "middle1")
                     callParentNew("LoadIframe(" + _thisURl + ")", "function");
-                return;
+                if (_thsiifId.startsWith("axMultiiframe_")) {
+                    //do not return
+                } else
+                    return;
             }
         }
         resTstLoadDummy = $("#hdnTstLoadDummy").val();

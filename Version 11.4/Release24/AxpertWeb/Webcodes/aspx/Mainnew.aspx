@@ -181,7 +181,7 @@
     <script src="../Js/sso.min.js?v=2" type="text/javascript"></script>
     <script src="../Js/msal.min.js" type="text/javascript"></script>
     <script src="../Js/okta-auth-js.min.js" type="text/javascript"></script>
-    <script type="text/javascript" src="../js/main.min.js?v=324"></script>
+    <script type="text/javascript" src="../js/main.min.js?v=325"></script>
 </head>
 
 <body id="mainNewPageBody" onload="ChangeDir('<');"

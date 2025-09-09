@@ -3581,9 +3581,9 @@ public class TStructData
                     if (fObj == null)
                         fObj = new FDR();
                     string fddsName = Constants.REDISARMAXADSSQL;
-                    //var dbDsSql = fObj.GetWildCardKeyNames(util.GetRedisServerkey(fddsName, sqlname.InnerText));
-                    //fdwObj.DeleteKeys(dbDsSql);
-                    fdwObj.Deletekey(util.GetRedisServerkey(fddsName, sqlname.InnerText));
+                    var dbDsSql = fObj.GetWildCardKeyNames(util.GetRedisServerkey(fddsName, sqlname.InnerText));
+                    fdwObj.DeleteKeys(dbDsSql);
+                    //fdwObj.Deletekey(util.GetRedisServerkey(fddsName, sqlname.InnerText));
 
                     string fddsData = Constants.REDISARMAXADSDATA;
                     var dbDsData = fObj.GetWildCardKeyNames(util.GetRedisServerkey(fddsData, sqlname.InnerText, "*"));

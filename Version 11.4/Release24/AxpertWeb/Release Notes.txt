@@ -39,3 +39,26 @@ Ex.: {"Word": {
 }
 
 TASK-0971 -Support- Issue Description: In the Axpert Desktop version, the keyword tot (e.g., tot_fieldname) in a fillgrid correctly displays the column total. However, in the Web version, this functionality is not working as expected — the total is not displayed. Further, when we tried using an alias name in a parameter (e.g., :tot_prov), the field was updated as 0, but it still did not sum the values.
+
+TASK-1569 -QA- Issue Description : Product Issue and BMRCL Project Issue: When the landing page is configured as a custom HTML page, the global search functionality is not working.
+
+TASK-0858 -- Enhancement: HTML plugins has been enchanneled to load Multiple tstruct's in single html page. Mainly below points needs to be noted to implement this functionality in HTML Plugins.
+     Note: 1. JavaScript variable named as 'transidlist' needs to be added in html page with comma separated transid's, those transid's suppose to load in html page. 
+           2. Below API's can be used to load those tstructs and keep in redis or local storage and save all together. 
+              a. LoadAndkeepTstructAPI
+              b. ActivateTstructAPI
+              c. MultiFrameDataPushToQueue
+              d. MultiFrameUpdateDataXML 
+           3. HTML iframe id's needs to be starts with 'axMultiiframe_' followed index number. 
+           4. A sample Plugin HTML named as 'MultiForms.html' is available in GitHub html plugins repository
+Note: Multiple forms are not loading when opened from an iView hyperlink.
+
+TASK-1193 -- Enhancement: Home page loading performance improvement along with Application back button and Loader issues in some scenarios. Please note the following points with respective this change.
+Note: 1. Cards definition screen 'Refresh Interval' withdrawn  
+      2. In Axpert Data Source Screen, 2 properties are added for 'Cache data' and 'Refresh interval'. Cache data will be On and Refresh interval will be 6 Hrs by default. 
+      3. If any Axpert Data Source required live data, then 'Cache Data' flag should Off for that particular Axpert Data Source. 
+      4. Existing application's data source these 2 properties needs to be rechecked and update as per the business requirement. 
+      5. Any Cards or Custom HTML Pages data needs to be refreshed manually, then a refresh button can be provided in the Custom HTML pages or Cards and 'GetDataFromDataSource' API can be called with additional parameter as 'refresh=true' in refresh button click event. 
+      Ex.: 1. Default API call: GetDataFromDataSource( name: "datasourcename",   sqlParams: {},   refreshCache: false) 
+           2. Refresh button click api call: GetDataFromDataSource( name: "datasourcename",   sqlParams: {},   refreshCache: true)   
+Note: AxADSSQL key deleting with '*' while updating/modifying Axpert Data source's because of in AxList API also enabled caching.
