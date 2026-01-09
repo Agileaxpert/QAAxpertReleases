@@ -195,6 +195,14 @@ ALTER table axusergroups add homepage varchar(255) DEFAULT null;
 >>
 
 <<
+drop VIEW axp_appsearch;
+>>
+
+<<
+drop view axp_appsearch_data_new;
+>>
+
+<<
 ALTER TABLE axuseraccess ALTER COLUMN rname TYPE varchar(50) USING rname::varchar(50);
 >>
 

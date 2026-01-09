@@ -1,5 +1,5 @@
 <<
-CREATE TABLE IF NOT EXISTS axp_struct_release_log (createdon timestamp NULL DEFAULT now(),axpversion varchar(100) NULL);
+CREATE TABLE axp_struct_release_log (createdon timestamp NULL DEFAULT now(),axpversion varchar(100) NULL);
 >>
 
 <<
@@ -7,7 +7,7 @@ drop view AXP_APPSEARCH_DATA;
 >>
 
 <<
-CREATE IF NOT EXISTS TABLE AXP_APPSEARCH_DATA
+CREATE table TABLE AXP_APPSEARCH_DATA
 (
   CANCEL                VARCHAR(1),
   SOURCEID              numeric,
@@ -31,7 +31,7 @@ CREATE IF NOT EXISTS TABLE AXP_APPSEARCH_DATA
 >>
   
 <<
-CREATE TABLE IF NOT EXISTS AXP_APPSEARCH_DATA_V2
+CREATE TABLE AXP_APPSEARCH_DATA_V2
 (
   HLTYPE      VARCHAR(10),
   STRUCTNAME  VARCHAR(25),
@@ -47,11 +47,11 @@ CREATE UNIQUE INDEX UI_AXP_APPSEARCH_DATA_V2 ON AXP_APPSEARCH_DATA_V2(HLTYPE, ST
 >>
 
 <<
-create table IF NOT EXISTS Axp_TransCheck(sessionid varchar(50));
+create table Axp_TransCheck(sessionid varchar(50));
 >>
 
 <<
-create table IF NOT EXISTS axctx1 (atype varchar(10),axcontext varchar(75));
+create table axctx1 (atype varchar(10),axcontext varchar(75));
 >>
 
 <<
@@ -839,16 +839,6 @@ CREATE TRIGGER axp_tr_search_appsearch
 >> 
 
 <<
-create trigger axp_tr_search_appsearch1
-before insert or update or delete on AXP_APPSEARCH_DATA_PERIOD      
-for each row
-
-execute procedure fn_AXP_APPSEARCH_DATA_PERIOD();
-
-end;
->>
-
-<<
 CREATE OR REPLACE FUNCTION pr_axcnfgiv_tab_create(
 	structtransid character varying)
     RETURNS void
@@ -966,22 +956,6 @@ for each row
 execute procedure fn_UPDATDSIGN();
 
 end;
-
-
-DECLARE
-  X NUMBER;
-BEGIN
-  SYS.DBMS_JOB.SUBMIT
-  ( job       => X 
-   ,what      => 'PRO_AXPLOGSTATEXTRACT
-  (trunc(sysdate) /* DATE */  );'
-   ,next_date =>TRUNC(SYSDATE)+22/24
-   ,interval  => 'TRUNC(SYSDATE+1)+22/24'
-   ,no_parse  => FALSE
-  );
-  SYS.DBMS_OUTPUT.PUT_LINE('Job Number is: ' || to_char(x));
-
-END;
 >>
 
 <<
@@ -3664,11 +3638,11 @@ $function$
 >>
 
 <<
-CREATE TABLE if not exists axinqueuesdata (createdon timestamp NULL DEFAULT CURRENT_TIMESTAMP,axqueuename varchar(100) NULL,transid varchar(10) NULL,recordid numeric NULL,queuedata text NULL);
+CREATE TABLE axinqueuesdata (createdon timestamp NULL DEFAULT CURRENT_TIMESTAMP,axqueuename varchar(100) NULL,transid varchar(10) NULL,recordid numeric NULL,queuedata text NULL);
 >>
 
 <<
-CREATE TABLE if not exists axoutqueuesdata (createdon timestamp NULL DEFAULT CURRENT_TIMESTAMP,axqueuename varchar(100) NULL,transid varchar(10) NULL,recordid numeric NULL,queuedata text NULL);
+CREATE TABLE axoutqueuesdata (createdon timestamp NULL DEFAULT CURRENT_TIMESTAMP,axqueuename varchar(100) NULL,transid varchar(10) NULL,recordid numeric NULL,queuedata text NULL);
 >>
 
 <<
@@ -6134,7 +6108,7 @@ null mfield,
     NULL AS dfieldui,
     td.tablename AS dprimarytable
    FROM tstructs mt 
-     JOIN tstructs dt ON new.dstruct = dt.name=
+     JOIN tstructs dt ON new.dstruct = dt.name
      LEFT JOIN axpdc td ON new.dstruct = td.tstruct AND td.dname = 'dc1'
      LEFT JOIN axpdc pd ON new.mstruct = pd.tstruct AND pd.dname = 'dc1'
 where  new.mstruct = mt.name and 'gm' = new.rtype ;
@@ -6289,8 +6263,9 @@ create trigger t1_axlanguage11x after
 insert
     on
     axlanguage11x for each row execute function t1_axlanguage11x()
+>>
 
-
+<<
 CREATE OR REPLACE FUNCTION fn_get_query_cols(pquery text)
  RETURNS TABLE(column_list character varying)
  LANGUAGE plpgsql
@@ -8227,7 +8202,7 @@ update axusers set pwdauth='T',otpauth='F';
 >>
 
 <<
-CREATE TABLE IF NOT EXISTS axmmetadatamaster
+CREATE TABLE axmmetadatamaster
 (
     structtype character varying(10) COLLATE pg_catalog."default",
     structname character varying(15) COLLATE pg_catalog."default",
