@@ -7,7 +7,7 @@ drop view AXP_APPSEARCH_DATA;
 >>
 
 <<
-CREATE table TABLE AXP_APPSEARCH_DATA
+CREATE TABLE AXP_APPSEARCH_DATA
 (
   CANCEL                VARCHAR(1),
   SOURCEID              numeric,
