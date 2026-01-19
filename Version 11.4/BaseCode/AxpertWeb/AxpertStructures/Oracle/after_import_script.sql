@@ -1,101 +1,101 @@
 <<
-ALTER TABLE AXP_VP MODIFY VPVALUE VARCHAR2(300);
+ALTER TABLE AXP_VP MODIFY VPVALUE VARCHAR2(300)
 >>
 
 <<
-ALTER TABLE AXUSERGROUPS ADD mapname varchar2(20);
+ALTER TABLE AXUSERGROUPS ADD mapname varchar2(20)
 >>
 
 <<
-ALTER TABLE importdatadetails ADD RapidImpId VARCHAR2(100);
+ALTER TABLE importdatadetails ADD RapidImpId VARCHAR2(100)
 >>
 
 <<
-ALTER TABLE importdataexceptions ADD RapidImpId VARCHAR2(100);
+ALTER TABLE importdataexceptions ADD RapidImpId VARCHAR2(100)
 >>
 
 <<
-ALTER TABLE AXUSERACCESS MODIFY RNAME VARCHAR2(50);
+ALTER TABLE AXUSERACCESS MODIFY RNAME VARCHAR2(50)
 >>
 
 <<
-ALTER TABLE executeapidef ADD execapiauthstring varchar2(100);
+ALTER TABLE executeapidef ADD execapiauthstring varchar2(100)
 >>
 
 <<
-ALTER TABLE axpages ADD OLDAPPURL varchar2(500);
+ALTER TABLE axpages ADD OLDAPPURL varchar2(500)
 >>
 
 <<
-ALTER TABLE axpages ADD WEBSUBTYPE VARCHAR2(15);
+ALTER TABLE axpages ADD WEBSUBTYPE VARCHAR2(15)
 >>
 
 <<
-ALTER TABLE AXUSERS ADD singleloginkey VARCHAR2(50);
+ALTER TABLE AXUSERS ADD singleloginkey VARCHAR2(50)
 >>
 
 <<
-ALTER TABLE axusers ADD axlang varchar2(100) NULL;
+ALTER TABLE axusers ADD axlang varchar2(100) NULL
 >>
 
 <<
-alter table axusers add pwdauth varchar2(1);
+alter table axusers add pwdauth varchar2(1)
 >>
 
 <<
-alter table axusers add otpauth varchar2(1);
+alter table axusers add otpauth varchar2(1)
 >>
 
 <<
-alter table axfastlink add istemplate varchar2(1);
+alter table axfastlink add istemplate varchar2(1)
 >>
 
 <<
-update axfastlink set istemplate='T' where transid='axftp' and caption in('letterformat','reportformat');
+update axfastlink set istemplate='T' where transid='axftp' and caption in('letterformat','reportformat')
 >>
 
 <<
-ALTER TABLE AX_PAGE_SAVED ADD WIDGET_GROUPS Varchar2(1);
+ALTER TABLE AX_PAGE_SAVED ADD WIDGET_GROUPS Varchar2(1)
 >>
 
 <<
-ALTER TABLE AX_PAGES ADD WIDGET_GROUPS Varchar2(1);
+ALTER TABLE AX_PAGES ADD WIDGET_GROUPS Varchar2(1)
 >>
 
 <<
-alter table axpertlog add calldetails varchar2(2000);
+alter table axpertlog add calldetails varchar2(2000)
 >>
 
 <<
-ALTER TABLE iviewparams ADD ORDNO NUMBER(3,0);
+ALTER TABLE iviewparams ADD ORDNO NUMBER(3,0)
 >>
 
 <<
-ALTER TABLE iviewcols ADD ordno NUMERIC (3,0);
+ALTER TABLE iviewcols ADD ordno NUMERIC (3,0)
 >>
 
 <<
-ALTER TABLE AXPROCESSDEFV2 Add ACTION_BUTTONS VARCHAR2(100);
+ALTER TABLE AXPROCESSDEFV2 Add ACTION_BUTTONS VARCHAR2(100)
 >>
 
 <<
-ALTER TABLE AXPROCESSDEFV2 add DISPLAYBUTTONS VARCHAR2(200);
+ALTER TABLE AXPROCESSDEFV2 add DISPLAYBUTTONS VARCHAR2(200)
 >>
 
 <<
-ALTER TABLE AXPROCESSDEFV2 add DISPLAYSUBTITLE VARCHAR2(2000);
+ALTER TABLE AXPROCESSDEFV2 add DISPLAYSUBTITLE VARCHAR2(2000)
 >>
 
 <<
-ALTER TABLE AXPROCESSDEFV2 add MAPFIELD_GROUP VARCHAR2(1000);
+ALTER TABLE AXPROCESSDEFV2 add MAPFIELD_GROUP VARCHAR2(1000)
 >>
 
 <<
-ALTER TABLE AXPROCESSDEFV2 add SUBINDEXNO NUMBER(12,0);
+ALTER TABLE AXPROCESSDEFV2 add SUBINDEXNO NUMBER(12,0)
 >>
 
 <<
-ALTER TABLE axp_vp ADD masterdlselect varchar2(200);
+ALTER TABLE axp_vp ADD masterdlselect varchar2(200)
 >>
 
 <<
@@ -119,7 +119,7 @@ CREATE TABLE "AXAPIJOBDETAILS"
 	"CONTEXT" VARCHAR2(10), 
 	"ACT_SCRIPT_NAME" VARCHAR2(100), 
 	"AUTHSTR" VARCHAR2(100)
-   );
+   )
 >>
 
 <<
@@ -127,11 +127,11 @@ CREATE TABLE "AXONLINECONVLOG"
    (	"SCRIPT" NCLOB, 
 	"ERRMSG" VARCHAR2(4000), 
 	"TABLENAME" VARCHAR2(100)
-   );
+   )
 >>
 
 <<
-DROP TABLE customtypes;
+DROP TABLE customtypes
 >>
 
 <<
@@ -170,7 +170,7 @@ CREATE TABLE customtypes (
     cmask VARCHAR2(50) NULL,
     cregularexpress VARCHAR2(500) NULL,
     CONSTRAINT aglcustomtypesid PRIMARY KEY (customtypesid)
-);
+)
 >>
 
 <<
@@ -183,7 +183,7 @@ CREATE TABLE axpublishreport (
     createdon DATE DEFAULT SYSDATE,
     publishedto VARCHAR2(100),
     transtype VARCHAR2(10)
-);
+)
 >>
 
 <<
@@ -205,7 +205,7 @@ CREATE TABLE AXTOOLBAR
 	PARENTDC VARCHAR2(10), 
 	POSITION VARCHAR2(30), 
 	API VARCHAR2(200)
-   );
+   )
 >>
 
 <<
@@ -219,7 +219,7 @@ createdon TIMESTAMP default sysdate,
 updatedon TIMESTAMP default sysdate,
 createdby VARCHAR2(50),
 updatedby VARCHAR2(50),
-constraint unique_structtype_structname unique(structtype,structname));
+constraint unique_structtype_structname unique(structtype,structname))
 >>
 
 <<
@@ -244,7 +244,7 @@ CREATE TABLE AXCARDTYPEMASTER
 	"AXPFILE_CARDIMG" VARCHAR2(4000), 
 	"AXPFILEPATH_CARDIMG" VARCHAR2(1000), 
 	 CONSTRAINT "AGLAXCARDTYPEMASTERID" PRIMARY KEY ("AXCARDTYPEMASTERID")
-   );
+   )
 >>
 
 <<
@@ -252,7 +252,7 @@ CREATE TABLE AX_HTMLPLUGINS
    (	"name" VARCHAR2(200) NOT NULL ENABLE, 
 	"HTMLTEXT" NCLOB, 
 	"CONTEXT" VARCHAR2(20), 
-	 CONSTRAINT "AX_HTMLPLUGINS_PK" PRIMARY KEY ("name"));
+	 CONSTRAINT "AX_HTMLPLUGINS_PK" PRIMARY KEY ("name"))
 >>
 
 <<
@@ -269,7 +269,7 @@ CREATE TABLE importdatacompletion (
     resultmsg VARCHAR2(4000 CHAR) NULL,
     errlist CLOB NULL,
     blobno NUMBER NULL
-);
+)
 >>
 
 <<
@@ -310,7 +310,7 @@ CREATE TABLE AXPDEF_SCRIPT
 	FDETAILS VARCHAR2(100), 
 	ISAPI VARCHAR2(1), 
 	EXP_EDITOR_FCSCRIPT CLOB, 
-	 CONSTRAINT AGLAXPDEF_SCRIPTID PRIMARY KEY (AXPDEF_SCRIPTID));
+	 CONSTRAINT AGLAXPDEF_SCRIPTID PRIMARY KEY (AXPDEF_SCRIPTID))
 >>
 
 <<
@@ -345,7 +345,7 @@ CREATE TABLE DWB_IVIEWSCRIPTS
 	PPAGECREATE VARCHAR2(10), 
 	STYPE VARCHAR2(10), 
 	ISAPI VARCHAR2(1), 
-	 CONSTRAINT AGLDWB_IVIEWSCRIPTSID PRIMARY KEY (DWB_IVIEWSCRIPTSID));
+	 CONSTRAINT AGLDWB_IVIEWSCRIPTSID PRIMARY KEY (DWB_IVIEWSCRIPTSID))
 >>
 
 <<
@@ -355,7 +355,7 @@ CREATE TABLE ax_userconfigdata (
    keyname VARCHAR2(100),
    username VARCHAR2(100),
    value CLOB
-);
+)
 >>
 
 <<
@@ -400,7 +400,7 @@ CREATE TABLE AXPROCESSDEF
 	"TRANSID" VARCHAR2(10), 
 	"TASKDESC" VARCHAR2(20), 
 	"ACTIVE" VARCHAR2(1),MAPFIELD_GROUP varchar2(1000), 
-	 CONSTRAINT "AGLAXPROCESSDEFID" PRIMARY KEY ("AXPROCESSDEFID"));
+	 CONSTRAINT "AGLAXPROCESSDEFID" PRIMARY KEY ("AXPROCESSDEFID"))
 >>
 
 <<
@@ -422,7 +422,7 @@ CREATE TABLE axrequest (
     username VARCHAR2(255) NULL,
     additionaldetails CLOB NULL,
     sourcemachineip VARCHAR2(255) NULL,
-    CONSTRAINT axrequest_pkey PRIMARY KEY (requestid));
+    CONSTRAINT axrequest_pkey PRIMARY KEY (requestid))
 >>
 
 <<
@@ -442,7 +442,7 @@ CREATE TABLE axresponse (
     requestid VARCHAR2(100) NULL,
     executiontime VARCHAR2(20) NULL,
     CONSTRAINT axresponse_pkey PRIMARY KEY (responseid),
-    CONSTRAINT axresponse_requestid_fkey FOREIGN KEY (requestid) REFERENCES axrequest(requestid));
+    CONSTRAINT axresponse_requestid_fkey FOREIGN KEY (requestid) REFERENCES axrequest(requestid))
 >>
 
 <<
@@ -531,15 +531,15 @@ CREATE TABLE "AXACTIVETASKS"
 	"REMINDERSTARTDATE" DATE, 
 	"ESCALATIONSTARTDATE" DATE, 
 	"REMINDERJSONDATA" NCLOB, 
-	"ESCALATIONJSONDATA" NCLOB) ;
+	"ESCALATIONJSONDATA" NCLOB) 
 >>
 
 <<
-CREATE INDEX "UI_AXACTIVETASKS_TRANSID" ON "AXACTIVETASKS" ("TRANSID");
+CREATE INDEX "UI_AXACTIVETASKS_TRANSID" ON "AXACTIVETASKS" ("TRANSID")
 >>
 
 <<
-CREATE INDEX "UI_AXACTIVETASKS_KEYVALUE" ON "AXACTIVETASKS" ("KEYVALUE");
+CREATE INDEX "UI_AXACTIVETASKS_KEYVALUE" ON "AXACTIVETASKS" ("KEYVALUE")
 >>
 
 <<
@@ -550,7 +550,7 @@ CREATE TABLE AXACTIVETASKDATA
 	KEYFIELD VARCHAR2(30), 
 	KEYVALUE VARCHAR2(500), 
 	DATAVALUES VARCHAR2(4000)
-   ); 
+   )
 >>
 
 <<
@@ -570,7 +570,7 @@ CREATE TABLE AXACTIVETASKPARAMS
 	SUBINDEXNO NUMBER(10,0), 
 	RECORDID NUMBER(20,0), 
 	TASKPARAMS VARCHAR2(4000)
-   );
+   )
 >>
 
 <<
@@ -595,7 +595,7 @@ CREATE TABLE AXACTIVETASKSTATUS
 	CANCELLEDBY VARCHAR2(100), 
 	CANCELLEDON DATE, 
 	CANCEL VARCHAR2(1)
-   ); 
+   )
 >>
 
 <<
@@ -606,15 +606,15 @@ CREATE TABLE AXPDEF_PEG_USERGROUPS
 	ACTIVE VARCHAR2(1), 
 	EFFECTIVEFROM DATE, 
 	FROMUSER VARCHAR2(1) DEFAULT 'F'
-   );
+   )
 >>
 
 <<
-CREATE INDEX USERNAME_IDX ON AXPDEF_PEG_USERGROUPS (USERNAME);
+CREATE INDEX USERNAME_IDX ON AXPDEF_PEG_USERGROUPS (USERNAME)
 >>
 
 <<
-CREATE INDEX UI_AXPDEF_PEG_UGRP_UGROUPNAME ON AXPDEF_PEG_USERGROUPS (USERGROUPNAME);
+CREATE INDEX UI_AXPDEF_PEG_UGRP_UGROUPNAME ON AXPDEF_PEG_USERGROUPS (USERGROUPNAME)
 >>
 
 <<
@@ -643,7 +643,7 @@ CREATE TABLE AXACTIVEMESSAGES
 	HLINK_TRANSID VARCHAR2(50), 
 	HLINK_PARAMS VARCHAR2(2000), 
 	REQUESTPAYLOAD NCLOB
-   );
+   )
 >>
 
 <<
@@ -653,7 +653,7 @@ CREATE TABLE AXINQUEUESDATA
 	TRANSID VARCHAR2(10), 
 	RECORDID NUMBER(*,0), 
 	QUEUEDATA CLOB
-   );
+   )
 >>
 
 <<
@@ -663,7 +663,7 @@ CREATE TABLE AXOUTQUEUESDATA
 	TRANSID VARCHAR2(10), 
 	RECORDID NUMBER(*,0), 
 	QUEUEDATA NCLOB
-   );
+   )
 >>
 
 <<
@@ -671,7 +671,7 @@ CREATE TABLE AXPFORMLBLS
    (	TRANSID VARCHAR2(5), 
 	LBLNAME VARCHAR2(50), 
 	LBLCAPTION VARCHAR2(4000)
-   );
+   )
 >>
 
 <<
@@ -685,19 +685,19 @@ CREATE TABLE "AXAMEND"
 	"FIELDLIST" CLOB, 
 	"PARSELIST" CLOB, 
 	"RECIDLIST" CLOB
-   );
+   )
 >>
 
 <<
-CREATE TABLE axp_struct_release_log (createdon date DEFAULT sysdate,axpversion varchar(100) NULL);
+CREATE TABLE axp_struct_release_log (createdon date DEFAULT sysdate,axpversion varchar(100) NULL)
 >>
 
 <<
-create table Axp_TransCheck(sessionid varchar2(50));
+create table Axp_TransCheck(sessionid varchar2(50))
 >>
 
 <<
-create unique index  ui_AXCTX1 on AXCTX1 (axcontext,atype);
+create unique index  ui_AXCTX1 on AXCTX1 (axcontext,atype)
 >>
 
 <<
@@ -721,7 +721,7 @@ CREATE TABLE AXP_APPSEARCH_DATA
   SEARCHTEXT            VARCHAR2(500 BYTE),
   PARAMS                VARCHAR2(500 BYTE),
   AXP_APPSEARCH_DATAID  NUMBER(16)
-);
+)
 >>
 
 <<  
@@ -733,23 +733,23 @@ CREATE TABLE AXP_APPSEARCH_DATA_V2
   PARAMS      VARCHAR2(150 BYTE),
   CREATEDON   DATE                              DEFAULT sysdate,
   DOCID       VARCHAR2(50 BYTE)
-);
+)
 >>
 
 <<
-CREATE UNIQUE INDEX UI_AXP_APPSEARCH_DATA_V2 ON AXP_APPSEARCH_DATA_V2(HLTYPE, STRUCTNAME, PARAMS);
+CREATE UNIQUE INDEX UI_AXP_APPSEARCH_DATA_V2 ON AXP_APPSEARCH_DATA_V2(HLTYPE, STRUCTNAME, PARAMS)
 >>
 
 <<
-CREATE UNIQUE INDEX "AGLAXPROCESSDEFV2ID" ON "AXPROCESSDEFV2" ("AXPROCESSDEFV2ID");
+CREATE UNIQUE INDEX "AGLAXPROCESSDEFV2ID" ON "AXPROCESSDEFV2" ("AXPROCESSDEFV2ID")
 >>
 
 <<
-CREATE OR REPLACE TYPE type_peg_sendto AS OBJECT (pusername VARCHAR2(50));
+CREATE OR REPLACE TYPE type_peg_sendto AS OBJECT (pusername VARCHAR2(50))
 >>
 
 <<
-CREATE OR REPLACE TYPE peg_sendto_tab IS TABLE OF type_peg_sendto;
+CREATE OR REPLACE TYPE peg_sendto_tab IS TABLE OF type_peg_sendto
 >>
 
 <<
@@ -787,156 +787,156 @@ CREATE OR REPLACE TYPE axpdef_axpanalytics_mdata_obj AS object(
 	firstcharmask varchar2(100),
 	maskchar varchar2(1),
 	maskroles varchar2(1000),
-	customdecimal varchar2(1));
+	customdecimal varchar2(1))
 >>
 
 <<
-CREATE OR REPLACE TYPE axpdef_axpanalytics_mdata IS TABLE OF axpdef_axpanalytics_mdata_obj;
+CREATE OR REPLACE TYPE axpdef_axpanalytics_mdata IS TABLE OF axpdef_axpanalytics_mdata_obj
 >>
 
 <<
-CREATE OR REPLACE TYPE axpdef_axpanalytics_peg_obj AS object(axpeg_processname varchar2(200),axpeg_keyvalue varchar2(200),axpeg_status NUMERIC,axpeg_statustext varchar2(4000),axpeg_recordid numeric);
+CREATE OR REPLACE TYPE axpdef_axpanalytics_peg_obj AS object(axpeg_processname varchar2(200),axpeg_keyvalue varchar2(200),axpeg_status NUMERIC,axpeg_statustext varchar2(4000),axpeg_recordid numeric)
 >>
 
 <<
-CREATE OR REPLACE TYPE axpdef_axpanalytics_peg IS TABLE OF axpdef_axpanalytics_peg_obj;
+CREATE OR REPLACE TYPE axpdef_axpanalytics_peg IS TABLE OF axpdef_axpanalytics_peg_obj
 >>
 
 <<
-CREATE OR REPLACE TYPE axpdef_peg_tasklist_obj AS object(taskname varchar2(500));
+CREATE OR REPLACE TYPE axpdef_peg_tasklist_obj AS object(taskname varchar2(500))
 
 >>
 
 <<
-CREATE OR REPLACE TYPE axpdef_peg_tasklist IS TABLE OF axpdef_peg_tasklist_obj;
+CREATE OR REPLACE TYPE axpdef_peg_tasklist IS TABLE OF axpdef_peg_tasklist_obj
 >>
 
 <<
-CREATE SEQUENCE AX_ENTITY_RELSEQ INCREMENT BY 1 MINVALUE 1 MAXVALUE 9999999999999999 NOCYCLE CACHE 2000 NOORDER;
+CREATE SEQUENCE AX_ENTITY_RELSEQ INCREMENT BY 1 MINVALUE 1 MAXVALUE 9999999999999999 NOCYCLE CACHE 2000 NOORDER
 >>
 
 <<
-CREATE SEQUENCE AX_NOTIFY_SEQ INCREMENT BY 1 MINVALUE 1 MAXVALUE 9999999999999999999999999999 NOCYCLE CACHE 20 NOORDER;
+CREATE SEQUENCE AX_NOTIFY_SEQ INCREMENT BY 1 MINVALUE 1 MAXVALUE 9999999999999999999999999999 NOCYCLE CACHE 20 NOORDER
 >>
 
 <<
-Insert into AXCTX1(AXCONTEXT, ATYPE) Values ('File Upload Limit', 'Property');
+Insert into AXCTX1(AXCONTEXT, ATYPE) Values ('File Upload Limit', 'Property')
 >>
 
 <<
-Insert into AXCTX1(AXCONTEXT, ATYPE) Values ('camera option', 'Property');
+Insert into AXCTX1(AXCONTEXT, ATYPE) Values ('camera option', 'Property')
 >>
 
 <<
-Insert into AXCTX1(AXCONTEXT, ATYPE) Values ('Date format','Property');
+Insert into AXCTX1(AXCONTEXT, ATYPE) Values ('Date format','Property')
 >>
 
 <<
-insert into axctx1(axcontext,atype) values ('Multi Select','Property');
+insert into axctx1(axcontext,atype) values ('Multi Select','Property')
 >>
 
 <<
-Insert into AXCTX1(ATYPE, AXCONTEXT)Values('Property', 'Resolve Attachment Path');
+Insert into AXCTX1(ATYPE, AXCONTEXT)Values('Property', 'Resolve Attachment Path')
 >>
 
 <<
-insert into axctx1 (axcontext,atype) values ('Custom JavaScript','Property');
+insert into axctx1 (axcontext,atype) values ('Custom JavaScript','Property')
 >>
 
 <<
-insert into axctx1 (axcontext,atype) values ('Custom CSS','Property');
+insert into axctx1 (axcontext,atype) values ('Custom CSS','Property')
 >>
 
 <<
-insert into axctx1 (axcontext,atype) values('Auto Save Draft','Property');
+insert into axctx1 (axcontext,atype) values('Auto Save Draft','Property')
 >>
 
 <<
-insert into axctx1 (axcontext,atype) values('Grid Scrollbar','Property');
+insert into axctx1 (axcontext,atype) values('Grid Scrollbar','Property')
 >>
 
 <<
-insert into axctx1 (axcontext,atype) values('Show keyboard in Hybrid App','Property');
+insert into axctx1 (axcontext,atype) values('Show keyboard in Hybrid App','Property')
 >>
 
 <<
-INSERT INTO axctx1 (axcontext,atype) values ('Mobile Reports as Table','Property');
+INSERT INTO axctx1 (axcontext,atype) values ('Mobile Reports as Table','Property')
 >>
 
 <<
-INSERT INTO axctx1 (axcontext,atype) values ('Iview Button Style','Property');
+INSERT INTO axctx1 (axcontext,atype) values ('Iview Button Style','Property')
 >>
 
 <<
-INSERT INTO axctx1 (atype, axcontext) VALUES('Property', 'icon path');
+INSERT INTO axctx1 (atype, axcontext) VALUES('Property', 'icon path')
 >>
 
 <<
-INSERT INTO axctx1 (atype, axcontext) VALUES('Property', 'Tstruct Button Style');
+INSERT INTO axctx1 (atype, axcontext) VALUES('Property', 'Tstruct Button Style')
 >>
 
 <<
-INSERT INTO axctx1 (atype, axcontext) VALUES('Property', 'Apply Mobile UI');
+INSERT INTO axctx1 (atype, axcontext) VALUES('Property', 'Apply Mobile UI')
 >>
 
 <<
-INSERT INTO axctx1 (atype, axcontext) VALUES('Property', 'Split Ratio');
+INSERT INTO axctx1 (atype, axcontext) VALUES('Property', 'Split Ratio')
 >>
 
 <<
-INSERT INTO axctx1 (atype, axcontext) VALUES('Property', 'Iview Retain Parameters On Next Load');
+INSERT INTO axctx1 (atype, axcontext) VALUES('Property', 'Iview Retain Parameters On Next Load')
 >>
 
 <<
-INSERT INTO axctx1 (atype, axcontext) VALUES('Property', 'Fixed Header for Grid');
+INSERT INTO axctx1 (atype, axcontext) VALUES('Property', 'Fixed Header for Grid')
 >>
 
 <<
-INSERT INTO axctx1 (atype, axcontext) VALUES('Property', 'Iview Responsive Column Width');
+INSERT INTO axctx1 (atype, axcontext) VALUES('Property', 'Iview Responsive Column Width')
 >>
 
 <<
-INSERT INTO axctx1 (atype, axcontext) VALUES('Property', 'Not Fill Dependent Fields');
+INSERT INTO axctx1 (atype, axcontext) VALUES('Property', 'Not Fill Dependent Fields')
 >>
 
 <<
-INSERT INTO axctx1 (atype, axcontext) VALUES('Property', 'Fill Dependent Fields');
+INSERT INTO axctx1 (atype, axcontext) VALUES('Property', 'Fill Dependent Fields')
 >>
 
 <<
-INSERT INTO axctx1 (atype, axcontext) VALUES('Property', 'Striped Reports UI');
+INSERT INTO axctx1 (atype, axcontext) VALUES('Property', 'Striped Reports UI')
 >>
 
 <<
-INSERT INTO axctx1 (atype, axcontext) VALUES('Property', 'HomePageTemplate');
+INSERT INTO axctx1 (atype, axcontext) VALUES('Property', 'HomePageTemplate')
 >>
 
 <<
-INSERT INTO axctx1 (atype, axcontext) VALUES('Property', 'CompressedMode');
+INSERT INTO axctx1 (atype, axcontext) VALUES('Property', 'CompressedMode')
 >>
 
 <<
-INSERT INTO axctx1 (atype, axcontext) VALUES('Property', 'Upload file types');
+INSERT INTO axctx1 (atype, axcontext) VALUES('Property', 'Upload file types')
 >>
 
 <<
-INSERT INTO axctx1 (atype, axcontext) VALUES('Property', 'Google Maps Zoom');
+INSERT INTO axctx1 (atype, axcontext) VALUES('Property', 'Google Maps Zoom')
 >>
 
 <<
-INSERT INTO axctx1 (atype, axcontext) VALUES('Property', 'Iview Session Caching');
+INSERT INTO axctx1 (atype, axcontext) VALUES('Property', 'Iview Session Caching')
 >>
 
 <<
-INSERT INTO axctx1 (atype, axcontext) VALUES('Property', 'Popup fillgrid data based on query order');
+INSERT INTO axctx1 (atype, axcontext) VALUES('Property', 'Popup fillgrid data based on query order')
 >>
 
 <<
-INSERT INTO axctx1 (atype, axcontext) VALUES('Property', 'Popup fillgrid data show all');
+INSERT INTO axctx1 (atype, axcontext) VALUES('Property', 'Popup fillgrid data show all')
 >>
 
 <<
-INSERT INTO AXDIRECTSQL (AXDIRECTSQLID, CANCEL, SOURCEID, MAPNAME, USERNAME, MODIFIEDON, CREATEDBY, CREATEDON, WKID, APP_LEVEL, APP_DESC, APP_SLEVEL, CANCELREMARKS, WFROLES, SQLNAME, DDLDATATYPE, SQLTEXT, PARAMCAL, SQLPARAMS, ACCESSSTRING, GROUPNAME, SQLSRC, SQLSRCCND) VALUES(1077770000000, 'F', 0, NULL, 'admin', TIMESTAMP '2023-11-08 14:10:11.000000', 'admin', TIMESTAMP '2023-11-08 14:10:05.000000', NULL, 1, 1, 0, NULL, NULL, 'axcalendarsource', NULL, 'select * from vw_cards_calendar_data where mapname is null and uname = :username order by startdate', 'username', 'username', 'ALL', NULL, 'General', 5);
+INSERT INTO AXDIRECTSQL (AXDIRECTSQLID, CANCEL, SOURCEID, MAPNAME, USERNAME, MODIFIEDON, CREATEDBY, CREATEDON, WKID, APP_LEVEL, APP_DESC, APP_SLEVEL, CANCELREMARKS, WFROLES, SQLNAME, DDLDATATYPE, SQLTEXT, PARAMCAL, SQLPARAMS, ACCESSSTRING, GROUPNAME, SQLSRC, SQLSRCCND) VALUES(1077770000000, 'F', 0, NULL, 'admin', TIMESTAMP '2023-11-08 14:10:11.000000', 'admin', TIMESTAMP '2023-11-08 14:10:05.000000', NULL, 1, 1, 0, NULL, NULL, 'axcalendarsource', NULL, 'select * from vw_cards_calendar_data where mapname is null and uname = :username order by startdate', 'username', 'username', 'ALL', NULL, 'General', 5)
 INSERT INTO AXDIRECTSQL (AXDIRECTSQLID, CANCEL, SOURCEID, MAPNAME, USERNAME, MODIFIEDON, CREATEDBY, CREATEDON, WKID, APP_LEVEL, APP_DESC, APP_SLEVEL, CANCELREMARKS, WFROLES, SQLNAME, DDLDATATYPE, SQLTEXT, PARAMCAL, SQLPARAMS, ACCESSSTRING, GROUPNAME, SQLSRC, SQLSRCCND) VALUES(1092550000000, 'F', 0, NULL, 'admin', TIMESTAMP '2023-11-09 17:44:55.000000', 'admin', TIMESTAMP '2023-11-09 17:44:25.000000', NULL, 1, 1, 0, NULL, NULL, 'Text_Field_Intelligence', NULL, 'select id,caption,source from(
 select fname id,caption,''Form'' source,2 ord from axpflds where asgrid=''F'' and tstruct = :txttransid 
 union all
@@ -949,7 +949,7 @@ select ''usergroup'',''User role'',''App vars'' ,4 ord from dual
 union all
 select fname,caption,''Glovar'',5 ord from axpflds where tstruct=''axglo''
 order by 4,1)a
-', 'txttransid', 'txttransid', 'ALL', NULL, 'Data intellisense', 3);
+', 'txttransid', 'txttransid', 'ALL', NULL, 'Data intellisense', 3)
 >>
 
 <<
@@ -958,7 +958,9 @@ INSERT INTO AXDIRECTSQL (AXDIRECTSQLID, CANCEL, SOURCEID, MAPNAME, USERNAME, MOD
 from vw_pegv2_alltasks where case when cstatus=''Active'' then lower(touser) else lower(username) end = :username) 
 WHERE rno BETWEEN 1 AND 100
 order by edatetime desc 
-', 'username', 'username', 'ALL', NULL, 'Home configuration', 2);
+', 'username', 'username', 'ALL', NULL, 'Home configuration', 2)
+>>
+<<
 INSERT INTO AXDIRECTSQL (AXDIRECTSQLID, CANCEL, SOURCEID, MAPNAME, USERNAME, MODIFIEDON, CREATEDBY, CREATEDON, WKID, APP_LEVEL, APP_DESC, APP_SLEVEL, CANCELREMARKS, WFROLES, SQLNAME, DDLDATATYPE, SQLTEXT, PARAMCAL, SQLPARAMS, ACCESSSTRING, GROUPNAME, SQLSRC, SQLSRCCND) VALUES(1359330000000, 'F', 0, NULL, 'admin', TIMESTAMP '2024-12-24 15:56:26.000000', 'admin', TIMESTAMP '2024-12-24 15:56:26.000000', NULL, 1, 1, 0, NULL, NULL, 'ds_homepage_quicklinks', NULL, 'SELECT distinct 
 case when lower(servicename)=''get structure'' then t.caption
 when lower(servicename) in(''get iview new'',''get iview'') then i.caption end caption,
@@ -969,7 +971,7 @@ left join iviews i on a.structname = i.name
 where cast(calledon as date) > current_date - 1  
 and lower(servicename) in(''get structure'',''get iview new'',''get iview'')
 and structname is not null
-and a.username  = :username', 'username', 'username', 'ALL', NULL, 'Home configuration', 2);
+and a.username  = :username', 'username', 'username', 'ALL', NULL, 'Home configuration', 2)
 >>
 
 <<
@@ -1000,7 +1002,7 @@ where lower(servicename) in (''load data'',''quick load data'',''form load'',''g
 and calledon > current_date - 2
 and username = :username)a
 where a.title is not null
-order by calledon desc', 'username', 'username', 'ALL', NULL, 'Home configuration', 2);
+order by calledon desc', 'username', 'username', 'ALL', NULL, 'Home configuration', 2)
 >>
 
 <<
@@ -1009,7 +1011,9 @@ union
 SELECT ''UI Plugins'' as title, ''Use UI Plugins to enhance the user experience'' as subtitle, ''Jan 01, 2025'' as time, ''https://dev.agilecloud.biz/axpert11.3web/CustomPages/images/slider1.png'' as image, '''' as link from dual
 union
 SELECT ''Configure yourself'' as title, ''Configure functionalities as per customer needs'' as subtitle, ''Jan 01, 2025'' as time, ''https://dev.agilecloud.biz/axpert11.3web/CustomPages/images/slider1.png'' as image, '''' as link from dual
-', NULL, NULL, 'ALL', NULL, 'Home configuration', 2);
+', NULL, NULL, 'ALL', NULL, 'Home configuration', 2)
+>>
+<<
 INSERT INTO AXDIRECTSQL (AXDIRECTSQLID, CANCEL, SOURCEID, MAPNAME, USERNAME, MODIFIEDON, CREATEDBY, CREATEDON, WKID, APP_LEVEL, APP_DESC, APP_SLEVEL, CANCELREMARKS, WFROLES, SQLNAME, DDLDATATYPE, SQLTEXT, PARAMCAL, SQLPARAMS, ACCESSSTRING, GROUPNAME, SQLSRC, SQLSRCCND) VALUES(1359110000000, 'F', 0, NULL, 'admin', TIMESTAMP '2025-01-08 18:37:34.000000', 'admin', TIMESTAMP '2024-12-24 15:55:02.000000', NULL, 1, 1, 0, NULL, NULL, 'ds_homepage_kpicards', NULL, 'select ''Users'' name,count(*) value,''taxusr()'' link from axusers
 union all
 select ''Records created today'',count(*),null from axpertlog a 
@@ -1021,7 +1025,7 @@ select ''Active sessions'',count(*),null from axaudit a
 where cast(logintime as date)=current_date
 and nologout =''T''
 union all
-select ''Sample with params'',0,''taxusr(pusername=admin~build=T)'' from dual where 1=2', 'username', 'username', 'ALL', NULL, 'Home configuration', 2);
+select ''Sample with params'',0,''taxusr(pusername=admin~build=T)'' from dual where 1=2', 'username', 'username', 'ALL', NULL, 'Home configuration', 2)
 >>
 
 <<
@@ -1029,7 +1033,7 @@ INSERT INTO AXDIRECTSQL (AXDIRECTSQLID, CANCEL, SOURCEID, MAPNAME, USERNAME, MOD
 from axpdef_news_events
 where active=''T'' 
 and  (current_date >= effectfrom and (effecto >= current_date or effecto is null))
-order by effectfrom', NULL, NULL, 'ALL', NULL, 'Home configuration', 2);
+order by effectfrom', NULL, NULL, 'ALL', NULL, 'Home configuration', 2)
 >>
 
 <<
@@ -1043,224 +1047,224 @@ INSERT INTO EXECUTEAPIDEF (EXECUTEAPIDEFID, CANCEL, SOURCEID, MAPNAME, USERNAME,
   "dbuser": "deforacle112",
   "pwd": "",
   "dataurl": ""
-},"sqlparams":{"txttransid":""}}]}', 'Post', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'SQL', 'Axpert', 'JSON', NULL, NULL);
+},"sqlparams":{"txttransid":""}}]}', 'Post', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'SQL', 'Axpert', 'JSON', NULL, NULL)
 >>
 
 <<
-INSERT INTO axinqueues (axinqueuesid, cancel, sourceid, mapname, username, modifiedon, createdby, createdon, wkid, app_level, app_desc, app_slevel, cancelremarks, wfroles, axqueuename, axqueuedesc, active) VALUES(1540770000000, 'F', 0, NULL, 'admin', sysdate, 'admin', sysdate, NULL, 1, 1, NULL, NULL, NULL, 'Import broker queue', 'This queue will push data into Axpert. The result is pushed into RapidSaveResponse Queue. The request may contain file upload fields. In this case, the value will be a byte array. This will be stored into Axpert as per definition. Further, a request JSON may have a node named "PrintRequest" with print form names as value for this node. If this is present, the request response JSON will contain the requested print form in the requested file format as byte arrays.', 'T');
+INSERT INTO axinqueues (axinqueuesid, cancel, sourceid, mapname, username, modifiedon, createdby, createdon, wkid, app_level, app_desc, app_slevel, cancelremarks, wfroles, axqueuename, axqueuedesc, active) VALUES(1540770000000, 'F', 0, NULL, 'admin', sysdate, 'admin', sysdate, NULL, 1, 1, NULL, NULL, NULL, 'Import broker queue', 'This queue will push data into Axpert. The result is pushed into RapidSaveResponse Queue. The request may contain file upload fields. In this case, the value will be a byte array. This will be stored into Axpert as per definition. Further, a request JSON may have a node named "PrintRequest" with print form names as value for this node. If this is present, the request response JSON will contain the requested print form in the requested file format as byte arrays.', 'T')
 >>
 
 <<
-INSERT INTO axinqueues (axinqueuesid, cancel, sourceid, mapname, username, modifiedon, createdby, createdon, wkid, app_level, app_desc, app_slevel, cancelremarks, wfroles, axqueuename, axqueuedesc, active) VALUES(1540880000000, 'F', 0, NULL, 'admin',sysdate, 'admin', sysdate, NULL, 1, 1, NULL, NULL, NULL, 'Data import queue', 'This queue will import data into a given Db table in this application. The response will be given in DBTableImportResponse Queue.', 'T');
+INSERT INTO axinqueues (axinqueuesid, cancel, sourceid, mapname, username, modifiedon, createdby, createdon, wkid, app_level, app_desc, app_slevel, cancelremarks, wfroles, axqueuename, axqueuedesc, active) VALUES(1540880000000, 'F', 0, NULL, 'admin',sysdate, 'admin', sysdate, NULL, 1, 1, NULL, NULL, NULL, 'Data import queue', 'This queue will import data into a given Db table in this application. The response will be given in DBTableImportResponse Queue.', 'T')
 >>
 
 <<
-INSERT INTO axoutqueuesmst (axoutqueuesmstid, cancel, sourceid, mapname, username, modifiedon, createdby, createdon, wkid, app_level, app_desc, app_slevel, cancelremarks, wfroles, axqueuename, axqueuedesc) VALUES(1551110000000, 'F', 0, NULL, 'admin', sysdate, 'admin',sysdate, NULL, 1, 1, NULL, NULL, NULL, 'Data out queue', 'This default queue will export data from axpert and can be consumed from other applications');
+INSERT INTO axoutqueuesmst (axoutqueuesmstid, cancel, sourceid, mapname, username, modifiedon, createdby, createdon, wkid, app_level, app_desc, app_slevel, cancelremarks, wfroles, axqueuename, axqueuedesc) VALUES(1551110000000, 'F', 0, NULL, 'admin', sysdate, 'admin',sysdate, NULL, 1, 1, NULL, NULL, NULL, 'Data out queue', 'This default queue will export data from axpert and can be consumed from other applications')
 >>
 
 <<
-INSERT INTO axoutqueuesmst (axoutqueuesmstid, cancel, sourceid, mapname, username, modifiedon, createdby, createdon, wkid, app_level, app_desc, app_slevel, cancelremarks, wfroles, axqueuename, axqueuedesc) VALUES(1550990000000, 'F', 0, NULL, 'admin',sysdate, 'admin', sysdate, NULL, 1, 1, NULL, NULL, NULL, 'Notification queue', 'This default queue will be used for notifications');
+INSERT INTO axoutqueuesmst (axoutqueuesmstid, cancel, sourceid, mapname, username, modifiedon, createdby, createdon, wkid, app_level, app_desc, app_slevel, cancelremarks, wfroles, axqueuename, axqueuedesc) VALUES(1550990000000, 'F', 0, NULL, 'admin',sysdate, 'admin', sysdate, NULL, 1, 1, NULL, NULL, NULL, 'Notification queue', 'This default queue will be used for notifications')
 >>
 
 <<
-INSERT INTO axpdef_axcalendar_event (axpdef_axcalendar_eventid, cancel, sourceid, mapname, username, modifiedon, createdby, createdon, wkid, app_level, app_desc, app_slevel, cancelremarks, wfroles, eventname, eventcolor) VALUES(1116010000000, 'F', 0, NULL, 'admin', sysdate, 'admin', sysdate, NULL, 1, 1, NULL, NULL, NULL, 'Meeting', 'cerise');
+INSERT INTO axpdef_axcalendar_event (axpdef_axcalendar_eventid, cancel, sourceid, mapname, username, modifiedon, createdby, createdon, wkid, app_level, app_desc, app_slevel, cancelremarks, wfroles, eventname, eventcolor) VALUES(1116010000000, 'F', 0, NULL, 'admin', sysdate, 'admin', sysdate, NULL, 1, 1, NULL, NULL, NULL, 'Meeting', 'cerise')
 >>
 
 <<
-INSERT INTO axpdef_axcalendar_event (axpdef_axcalendar_eventid, cancel, sourceid, mapname, username, modifiedon, createdby, createdon, wkid, app_level, app_desc, app_slevel, cancelremarks, wfroles, eventname, eventcolor) VALUES(1117110000000, 'F', 0, NULL, 'admin',sysdate, 'admin', sysdate, NULL, 1, 1, NULL, NULL, NULL, 'Personal', 'blue');
+INSERT INTO axpdef_axcalendar_event (axpdef_axcalendar_eventid, cancel, sourceid, mapname, username, modifiedon, createdby, createdon, wkid, app_level, app_desc, app_slevel, cancelremarks, wfroles, eventname, eventcolor) VALUES(1117110000000, 'F', 0, NULL, 'admin',sysdate, 'admin', sysdate, NULL, 1, 1, NULL, NULL, NULL, 'Personal', 'blue')
 >>
 
 <<
-INSERT INTO axpdef_axcalendar_event (axpdef_axcalendar_eventid, cancel, sourceid, mapname, username, modifiedon, createdby, createdon, wkid, app_level, app_desc, app_slevel, cancelremarks, wfroles, eventname, eventcolor) VALUES(1117110000002, 'F', 0, NULL, 'admin',sysdate, 'admin', sysdate, NULL, 1, 1, NULL, NULL, NULL, 'Leave', 'Red');
+INSERT INTO axpdef_axcalendar_event (axpdef_axcalendar_eventid, cancel, sourceid, mapname, username, modifiedon, createdby, createdon, wkid, app_level, app_desc, app_slevel, cancelremarks, wfroles, eventname, eventcolor) VALUES(1117110000002, 'F', 0, NULL, 'admin',sysdate, 'admin', sysdate, NULL, 1, 1, NULL, NULL, NULL, 'Leave', 'Red')
 >>
 
 <<
-INSERT INTO axpdef_axcalendar_event (axpdef_axcalendar_eventid, cancel, sourceid, mapname, username, modifiedon, createdby, createdon, wkid, app_level, app_desc, app_slevel, cancelremarks, wfroles, eventname, eventcolor) VALUES(1117110000001, 'F', 0, NULL, 'admin', sysdate, 'admin', sysdate, NULL, 1, 1, NULL, NULL, NULL, 'Online meet', 'Fuchsia Blue');
+INSERT INTO axpdef_axcalendar_event (axpdef_axcalendar_eventid, cancel, sourceid, mapname, username, modifiedon, createdby, createdon, wkid, app_level, app_desc, app_slevel, cancelremarks, wfroles, eventname, eventcolor) VALUES(1117110000001, 'F', 0, NULL, 'admin', sysdate, 'admin', sysdate, NULL, 1, 1, NULL, NULL, NULL, 'Online meet', 'Fuchsia Blue')
 >>
 
 <<
-INSERT INTO CUSTOMTYPES (CUSTOMTYPESID, CANCEL, SOURCEID, MAPNAME, USERNAME, MODIFIEDON, CREATEDBY, CREATEDON, WKID, APP_LEVEL, APP_DESC, APP_SLEVEL, CANCELREMARKS, WFROLES, TYPENAME, DATATYPE, WIDTH, DECI, NAMECHECK, REPLACECHAR, FCHARCHECK, VALIDCHK, MODEOFENTRY, CVALUES, DEFAULTVALUE, SQL_EDITOR_DETAILS, EXP_EDITOR_EXPRESSION, EXP_EDITOR_VALIDATEEXPRESSION, READONLY, CHIDE, CPATTERN, CMASK, CREGULAREXPRESS) VALUES(1065440000000, 'F', 0, NULL, 'admin', sysdate, 'admin', sysdate, NULL, 1, 1, NULL, NULL, NULL, 'Random Number', 'Numeric', 10, 0, 'ADD', 'Random Number', 'T', 'T', 'Accept', NULL, NULL, NULL, NULL, NULL, 'F', 'F', NULL, NULL, NULL);
+INSERT INTO CUSTOMTYPES (CUSTOMTYPESID, CANCEL, SOURCEID, MAPNAME, USERNAME, MODIFIEDON, CREATEDBY, CREATEDON, WKID, APP_LEVEL, APP_DESC, APP_SLEVEL, CANCELREMARKS, WFROLES, TYPENAME, DATATYPE, WIDTH, DECI, NAMECHECK, REPLACECHAR, FCHARCHECK, VALIDCHK, MODEOFENTRY, CVALUES, DEFAULTVALUE, SQL_EDITOR_DETAILS, EXP_EDITOR_EXPRESSION, EXP_EDITOR_VALIDATEEXPRESSION, READONLY, CHIDE, CPATTERN, CMASK, CREGULAREXPRESS) VALUES(1065440000000, 'F', 0, NULL, 'admin', sysdate, 'admin', sysdate, NULL, 1, 1, NULL, NULL, NULL, 'Random Number', 'Numeric', 10, 0, 'ADD', 'Random Number', 'T', 'T', 'Accept', NULL, NULL, NULL, NULL, NULL, 'F', 'F', NULL, NULL, NULL)
 >>
 
 <<
-INSERT INTO CUSTOMTYPES (CUSTOMTYPESID, CANCEL, SOURCEID, MAPNAME, USERNAME, MODIFIEDON, CREATEDBY, CREATEDON, WKID, APP_LEVEL, APP_DESC, APP_SLEVEL, CANCELREMARKS, WFROLES, TYPENAME, DATATYPE, WIDTH, DECI, NAMECHECK, REPLACECHAR, FCHARCHECK, VALIDCHK, MODEOFENTRY, CVALUES, DEFAULTVALUE, SQL_EDITOR_DETAILS, EXP_EDITOR_EXPRESSION, EXP_EDITOR_VALIDATEEXPRESSION, READONLY, CHIDE, CPATTERN, CMASK, CREGULAREXPRESS) VALUES(1055660000007, 'F', 0, NULL, 'admin', sysdate, 'admin', sysdate, NULL, 1, 1, NULL, NULL, NULL, 'Date', 'Date/Time', 10, 0, 'ADD', 'Date', 'T', 'T', 'Accept', NULL, NULL, NULL, 'Date()', NULL, NULL, NULL, NULL, NULL, NULL);
+INSERT INTO CUSTOMTYPES (CUSTOMTYPESID, CANCEL, SOURCEID, MAPNAME, USERNAME, MODIFIEDON, CREATEDBY, CREATEDON, WKID, APP_LEVEL, APP_DESC, APP_SLEVEL, CANCELREMARKS, WFROLES, TYPENAME, DATATYPE, WIDTH, DECI, NAMECHECK, REPLACECHAR, FCHARCHECK, VALIDCHK, MODEOFENTRY, CVALUES, DEFAULTVALUE, SQL_EDITOR_DETAILS, EXP_EDITOR_EXPRESSION, EXP_EDITOR_VALIDATEEXPRESSION, READONLY, CHIDE, CPATTERN, CMASK, CREGULAREXPRESS) VALUES(1055660000007, 'F', 0, NULL, 'admin', sysdate, 'admin', sysdate, NULL, 1, 1, NULL, NULL, NULL, 'Date', 'Date/Time', 10, 0, 'ADD', 'Date', 'T', 'T', 'Accept', NULL, NULL, NULL, 'Date()', NULL, NULL, NULL, NULL, NULL, NULL)
 >>
 
 <<
-INSERT INTO CUSTOMTYPES (CUSTOMTYPESID, CANCEL, SOURCEID, MAPNAME, USERNAME, MODIFIEDON, CREATEDBY, CREATEDON, WKID, APP_LEVEL, APP_DESC, APP_SLEVEL, CANCELREMARKS, WFROLES, TYPENAME, DATATYPE, WIDTH, DECI, NAMECHECK, REPLACECHAR, FCHARCHECK, VALIDCHK, MODEOFENTRY, CVALUES, DEFAULTVALUE, SQL_EDITOR_DETAILS, EXP_EDITOR_EXPRESSION, EXP_EDITOR_VALIDATEEXPRESSION, READONLY, CHIDE, CPATTERN, CMASK, CREGULAREXPRESS) VALUES(1056880000000, 'F', 0, NULL, 'admin', sysdate, 'admin', sysdate, NULL, 1, 1, NULL, NULL, NULL, 'Short Text', 'Character', 10, 0, 'ADD', 'Short Text', 'T', 'T', 'Accept', NULL, NULL, NULL, NULL, NULL, 'F', 'F', NULL, NULL, NULL);
+INSERT INTO CUSTOMTYPES (CUSTOMTYPESID, CANCEL, SOURCEID, MAPNAME, USERNAME, MODIFIEDON, CREATEDBY, CREATEDON, WKID, APP_LEVEL, APP_DESC, APP_SLEVEL, CANCELREMARKS, WFROLES, TYPENAME, DATATYPE, WIDTH, DECI, NAMECHECK, REPLACECHAR, FCHARCHECK, VALIDCHK, MODEOFENTRY, CVALUES, DEFAULTVALUE, SQL_EDITOR_DETAILS, EXP_EDITOR_EXPRESSION, EXP_EDITOR_VALIDATEEXPRESSION, READONLY, CHIDE, CPATTERN, CMASK, CREGULAREXPRESS) VALUES(1056880000000, 'F', 0, NULL, 'admin', sysdate, 'admin', sysdate, NULL, 1, 1, NULL, NULL, NULL, 'Short Text', 'Character', 10, 0, 'ADD', 'Short Text', 'T', 'T', 'Accept', NULL, NULL, NULL, NULL, NULL, 'F', 'F', NULL, NULL, NULL)
 >>
 
 <<
-INSERT INTO CUSTOMTYPES (CUSTOMTYPESID, CANCEL, SOURCEID, MAPNAME, USERNAME, MODIFIEDON, CREATEDBY, CREATEDON, WKID, APP_LEVEL, APP_DESC, APP_SLEVEL, CANCELREMARKS, WFROLES, TYPENAME, DATATYPE, WIDTH, DECI, NAMECHECK, REPLACECHAR, FCHARCHECK, VALIDCHK, MODEOFENTRY, CVALUES, DEFAULTVALUE, SQL_EDITOR_DETAILS, EXP_EDITOR_EXPRESSION, EXP_EDITOR_VALIDATEEXPRESSION, READONLY, CHIDE, CPATTERN, CMASK, CREGULAREXPRESS) VALUES(1055660000009, 'F', 0, NULL, 'admin', sysdate, 'admin', sysdate, NULL, 1, 1, NULL, NULL, NULL, 'Auto Generate', 'Character', 20, 0, 'ADD', 'Auto Generate', 'T', 'T', 'AutoGenerate', NULL, NULL, NULL, NULL, NULL, 'T', NULL, NULL, NULL, NULL);
+INSERT INTO CUSTOMTYPES (CUSTOMTYPESID, CANCEL, SOURCEID, MAPNAME, USERNAME, MODIFIEDON, CREATEDBY, CREATEDON, WKID, APP_LEVEL, APP_DESC, APP_SLEVEL, CANCELREMARKS, WFROLES, TYPENAME, DATATYPE, WIDTH, DECI, NAMECHECK, REPLACECHAR, FCHARCHECK, VALIDCHK, MODEOFENTRY, CVALUES, DEFAULTVALUE, SQL_EDITOR_DETAILS, EXP_EDITOR_EXPRESSION, EXP_EDITOR_VALIDATEEXPRESSION, READONLY, CHIDE, CPATTERN, CMASK, CREGULAREXPRESS) VALUES(1055660000009, 'F', 0, NULL, 'admin', sysdate, 'admin', sysdate, NULL, 1, 1, NULL, NULL, NULL, 'Auto Generate', 'Character', 20, 0, 'ADD', 'Auto Generate', 'T', 'T', 'AutoGenerate', NULL, NULL, NULL, NULL, NULL, 'T', NULL, NULL, NULL, NULL)
 >>
 
 <<
-INSERT INTO CUSTOMTYPES (CUSTOMTYPESID, CANCEL, SOURCEID, MAPNAME, USERNAME, MODIFIEDON, CREATEDBY, CREATEDON, WKID, APP_LEVEL, APP_DESC, APP_SLEVEL, CANCELREMARKS, WFROLES, TYPENAME, DATATYPE, WIDTH, DECI, NAMECHECK, REPLACECHAR, FCHARCHECK, VALIDCHK, MODEOFENTRY, CVALUES, DEFAULTVALUE, SQL_EDITOR_DETAILS, EXP_EDITOR_EXPRESSION, EXP_EDITOR_VALIDATEEXPRESSION, READONLY, CHIDE, CPATTERN, CMASK, CREGULAREXPRESS) VALUES(1055660000003, 'F', 0, NULL, 'admin', sysdate, 'admin', sysdate, NULL, 1, 1, NULL, NULL, NULL, 'HTML Text', 'Text', 4000, 0, 'ADD', 'HTML Text', 'T', 'T', 'Accept', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL);
+INSERT INTO CUSTOMTYPES (CUSTOMTYPESID, CANCEL, SOURCEID, MAPNAME, USERNAME, MODIFIEDON, CREATEDBY, CREATEDON, WKID, APP_LEVEL, APP_DESC, APP_SLEVEL, CANCELREMARKS, WFROLES, TYPENAME, DATATYPE, WIDTH, DECI, NAMECHECK, REPLACECHAR, FCHARCHECK, VALIDCHK, MODEOFENTRY, CVALUES, DEFAULTVALUE, SQL_EDITOR_DETAILS, EXP_EDITOR_EXPRESSION, EXP_EDITOR_VALIDATEEXPRESSION, READONLY, CHIDE, CPATTERN, CMASK, CREGULAREXPRESS) VALUES(1055660000003, 'F', 0, NULL, 'admin', sysdate, 'admin', sysdate, NULL, 1, 1, NULL, NULL, NULL, 'HTML Text', 'Text', 4000, 0, 'ADD', 'HTML Text', 'T', 'T', 'Accept', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL)
 >>
 
 <<
-INSERT INTO CUSTOMTYPES (CUSTOMTYPESID, CANCEL, SOURCEID, MAPNAME, USERNAME, MODIFIEDON, CREATEDBY, CREATEDON, WKID, APP_LEVEL, APP_DESC, APP_SLEVEL, CANCELREMARKS, WFROLES, TYPENAME, DATATYPE, WIDTH, DECI, NAMECHECK, REPLACECHAR, FCHARCHECK, VALIDCHK, MODEOFENTRY, CVALUES, DEFAULTVALUE, SQL_EDITOR_DETAILS, EXP_EDITOR_EXPRESSION, EXP_EDITOR_VALIDATEEXPRESSION, READONLY, CHIDE, CPATTERN, CMASK, CREGULAREXPRESS) VALUES(1055660000002, 'F', 0, NULL, 'admin', sysdate, 'admin', sysdate, NULL, 1, 1, NULL, NULL, NULL, 'Rich Text', 'Text', 4000, 0, 'ADD', 'Rich Text', 'T', 'T', 'Accept', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL);
+INSERT INTO CUSTOMTYPES (CUSTOMTYPESID, CANCEL, SOURCEID, MAPNAME, USERNAME, MODIFIEDON, CREATEDBY, CREATEDON, WKID, APP_LEVEL, APP_DESC, APP_SLEVEL, CANCELREMARKS, WFROLES, TYPENAME, DATATYPE, WIDTH, DECI, NAMECHECK, REPLACECHAR, FCHARCHECK, VALIDCHK, MODEOFENTRY, CVALUES, DEFAULTVALUE, SQL_EDITOR_DETAILS, EXP_EDITOR_EXPRESSION, EXP_EDITOR_VALIDATEEXPRESSION, READONLY, CHIDE, CPATTERN, CMASK, CREGULAREXPRESS) VALUES(1055660000002, 'F', 0, NULL, 'admin', sysdate, 'admin', sysdate, NULL, 1, 1, NULL, NULL, NULL, 'Rich Text', 'Text', 4000, 0, 'ADD', 'Rich Text', 'T', 'T', 'Accept', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL)
 >>
 
 <<
-INSERT INTO CUSTOMTYPES (CUSTOMTYPESID, CANCEL, SOURCEID, MAPNAME, USERNAME, MODIFIEDON, CREATEDBY, CREATEDON, WKID, APP_LEVEL, APP_DESC, APP_SLEVEL, CANCELREMARKS, WFROLES, TYPENAME, DATATYPE, WIDTH, DECI, NAMECHECK, REPLACECHAR, FCHARCHECK, VALIDCHK, MODEOFENTRY, CVALUES, DEFAULTVALUE, SQL_EDITOR_DETAILS, EXP_EDITOR_EXPRESSION, EXP_EDITOR_VALIDATEEXPRESSION, READONLY, CHIDE, CPATTERN, CMASK, CREGULAREXPRESS) VALUES(1055660000004, 'F', 0, NULL, 'admin', sysdate, 'admin', sysdate, NULL, 1, 1, NULL, NULL, NULL, 'Whole Number', 'Numeric', 10, 0, 'ADD', 'Whole Number', 'T', 'T', 'Accept', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL);
+INSERT INTO CUSTOMTYPES (CUSTOMTYPESID, CANCEL, SOURCEID, MAPNAME, USERNAME, MODIFIEDON, CREATEDBY, CREATEDON, WKID, APP_LEVEL, APP_DESC, APP_SLEVEL, CANCELREMARKS, WFROLES, TYPENAME, DATATYPE, WIDTH, DECI, NAMECHECK, REPLACECHAR, FCHARCHECK, VALIDCHK, MODEOFENTRY, CVALUES, DEFAULTVALUE, SQL_EDITOR_DETAILS, EXP_EDITOR_EXPRESSION, EXP_EDITOR_VALIDATEEXPRESSION, READONLY, CHIDE, CPATTERN, CMASK, CREGULAREXPRESS) VALUES(1055660000004, 'F', 0, NULL, 'admin', sysdate, 'admin', sysdate, NULL, 1, 1, NULL, NULL, NULL, 'Whole Number', 'Numeric', 10, 0, 'ADD', 'Whole Number', 'T', 'T', 'Accept', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL)
 >>
 
 <<
-INSERT INTO CUSTOMTYPES (CUSTOMTYPESID, CANCEL, SOURCEID, MAPNAME, USERNAME, MODIFIEDON, CREATEDBY, CREATEDON, WKID, APP_LEVEL, APP_DESC, APP_SLEVEL, CANCELREMARKS, WFROLES, TYPENAME, DATATYPE, WIDTH, DECI, NAMECHECK, REPLACECHAR, FCHARCHECK, VALIDCHK, MODEOFENTRY, CVALUES, DEFAULTVALUE, SQL_EDITOR_DETAILS, EXP_EDITOR_EXPRESSION, EXP_EDITOR_VALIDATEEXPRESSION, READONLY, CHIDE, CPATTERN, CMASK, CREGULAREXPRESS) VALUES(1055660000000, 'F', 0, NULL, 'admin', sysdate, 'admin', sysdate, NULL, 1, 1, NULL, NULL, NULL, 'Simple Text', 'Character', 50, 0, 'ADD', 'Simple Text', 'T', 'T', 'Accept', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL);
+INSERT INTO CUSTOMTYPES (CUSTOMTYPESID, CANCEL, SOURCEID, MAPNAME, USERNAME, MODIFIEDON, CREATEDBY, CREATEDON, WKID, APP_LEVEL, APP_DESC, APP_SLEVEL, CANCELREMARKS, WFROLES, TYPENAME, DATATYPE, WIDTH, DECI, NAMECHECK, REPLACECHAR, FCHARCHECK, VALIDCHK, MODEOFENTRY, CVALUES, DEFAULTVALUE, SQL_EDITOR_DETAILS, EXP_EDITOR_EXPRESSION, EXP_EDITOR_VALIDATEEXPRESSION, READONLY, CHIDE, CPATTERN, CMASK, CREGULAREXPRESS) VALUES(1055660000000, 'F', 0, NULL, 'admin', sysdate, 'admin', sysdate, NULL, 1, 1, NULL, NULL, NULL, 'Simple Text', 'Character', 50, 0, 'ADD', 'Simple Text', 'T', 'T', 'Accept', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL)
 >>
 
 <<
-INSERT INTO CUSTOMTYPES (CUSTOMTYPESID, CANCEL, SOURCEID, MAPNAME, USERNAME, MODIFIEDON, CREATEDBY, CREATEDON, WKID, APP_LEVEL, APP_DESC, APP_SLEVEL, CANCELREMARKS, WFROLES, TYPENAME, DATATYPE, WIDTH, DECI, NAMECHECK, REPLACECHAR, FCHARCHECK, VALIDCHK, MODEOFENTRY, CVALUES, DEFAULTVALUE, SQL_EDITOR_DETAILS, EXP_EDITOR_EXPRESSION, EXP_EDITOR_VALIDATEEXPRESSION, READONLY, CHIDE, CPATTERN, CMASK, CREGULAREXPRESS) VALUES(1055660000008, 'F', 0, NULL, 'admin', sysdate, 'admin', sysdate, NULL, 1, 1, NULL, NULL, NULL, 'Time', 'Character', 10, 0, 'ADD', 'Time', 'T', 'T', 'Accept', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL);
+INSERT INTO CUSTOMTYPES (CUSTOMTYPESID, CANCEL, SOURCEID, MAPNAME, USERNAME, MODIFIEDON, CREATEDBY, CREATEDON, WKID, APP_LEVEL, APP_DESC, APP_SLEVEL, CANCELREMARKS, WFROLES, TYPENAME, DATATYPE, WIDTH, DECI, NAMECHECK, REPLACECHAR, FCHARCHECK, VALIDCHK, MODEOFENTRY, CVALUES, DEFAULTVALUE, SQL_EDITOR_DETAILS, EXP_EDITOR_EXPRESSION, EXP_EDITOR_VALIDATEEXPRESSION, READONLY, CHIDE, CPATTERN, CMASK, CREGULAREXPRESS) VALUES(1055660000008, 'F', 0, NULL, 'admin', sysdate, 'admin', sysdate, NULL, 1, 1, NULL, NULL, NULL, 'Time', 'Character', 10, 0, 'ADD', 'Time', 'T', 'T', 'Accept', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL)
 >>
 
 <<
-INSERT INTO CUSTOMTYPES (CUSTOMTYPESID, CANCEL, SOURCEID, MAPNAME, USERNAME, MODIFIEDON, CREATEDBY, CREATEDON, WKID, APP_LEVEL, APP_DESC, APP_SLEVEL, CANCELREMARKS, WFROLES, TYPENAME, DATATYPE, WIDTH, DECI, NAMECHECK, REPLACECHAR, FCHARCHECK, VALIDCHK, MODEOFENTRY, CVALUES, DEFAULTVALUE, SQL_EDITOR_DETAILS, EXP_EDITOR_EXPRESSION, EXP_EDITOR_VALIDATEEXPRESSION, READONLY, CHIDE, CPATTERN, CMASK, CREGULAREXPRESS) VALUES(1055660000006, 'F', 0, NULL, 'admin', sysdate, 'admin', sysdate, NULL, 1, 1, NULL, NULL, NULL, 'Currency', 'Numeric', 10, 2, 'ADD', 'Currency', 'T', 'T', 'Accept', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL);
+INSERT INTO CUSTOMTYPES (CUSTOMTYPESID, CANCEL, SOURCEID, MAPNAME, USERNAME, MODIFIEDON, CREATEDBY, CREATEDON, WKID, APP_LEVEL, APP_DESC, APP_SLEVEL, CANCELREMARKS, WFROLES, TYPENAME, DATATYPE, WIDTH, DECI, NAMECHECK, REPLACECHAR, FCHARCHECK, VALIDCHK, MODEOFENTRY, CVALUES, DEFAULTVALUE, SQL_EDITOR_DETAILS, EXP_EDITOR_EXPRESSION, EXP_EDITOR_VALIDATEEXPRESSION, READONLY, CHIDE, CPATTERN, CMASK, CREGULAREXPRESS) VALUES(1055660000006, 'F', 0, NULL, 'admin', sysdate, 'admin', sysdate, NULL, 1, 1, NULL, NULL, NULL, 'Currency', 'Numeric', 10, 2, 'ADD', 'Currency', 'T', 'T', 'Accept', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL)
 >>
 
 <<
-INSERT INTO CUSTOMTYPES (CUSTOMTYPESID, CANCEL, SOURCEID, MAPNAME, USERNAME, MODIFIEDON, CREATEDBY, CREATEDON, WKID, APP_LEVEL, APP_DESC, APP_SLEVEL, CANCELREMARKS, WFROLES, TYPENAME, DATATYPE, WIDTH, DECI, NAMECHECK, REPLACECHAR, FCHARCHECK, VALIDCHK, MODEOFENTRY, CVALUES, DEFAULTVALUE, SQL_EDITOR_DETAILS, EXP_EDITOR_EXPRESSION, EXP_EDITOR_VALIDATEEXPRESSION, READONLY, CHIDE, CPATTERN, CMASK, CREGULAREXPRESS) VALUES(1055660000005, 'F', 0, NULL, 'admin', sysdate, 'admin', sysdate, NULL, 1, 1, NULL, NULL, NULL, 'Decimal Number', 'Numeric', 10, 2, 'ADD', 'Decimal Number', 'T', 'T', 'Accept', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL);
+INSERT INTO CUSTOMTYPES (CUSTOMTYPESID, CANCEL, SOURCEID, MAPNAME, USERNAME, MODIFIEDON, CREATEDBY, CREATEDON, WKID, APP_LEVEL, APP_DESC, APP_SLEVEL, CANCELREMARKS, WFROLES, TYPENAME, DATATYPE, WIDTH, DECI, NAMECHECK, REPLACECHAR, FCHARCHECK, VALIDCHK, MODEOFENTRY, CVALUES, DEFAULTVALUE, SQL_EDITOR_DETAILS, EXP_EDITOR_EXPRESSION, EXP_EDITOR_VALIDATEEXPRESSION, READONLY, CHIDE, CPATTERN, CMASK, CREGULAREXPRESS) VALUES(1055660000005, 'F', 0, NULL, 'admin', sysdate, 'admin', sysdate, NULL, 1, 1, NULL, NULL, NULL, 'Decimal Number', 'Numeric', 10, 2, 'ADD', 'Decimal Number', 'T', 'T', 'Accept', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL)
 >>
 
 <<
-INSERT INTO CUSTOMTYPES (CUSTOMTYPESID, CANCEL, SOURCEID, MAPNAME, USERNAME, MODIFIEDON, CREATEDBY, CREATEDON, WKID, APP_LEVEL, APP_DESC, APP_SLEVEL, CANCELREMARKS, WFROLES, TYPENAME, DATATYPE, WIDTH, DECI, NAMECHECK, REPLACECHAR, FCHARCHECK, VALIDCHK, MODEOFENTRY, CVALUES, DEFAULTVALUE, SQL_EDITOR_DETAILS, EXP_EDITOR_EXPRESSION, EXP_EDITOR_VALIDATEEXPRESSION, READONLY, CHIDE, CPATTERN, CMASK, CREGULAREXPRESS) VALUES(1065550000000, 'F', 0, NULL, 'admin', sysdate, 'admin', sysdate, NULL, 1, 1, NULL, NULL, NULL, 'Email', 'Character', 50, 0, 'ADD', 'Email', 'T', 'T', 'Accept', NULL, NULL, NULL, NULL, NULL, 'F', 'F', NULL, NULL, NULL);
+INSERT INTO CUSTOMTYPES (CUSTOMTYPESID, CANCEL, SOURCEID, MAPNAME, USERNAME, MODIFIEDON, CREATEDBY, CREATEDON, WKID, APP_LEVEL, APP_DESC, APP_SLEVEL, CANCELREMARKS, WFROLES, TYPENAME, DATATYPE, WIDTH, DECI, NAMECHECK, REPLACECHAR, FCHARCHECK, VALIDCHK, MODEOFENTRY, CVALUES, DEFAULTVALUE, SQL_EDITOR_DETAILS, EXP_EDITOR_EXPRESSION, EXP_EDITOR_VALIDATEEXPRESSION, READONLY, CHIDE, CPATTERN, CMASK, CREGULAREXPRESS) VALUES(1065550000000, 'F', 0, NULL, 'admin', sysdate, 'admin', sysdate, NULL, 1, 1, NULL, NULL, NULL, 'Email', 'Character', 50, 0, 'ADD', 'Email', 'T', 'T', 'Accept', NULL, NULL, NULL, NULL, NULL, 'F', 'F', NULL, NULL, NULL)
 >>
 
 <<
-INSERT INTO CUSTOMTYPES (CUSTOMTYPESID, CANCEL, SOURCEID, MAPNAME, USERNAME, MODIFIEDON, CREATEDBY, CREATEDON, WKID, APP_LEVEL, APP_DESC, APP_SLEVEL, CANCELREMARKS, WFROLES, TYPENAME, DATATYPE, WIDTH, DECI, NAMECHECK, REPLACECHAR, FCHARCHECK, VALIDCHK, MODEOFENTRY, CVALUES, DEFAULTVALUE, SQL_EDITOR_DETAILS, EXP_EDITOR_EXPRESSION, EXP_EDITOR_VALIDATEEXPRESSION, READONLY, CHIDE, CPATTERN, CMASK, CREGULAREXPRESS) VALUES(1065660000000, 'F', 0, NULL, 'admin', sysdate, 'admin', sysdate, NULL, 1, 1, NULL, NULL, NULL, 'URL', 'Character', 100, 0, 'ADD', 'URL', 'T', 'T', 'Accept', NULL, NULL, NULL, NULL, NULL, 'F', 'F', NULL, NULL, NULL);
+INSERT INTO CUSTOMTYPES (CUSTOMTYPESID, CANCEL, SOURCEID, MAPNAME, USERNAME, MODIFIEDON, CREATEDBY, CREATEDON, WKID, APP_LEVEL, APP_DESC, APP_SLEVEL, CANCELREMARKS, WFROLES, TYPENAME, DATATYPE, WIDTH, DECI, NAMECHECK, REPLACECHAR, FCHARCHECK, VALIDCHK, MODEOFENTRY, CVALUES, DEFAULTVALUE, SQL_EDITOR_DETAILS, EXP_EDITOR_EXPRESSION, EXP_EDITOR_VALIDATEEXPRESSION, READONLY, CHIDE, CPATTERN, CMASK, CREGULAREXPRESS) VALUES(1065660000000, 'F', 0, NULL, 'admin', sysdate, 'admin', sysdate, NULL, 1, 1, NULL, NULL, NULL, 'URL', 'Character', 100, 0, 'ADD', 'URL', 'T', 'T', 'Accept', NULL, NULL, NULL, NULL, NULL, 'F', 'F', NULL, NULL, NULL)
 >>
 
 <<
-INSERT INTO CUSTOMTYPES (CUSTOMTYPESID, CANCEL, SOURCEID, MAPNAME, USERNAME, MODIFIEDON, CREATEDBY, CREATEDON, WKID, APP_LEVEL, APP_DESC, APP_SLEVEL, CANCELREMARKS, WFROLES, TYPENAME, DATATYPE, WIDTH, DECI, NAMECHECK, REPLACECHAR, FCHARCHECK, VALIDCHK, MODEOFENTRY, CVALUES, DEFAULTVALUE, SQL_EDITOR_DETAILS, EXP_EDITOR_EXPRESSION, EXP_EDITOR_VALIDATEEXPRESSION, READONLY, CHIDE, CPATTERN, CMASK, CREGULAREXPRESS) VALUES(1065880000000, 'F', 0, NULL, 'admin', sysdate, 'admin', sysdate, NULL, 1, 1, NULL, NULL, NULL, 'Password', 'Character', 15, 0, 'ADD', 'Password', 'T', 'T', 'Accept', NULL, NULL, NULL, NULL, NULL, 'F', 'F', NULL, NULL, NULL);
+INSERT INTO CUSTOMTYPES (CUSTOMTYPESID, CANCEL, SOURCEID, MAPNAME, USERNAME, MODIFIEDON, CREATEDBY, CREATEDON, WKID, APP_LEVEL, APP_DESC, APP_SLEVEL, CANCELREMARKS, WFROLES, TYPENAME, DATATYPE, WIDTH, DECI, NAMECHECK, REPLACECHAR, FCHARCHECK, VALIDCHK, MODEOFENTRY, CVALUES, DEFAULTVALUE, SQL_EDITOR_DETAILS, EXP_EDITOR_EXPRESSION, EXP_EDITOR_VALIDATEEXPRESSION, READONLY, CHIDE, CPATTERN, CMASK, CREGULAREXPRESS) VALUES(1065880000000, 'F', 0, NULL, 'admin', sysdate, 'admin', sysdate, NULL, 1, 1, NULL, NULL, NULL, 'Password', 'Character', 15, 0, 'ADD', 'Password', 'T', 'T', 'Accept', NULL, NULL, NULL, NULL, NULL, 'F', 'F', NULL, NULL, NULL)
 >>
 
 <<
-INSERT INTO CUSTOMTYPES (CUSTOMTYPESID, CANCEL, SOURCEID, MAPNAME, USERNAME, MODIFIEDON, CREATEDBY, CREATEDON, WKID, APP_LEVEL, APP_DESC, APP_SLEVEL, CANCELREMARKS, WFROLES, TYPENAME, DATATYPE, WIDTH, DECI, NAMECHECK, REPLACECHAR, FCHARCHECK, VALIDCHK, MODEOFENTRY, CVALUES, DEFAULTVALUE, SQL_EDITOR_DETAILS, EXP_EDITOR_EXPRESSION, EXP_EDITOR_VALIDATEEXPRESSION, READONLY, CHIDE, CPATTERN, CMASK, CREGULAREXPRESS) VALUES(1065990000000, 'F', 0, NULL, 'admin', sysdate, 'admin', sysdate, NULL, 1, 1, NULL, NULL, NULL, 'Mobile Number', 'Numeric', 10, 0, 'ADD', 'Mobile Number', 'T', 'T', 'Accept', NULL, NULL, NULL, NULL, NULL, 'F', 'F', NULL, NULL, NULL);
+INSERT INTO CUSTOMTYPES (CUSTOMTYPESID, CANCEL, SOURCEID, MAPNAME, USERNAME, MODIFIEDON, CREATEDBY, CREATEDON, WKID, APP_LEVEL, APP_DESC, APP_SLEVEL, CANCELREMARKS, WFROLES, TYPENAME, DATATYPE, WIDTH, DECI, NAMECHECK, REPLACECHAR, FCHARCHECK, VALIDCHK, MODEOFENTRY, CVALUES, DEFAULTVALUE, SQL_EDITOR_DETAILS, EXP_EDITOR_EXPRESSION, EXP_EDITOR_VALIDATEEXPRESSION, READONLY, CHIDE, CPATTERN, CMASK, CREGULAREXPRESS) VALUES(1065990000000, 'F', 0, NULL, 'admin', sysdate, 'admin', sysdate, NULL, 1, 1, NULL, NULL, NULL, 'Mobile Number', 'Numeric', 10, 0, 'ADD', 'Mobile Number', 'T', 'T', 'Accept', NULL, NULL, NULL, NULL, NULL, 'F', 'F', NULL, NULL, NULL)
 >>
 
 <<
-INSERT INTO CUSTOMTYPES (CUSTOMTYPESID, CANCEL, SOURCEID, MAPNAME, USERNAME, MODIFIEDON, CREATEDBY, CREATEDON, WKID, APP_LEVEL, APP_DESC, APP_SLEVEL, CANCELREMARKS, WFROLES, TYPENAME, DATATYPE, WIDTH, DECI, NAMECHECK, REPLACECHAR, FCHARCHECK, VALIDCHK, MODEOFENTRY, CVALUES, DEFAULTVALUE, SQL_EDITOR_DETAILS, EXP_EDITOR_EXPRESSION, EXP_EDITOR_VALIDATEEXPRESSION, READONLY, CHIDE, CPATTERN, CMASK, CREGULAREXPRESS) VALUES(1066010000000, 'F', 0, NULL, 'admin', sysdate, 'admin', sysdate, NULL, 1, 1, NULL, NULL, NULL, 'Phone Number', 'Numeric', 10, 0, 'ADD', 'Phone Number', 'T', 'T', 'Accept', NULL, NULL, NULL, NULL, NULL, 'F', 'F', NULL, NULL, NULL);
+INSERT INTO CUSTOMTYPES (CUSTOMTYPESID, CANCEL, SOURCEID, MAPNAME, USERNAME, MODIFIEDON, CREATEDBY, CREATEDON, WKID, APP_LEVEL, APP_DESC, APP_SLEVEL, CANCELREMARKS, WFROLES, TYPENAME, DATATYPE, WIDTH, DECI, NAMECHECK, REPLACECHAR, FCHARCHECK, VALIDCHK, MODEOFENTRY, CVALUES, DEFAULTVALUE, SQL_EDITOR_DETAILS, EXP_EDITOR_EXPRESSION, EXP_EDITOR_VALIDATEEXPRESSION, READONLY, CHIDE, CPATTERN, CMASK, CREGULAREXPRESS) VALUES(1066010000000, 'F', 0, NULL, 'admin', sysdate, 'admin', sysdate, NULL, 1, 1, NULL, NULL, NULL, 'Phone Number', 'Numeric', 10, 0, 'ADD', 'Phone Number', 'T', 'T', 'Accept', NULL, NULL, NULL, NULL, NULL, 'F', 'F', NULL, NULL, NULL)
 >>
 
 <<
-INSERT INTO CUSTOMTYPES (CUSTOMTYPESID, CANCEL, SOURCEID, MAPNAME, USERNAME, MODIFIEDON, CREATEDBY, CREATEDON, WKID, APP_LEVEL, APP_DESC, APP_SLEVEL, CANCELREMARKS, WFROLES, TYPENAME, DATATYPE, WIDTH, DECI, NAMECHECK, REPLACECHAR, FCHARCHECK, VALIDCHK, MODEOFENTRY, CVALUES, DEFAULTVALUE, SQL_EDITOR_DETAILS, EXP_EDITOR_EXPRESSION, EXP_EDITOR_VALIDATEEXPRESSION, READONLY, CHIDE, CPATTERN, CMASK, CREGULAREXPRESS) VALUES(1066110000000, 'F', 0, NULL, 'admin', sysdate, 'admin', sysdate, NULL, 1, 1, NULL, NULL, NULL, 'Pin Code', 'Numeric', 6, 0, 'ADD', 'Pin Code', 'T', 'T', 'Accept', NULL, NULL, NULL, NULL, NULL, 'F', 'F', NULL, NULL, NULL);
+INSERT INTO CUSTOMTYPES (CUSTOMTYPESID, CANCEL, SOURCEID, MAPNAME, USERNAME, MODIFIEDON, CREATEDBY, CREATEDON, WKID, APP_LEVEL, APP_DESC, APP_SLEVEL, CANCELREMARKS, WFROLES, TYPENAME, DATATYPE, WIDTH, DECI, NAMECHECK, REPLACECHAR, FCHARCHECK, VALIDCHK, MODEOFENTRY, CVALUES, DEFAULTVALUE, SQL_EDITOR_DETAILS, EXP_EDITOR_EXPRESSION, EXP_EDITOR_VALIDATEEXPRESSION, READONLY, CHIDE, CPATTERN, CMASK, CREGULAREXPRESS) VALUES(1066110000000, 'F', 0, NULL, 'admin', sysdate, 'admin', sysdate, NULL, 1, 1, NULL, NULL, NULL, 'Pin Code', 'Numeric', 6, 0, 'ADD', 'Pin Code', 'T', 'T', 'Accept', NULL, NULL, NULL, NULL, NULL, 'F', 'F', NULL, NULL, NULL)
 >>
 
 <<
-INSERT INTO CUSTOMTYPES (CUSTOMTYPESID, CANCEL, SOURCEID, MAPNAME, USERNAME, MODIFIEDON, CREATEDBY, CREATEDON, WKID, APP_LEVEL, APP_DESC, APP_SLEVEL, CANCELREMARKS, WFROLES, TYPENAME, DATATYPE, WIDTH, DECI, NAMECHECK, REPLACECHAR, FCHARCHECK, VALIDCHK, MODEOFENTRY, CVALUES, DEFAULTVALUE, SQL_EDITOR_DETAILS, EXP_EDITOR_EXPRESSION, EXP_EDITOR_VALIDATEEXPRESSION, READONLY, CHIDE, CPATTERN, CMASK, CREGULAREXPRESS) VALUES(1066220000000, 'F', 0, NULL, 'admin', sysdate, 'admin', sysdate, NULL, 1, 1, NULL, NULL, NULL, 'Zip Code', 'Numeric', 6, 0, 'ADD', 'Zip Code', 'T', 'T', 'Accept', NULL, NULL, NULL, NULL, NULL, 'F', 'F', NULL, NULL, NULL);
+INSERT INTO CUSTOMTYPES (CUSTOMTYPESID, CANCEL, SOURCEID, MAPNAME, USERNAME, MODIFIEDON, CREATEDBY, CREATEDON, WKID, APP_LEVEL, APP_DESC, APP_SLEVEL, CANCELREMARKS, WFROLES, TYPENAME, DATATYPE, WIDTH, DECI, NAMECHECK, REPLACECHAR, FCHARCHECK, VALIDCHK, MODEOFENTRY, CVALUES, DEFAULTVALUE, SQL_EDITOR_DETAILS, EXP_EDITOR_EXPRESSION, EXP_EDITOR_VALIDATEEXPRESSION, READONLY, CHIDE, CPATTERN, CMASK, CREGULAREXPRESS) VALUES(1066220000000, 'F', 0, NULL, 'admin', sysdate, 'admin', sysdate, NULL, 1, 1, NULL, NULL, NULL, 'Zip Code', 'Numeric', 6, 0, 'ADD', 'Zip Code', 'T', 'T', 'Accept', NULL, NULL, NULL, NULL, NULL, 'F', 'F', NULL, NULL, NULL)
 >>
 
 <<
-INSERT INTO CUSTOMTYPES (CUSTOMTYPESID, CANCEL, SOURCEID, MAPNAME, USERNAME, MODIFIEDON, CREATEDBY, CREATEDON, WKID, APP_LEVEL, APP_DESC, APP_SLEVEL, CANCELREMARKS, WFROLES, TYPENAME, DATATYPE, WIDTH, DECI, NAMECHECK, REPLACECHAR, FCHARCHECK, VALIDCHK, MODEOFENTRY, CVALUES, DEFAULTVALUE, SQL_EDITOR_DETAILS, EXP_EDITOR_EXPRESSION, EXP_EDITOR_VALIDATEEXPRESSION, READONLY, CHIDE, CPATTERN, CMASK, CREGULAREXPRESS) VALUES(1065770000000, 'F', 0, NULL, 'admin', sysdate, 'admin', sysdate, NULL, 1, 1, NULL, NULL, NULL, 'IP Address', 'Character', 100, 0, 'ADD', 'IP Address', 'T', 'T', 'Accept', NULL, NULL, NULL, NULL, NULL, 'F', 'F', NULL, NULL, NULL);
+INSERT INTO CUSTOMTYPES (CUSTOMTYPESID, CANCEL, SOURCEID, MAPNAME, USERNAME, MODIFIEDON, CREATEDBY, CREATEDON, WKID, APP_LEVEL, APP_DESC, APP_SLEVEL, CANCELREMARKS, WFROLES, TYPENAME, DATATYPE, WIDTH, DECI, NAMECHECK, REPLACECHAR, FCHARCHECK, VALIDCHK, MODEOFENTRY, CVALUES, DEFAULTVALUE, SQL_EDITOR_DETAILS, EXP_EDITOR_EXPRESSION, EXP_EDITOR_VALIDATEEXPRESSION, READONLY, CHIDE, CPATTERN, CMASK, CREGULAREXPRESS) VALUES(1065770000000, 'F', 0, NULL, 'admin', sysdate, 'admin', sysdate, NULL, 1, 1, NULL, NULL, NULL, 'IP Address', 'Character', 100, 0, 'ADD', 'IP Address', 'T', 'T', 'Accept', NULL, NULL, NULL, NULL, NULL, 'F', 'F', NULL, NULL, NULL)
 >>
 
 <<
-INSERT INTO CUSTOMTYPES (CUSTOMTYPESID, CANCEL, SOURCEID, MAPNAME, USERNAME, MODIFIEDON, CREATEDBY, CREATEDON, WKID, APP_LEVEL, APP_DESC, APP_SLEVEL, CANCELREMARKS, WFROLES, TYPENAME, DATATYPE, WIDTH, DECI, NAMECHECK, REPLACECHAR, FCHARCHECK, VALIDCHK, MODEOFENTRY, CVALUES, DEFAULTVALUE, SQL_EDITOR_DETAILS, EXP_EDITOR_EXPRESSION, EXP_EDITOR_VALIDATEEXPRESSION, READONLY, CHIDE, CPATTERN, CMASK, CREGULAREXPRESS) VALUES(1100220000000, 'F', 0, NULL, 'admin', sysdate, 'admin', sysdate, NULL, 1, 1, NULL, NULL, NULL, 'Table', 'Character', 2000, 0, 'ADD', 'Table', 'T', 'T', 'Accept', NULL, NULL, NULL, NULL, NULL, 'F', 'F', NULL, NULL, NULL);
+INSERT INTO CUSTOMTYPES (CUSTOMTYPESID, CANCEL, SOURCEID, MAPNAME, USERNAME, MODIFIEDON, CREATEDBY, CREATEDON, WKID, APP_LEVEL, APP_DESC, APP_SLEVEL, CANCELREMARKS, WFROLES, TYPENAME, DATATYPE, WIDTH, DECI, NAMECHECK, REPLACECHAR, FCHARCHECK, VALIDCHK, MODEOFENTRY, CVALUES, DEFAULTVALUE, SQL_EDITOR_DETAILS, EXP_EDITOR_EXPRESSION, EXP_EDITOR_VALIDATEEXPRESSION, READONLY, CHIDE, CPATTERN, CMASK, CREGULAREXPRESS) VALUES(1100220000000, 'F', 0, NULL, 'admin', sysdate, 'admin', sysdate, NULL, 1, 1, NULL, NULL, NULL, 'Table', 'Character', 2000, 0, 'ADD', 'Table', 'T', 'T', 'Accept', NULL, NULL, NULL, NULL, NULL, 'F', 'F', NULL, NULL, NULL)
 >>
 
 <<
-INSERT INTO CUSTOMTYPES (CUSTOMTYPESID, CANCEL, SOURCEID, MAPNAME, USERNAME, MODIFIEDON, CREATEDBY, CREATEDON, WKID, APP_LEVEL, APP_DESC, APP_SLEVEL, CANCELREMARKS, WFROLES, TYPENAME, DATATYPE, WIDTH, DECI, NAMECHECK, REPLACECHAR, FCHARCHECK, VALIDCHK, MODEOFENTRY, CVALUES, DEFAULTVALUE, SQL_EDITOR_DETAILS, EXP_EDITOR_EXPRESSION, EXP_EDITOR_VALIDATEEXPRESSION, READONLY, CHIDE, CPATTERN, CMASK, CREGULAREXPRESS) VALUES(1078330000000, 'F', 0, NULL, 'admin', sysdate, 'admin', sysdate, NULL, 1, 1, NULL, NULL, NULL, 'DropDown', 'Character', 20, 0, 'ADD', 'DropDown', 'T', 'T', 'Select From Form', NULL, NULL, NULL, NULL, NULL, 'F', 'F', NULL, NULL, NULL);
+INSERT INTO CUSTOMTYPES (CUSTOMTYPESID, CANCEL, SOURCEID, MAPNAME, USERNAME, MODIFIEDON, CREATEDBY, CREATEDON, WKID, APP_LEVEL, APP_DESC, APP_SLEVEL, CANCELREMARKS, WFROLES, TYPENAME, DATATYPE, WIDTH, DECI, NAMECHECK, REPLACECHAR, FCHARCHECK, VALIDCHK, MODEOFENTRY, CVALUES, DEFAULTVALUE, SQL_EDITOR_DETAILS, EXP_EDITOR_EXPRESSION, EXP_EDITOR_VALIDATEEXPRESSION, READONLY, CHIDE, CPATTERN, CMASK, CREGULAREXPRESS) VALUES(1078330000000, 'F', 0, NULL, 'admin', sysdate, 'admin', sysdate, NULL, 1, 1, NULL, NULL, NULL, 'DropDown', 'Character', 20, 0, 'ADD', 'DropDown', 'T', 'T', 'Select From Form', NULL, NULL, NULL, NULL, NULL, 'F', 'F', NULL, NULL, NULL)
 >>
 
 <<
-INSERT INTO CUSTOMTYPES (CUSTOMTYPESID, CANCEL, SOURCEID, MAPNAME, USERNAME, MODIFIEDON, CREATEDBY, CREATEDON, WKID, APP_LEVEL, APP_DESC, APP_SLEVEL, CANCELREMARKS, WFROLES, TYPENAME, DATATYPE, WIDTH, DECI, NAMECHECK, REPLACECHAR, FCHARCHECK, VALIDCHK, MODEOFENTRY, CVALUES, DEFAULTVALUE, SQL_EDITOR_DETAILS, EXP_EDITOR_EXPRESSION, EXP_EDITOR_VALIDATEEXPRESSION, READONLY, CHIDE, CPATTERN, CMASK, CREGULAREXPRESS) VALUES(1139550000000, 'F', 0, NULL, 'admin', sysdate, 'admin', sysdate, NULL, 1, 1, NULL, NULL, NULL, 'Expression Editor', 'Character', 300, 0, 'ADD', 'Expression Editor', 'T', 'T', 'Accept', NULL, NULL, NULL, NULL, NULL, 'F', 'F', NULL, NULL, NULL);
+INSERT INTO CUSTOMTYPES (CUSTOMTYPESID, CANCEL, SOURCEID, MAPNAME, USERNAME, MODIFIEDON, CREATEDBY, CREATEDON, WKID, APP_LEVEL, APP_DESC, APP_SLEVEL, CANCELREMARKS, WFROLES, TYPENAME, DATATYPE, WIDTH, DECI, NAMECHECK, REPLACECHAR, FCHARCHECK, VALIDCHK, MODEOFENTRY, CVALUES, DEFAULTVALUE, SQL_EDITOR_DETAILS, EXP_EDITOR_EXPRESSION, EXP_EDITOR_VALIDATEEXPRESSION, READONLY, CHIDE, CPATTERN, CMASK, CREGULAREXPRESS) VALUES(1139550000000, 'F', 0, NULL, 'admin', sysdate, 'admin', sysdate, NULL, 1, 1, NULL, NULL, NULL, 'Expression Editor', 'Character', 300, 0, 'ADD', 'Expression Editor', 'T', 'T', 'Accept', NULL, NULL, NULL, NULL, NULL, 'F', 'F', NULL, NULL, NULL)
 >>
 
 <<
-INSERT INTO CUSTOMTYPES (CUSTOMTYPESID, CANCEL, SOURCEID, MAPNAME, USERNAME, MODIFIEDON, CREATEDBY, CREATEDON, WKID, APP_LEVEL, APP_DESC, APP_SLEVEL, CANCELREMARKS, WFROLES, TYPENAME, DATATYPE, WIDTH, DECI, NAMECHECK, REPLACECHAR, FCHARCHECK, VALIDCHK, MODEOFENTRY, CVALUES, DEFAULTVALUE, SQL_EDITOR_DETAILS, EXP_EDITOR_EXPRESSION, EXP_EDITOR_VALIDATEEXPRESSION, READONLY, CHIDE, CPATTERN, CMASK, CREGULAREXPRESS) VALUES(1139440000000, 'F', 0, NULL, 'admin', sysdate, 'admin', sysdate, NULL, 1, 1, NULL, NULL, NULL, 'SQL Editor', 'Character', 2000, 0, 'ADD', 'SQL Editor', 'T', 'T', 'Accept', NULL, NULL, NULL, NULL, NULL, 'F', 'F', NULL, NULL, NULL);
+INSERT INTO CUSTOMTYPES (CUSTOMTYPESID, CANCEL, SOURCEID, MAPNAME, USERNAME, MODIFIEDON, CREATEDBY, CREATEDON, WKID, APP_LEVEL, APP_DESC, APP_SLEVEL, CANCELREMARKS, WFROLES, TYPENAME, DATATYPE, WIDTH, DECI, NAMECHECK, REPLACECHAR, FCHARCHECK, VALIDCHK, MODEOFENTRY, CVALUES, DEFAULTVALUE, SQL_EDITOR_DETAILS, EXP_EDITOR_EXPRESSION, EXP_EDITOR_VALIDATEEXPRESSION, READONLY, CHIDE, CPATTERN, CMASK, CREGULAREXPRESS) VALUES(1139440000000, 'F', 0, NULL, 'admin', sysdate, 'admin', sysdate, NULL, 1, 1, NULL, NULL, NULL, 'SQL Editor', 'Character', 2000, 0, 'ADD', 'SQL Editor', 'T', 'T', 'Accept', NULL, NULL, NULL, NULL, NULL, 'F', 'F', NULL, NULL, NULL)
 >>
 
 <<
-INSERT INTO CUSTOMTYPES (CUSTOMTYPESID, CANCEL, SOURCEID, MAPNAME, USERNAME, MODIFIEDON, CREATEDBY, CREATEDON, WKID, APP_LEVEL, APP_DESC, APP_SLEVEL, CANCELREMARKS, WFROLES, TYPENAME, DATATYPE, WIDTH, DECI, NAMECHECK, REPLACECHAR, FCHARCHECK, VALIDCHK, MODEOFENTRY, CVALUES, DEFAULTVALUE, SQL_EDITOR_DETAILS, EXP_EDITOR_EXPRESSION, EXP_EDITOR_VALIDATEEXPRESSION, READONLY, CHIDE, CPATTERN, CMASK, CREGULAREXPRESS) VALUES(1200660000000, 'F', 0, NULL, 'admin', sysdate, 'admin', sysdate, NULL, 1, 1, NULL, NULL, NULL, 'Image', 'Image', 50, 0, 'ADD', 'Image', 'T', 'T', 'Accept', NULL, NULL, NULL, NULL, NULL, 'F', 'F', NULL, NULL, NULL);
+INSERT INTO CUSTOMTYPES (CUSTOMTYPESID, CANCEL, SOURCEID, MAPNAME, USERNAME, MODIFIEDON, CREATEDBY, CREATEDON, WKID, APP_LEVEL, APP_DESC, APP_SLEVEL, CANCELREMARKS, WFROLES, TYPENAME, DATATYPE, WIDTH, DECI, NAMECHECK, REPLACECHAR, FCHARCHECK, VALIDCHK, MODEOFENTRY, CVALUES, DEFAULTVALUE, SQL_EDITOR_DETAILS, EXP_EDITOR_EXPRESSION, EXP_EDITOR_VALIDATEEXPRESSION, READONLY, CHIDE, CPATTERN, CMASK, CREGULAREXPRESS) VALUES(1200660000000, 'F', 0, NULL, 'admin', sysdate, 'admin', sysdate, NULL, 1, 1, NULL, NULL, NULL, 'Image', 'Image', 50, 0, 'ADD', 'Image', 'T', 'T', 'Accept', NULL, NULL, NULL, NULL, NULL, 'F', 'F', NULL, NULL, NULL)
 >>
 
 <<
-INSERT INTO CUSTOMTYPES (CUSTOMTYPESID, CANCEL, SOURCEID, MAPNAME, USERNAME, MODIFIEDON, CREATEDBY, CREATEDON, WKID, APP_LEVEL, APP_DESC, APP_SLEVEL, CANCELREMARKS, WFROLES, TYPENAME, DATATYPE, WIDTH, DECI, NAMECHECK, REPLACECHAR, FCHARCHECK, VALIDCHK, MODEOFENTRY, CVALUES, DEFAULTVALUE, SQL_EDITOR_DETAILS, EXP_EDITOR_EXPRESSION, EXP_EDITOR_VALIDATEEXPRESSION, READONLY, CHIDE, CPATTERN, CMASK, CREGULAREXPRESS) VALUES(1215880000000, 'F', 0, NULL, 'admin', sysdate, 'admin', sysdate, NULL, 1, 1, NULL, NULL, NULL, 'RadioGroup', 'Character', 50, 0, 'ADD', 'RadioGroup', 'T', 'T', 'Select From Form', NULL, NULL, NULL, NULL, NULL, 'F', 'F', NULL, NULL, NULL);
+INSERT INTO CUSTOMTYPES (CUSTOMTYPESID, CANCEL, SOURCEID, MAPNAME, USERNAME, MODIFIEDON, CREATEDBY, CREATEDON, WKID, APP_LEVEL, APP_DESC, APP_SLEVEL, CANCELREMARKS, WFROLES, TYPENAME, DATATYPE, WIDTH, DECI, NAMECHECK, REPLACECHAR, FCHARCHECK, VALIDCHK, MODEOFENTRY, CVALUES, DEFAULTVALUE, SQL_EDITOR_DETAILS, EXP_EDITOR_EXPRESSION, EXP_EDITOR_VALIDATEEXPRESSION, READONLY, CHIDE, CPATTERN, CMASK, CREGULAREXPRESS) VALUES(1215880000000, 'F', 0, NULL, 'admin', sysdate, 'admin', sysdate, NULL, 1, 1, NULL, NULL, NULL, 'RadioGroup', 'Character', 50, 0, 'ADD', 'RadioGroup', 'T', 'T', 'Select From Form', NULL, NULL, NULL, NULL, NULL, 'F', 'F', NULL, NULL, NULL)
 >>
 
 <<
-INSERT INTO CUSTOMTYPES (CUSTOMTYPESID, CANCEL, SOURCEID, MAPNAME, USERNAME, MODIFIEDON, CREATEDBY, CREATEDON, WKID, APP_LEVEL, APP_DESC, APP_SLEVEL, CANCELREMARKS, WFROLES, TYPENAME, DATATYPE, WIDTH, DECI, NAMECHECK, REPLACECHAR, FCHARCHECK, VALIDCHK, MODEOFENTRY, CVALUES, DEFAULTVALUE, SQL_EDITOR_DETAILS, EXP_EDITOR_EXPRESSION, EXP_EDITOR_VALIDATEEXPRESSION, READONLY, CHIDE, CPATTERN, CMASK, CREGULAREXPRESS) VALUES(1215770000000, 'F', 0, NULL, 'admin', sysdate, 'admin', sysdate, NULL, 1, 1, NULL, NULL, NULL, 'Check box', 'Character', 20, 0, 'ADD', 'Check box', 'T', 'T', 'Accept', NULL, NULL, NULL, NULL, NULL, 'F', 'F', NULL, NULL, NULL);
+INSERT INTO CUSTOMTYPES (CUSTOMTYPESID, CANCEL, SOURCEID, MAPNAME, USERNAME, MODIFIEDON, CREATEDBY, CREATEDON, WKID, APP_LEVEL, APP_DESC, APP_SLEVEL, CANCELREMARKS, WFROLES, TYPENAME, DATATYPE, WIDTH, DECI, NAMECHECK, REPLACECHAR, FCHARCHECK, VALIDCHK, MODEOFENTRY, CVALUES, DEFAULTVALUE, SQL_EDITOR_DETAILS, EXP_EDITOR_EXPRESSION, EXP_EDITOR_VALIDATEEXPRESSION, READONLY, CHIDE, CPATTERN, CMASK, CREGULAREXPRESS) VALUES(1215770000000, 'F', 0, NULL, 'admin', sysdate, 'admin', sysdate, NULL, 1, 1, NULL, NULL, NULL, 'Check box', 'Character', 20, 0, 'ADD', 'Check box', 'T', 'T', 'Accept', NULL, NULL, NULL, NULL, NULL, 'F', 'F', NULL, NULL, NULL)
 >>
 
 <<
-INSERT INTO CUSTOMTYPES (CUSTOMTYPESID, CANCEL, SOURCEID, MAPNAME, USERNAME, MODIFIEDON, CREATEDBY, CREATEDON, WKID, APP_LEVEL, APP_DESC, APP_SLEVEL, CANCELREMARKS, WFROLES, TYPENAME, DATATYPE, WIDTH, DECI, NAMECHECK, REPLACECHAR, FCHARCHECK, VALIDCHK, MODEOFENTRY, CVALUES, DEFAULTVALUE, SQL_EDITOR_DETAILS, EXP_EDITOR_EXPRESSION, EXP_EDITOR_VALIDATEEXPRESSION, READONLY, CHIDE, CPATTERN, CMASK, CREGULAREXPRESS) VALUES(1215660000000, 'F', 0, NULL, 'admin', sysdate, 'admin', sysdate, NULL, 1, 1, NULL, NULL, NULL, 'CheckList', 'Character', 50, 0, 'ADD', 'CheckList', 'T', 'T', 'Select From Form', NULL, NULL, NULL, NULL, NULL, 'F', 'F', NULL, NULL, NULL);
+INSERT INTO CUSTOMTYPES (CUSTOMTYPESID, CANCEL, SOURCEID, MAPNAME, USERNAME, MODIFIEDON, CREATEDBY, CREATEDON, WKID, APP_LEVEL, APP_DESC, APP_SLEVEL, CANCELREMARKS, WFROLES, TYPENAME, DATATYPE, WIDTH, DECI, NAMECHECK, REPLACECHAR, FCHARCHECK, VALIDCHK, MODEOFENTRY, CVALUES, DEFAULTVALUE, SQL_EDITOR_DETAILS, EXP_EDITOR_EXPRESSION, EXP_EDITOR_VALIDATEEXPRESSION, READONLY, CHIDE, CPATTERN, CMASK, CREGULAREXPRESS) VALUES(1215660000000, 'F', 0, NULL, 'admin', sysdate, 'admin', sysdate, NULL, 1, 1, NULL, NULL, NULL, 'CheckList', 'Character', 50, 0, 'ADD', 'CheckList', 'T', 'T', 'Select From Form', NULL, NULL, NULL, NULL, NULL, 'F', 'F', NULL, NULL, NULL)
 >>
 
 <<
-INSERT INTO CUSTOMTYPES (CUSTOMTYPESID, CANCEL, SOURCEID, MAPNAME, USERNAME, MODIFIEDON, CREATEDBY, CREATEDON, WKID, APP_LEVEL, APP_DESC, APP_SLEVEL, CANCELREMARKS, WFROLES, TYPENAME, DATATYPE, WIDTH, DECI, NAMECHECK, REPLACECHAR, FCHARCHECK, VALIDCHK, MODEOFENTRY, CVALUES, DEFAULTVALUE, SQL_EDITOR_DETAILS, EXP_EDITOR_EXPRESSION, EXP_EDITOR_VALIDATEEXPRESSION, READONLY, CHIDE, CPATTERN, CMASK, CREGULAREXPRESS) VALUES(1245880000000, 'F', 0, NULL, 'admin', sysdate, 'admin', sysdate, NULL, 1, 1, NULL, NULL, NULL, 'Multi Select', 'Character', 200, 0, 'ADD', 'Multi Select', 'T', 'T', 'Select From Form', NULL, NULL, NULL, NULL, NULL, 'F', 'F', NULL, NULL, NULL);
+INSERT INTO CUSTOMTYPES (CUSTOMTYPESID, CANCEL, SOURCEID, MAPNAME, USERNAME, MODIFIEDON, CREATEDBY, CREATEDON, WKID, APP_LEVEL, APP_DESC, APP_SLEVEL, CANCELREMARKS, WFROLES, TYPENAME, DATATYPE, WIDTH, DECI, NAMECHECK, REPLACECHAR, FCHARCHECK, VALIDCHK, MODEOFENTRY, CVALUES, DEFAULTVALUE, SQL_EDITOR_DETAILS, EXP_EDITOR_EXPRESSION, EXP_EDITOR_VALIDATEEXPRESSION, READONLY, CHIDE, CPATTERN, CMASK, CREGULAREXPRESS) VALUES(1245880000000, 'F', 0, NULL, 'admin', sysdate, 'admin', sysdate, NULL, 1, 1, NULL, NULL, NULL, 'Multi Select', 'Character', 200, 0, 'ADD', 'Multi Select', 'T', 'T', 'Select From Form', NULL, NULL, NULL, NULL, NULL, 'F', 'F', NULL, NULL, NULL)
 >>
 
 <<
-INSERT INTO CUSTOMTYPES (CUSTOMTYPESID, CANCEL, SOURCEID, MAPNAME, USERNAME, MODIFIEDON, CREATEDBY, CREATEDON, WKID, APP_LEVEL, APP_DESC, APP_SLEVEL, CANCELREMARKS, WFROLES, TYPENAME, DATATYPE, WIDTH, DECI, NAMECHECK, REPLACECHAR, FCHARCHECK, VALIDCHK, MODEOFENTRY, CVALUES, DEFAULTVALUE, SQL_EDITOR_DETAILS, EXP_EDITOR_EXPRESSION, EXP_EDITOR_VALIDATEEXPRESSION, READONLY, CHIDE, CPATTERN, CMASK, CREGULAREXPRESS) VALUES(1055660000001, 'F', 0, NULL, 'admin', sysdate, 'admin', sysdate, NULL, 1, 1, NULL, NULL, NULL, 'Large Text', 'Text', 4000, 0, 'ADD', 'Large Text', 'T', 'T', 'Accept', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL);
+INSERT INTO CUSTOMTYPES (CUSTOMTYPESID, CANCEL, SOURCEID, MAPNAME, USERNAME, MODIFIEDON, CREATEDBY, CREATEDON, WKID, APP_LEVEL, APP_DESC, APP_SLEVEL, CANCELREMARKS, WFROLES, TYPENAME, DATATYPE, WIDTH, DECI, NAMECHECK, REPLACECHAR, FCHARCHECK, VALIDCHK, MODEOFENTRY, CVALUES, DEFAULTVALUE, SQL_EDITOR_DETAILS, EXP_EDITOR_EXPRESSION, EXP_EDITOR_VALIDATEEXPRESSION, READONLY, CHIDE, CPATTERN, CMASK, CREGULAREXPRESS) VALUES(1055660000001, 'F', 0, NULL, 'admin', sysdate, 'admin', sysdate, NULL, 1, 1, NULL, NULL, NULL, 'Large Text', 'Text', 4000, 0, 'ADD', 'Large Text', 'T', 'T', 'Accept', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL)
 >>
 
 <<
-INSERT INTO CUSTOMTYPES (CUSTOMTYPESID, CANCEL, SOURCEID, MAPNAME, USERNAME, MODIFIEDON, CREATEDBY, CREATEDON, WKID, APP_LEVEL, APP_DESC, APP_SLEVEL, CANCELREMARKS, WFROLES, TYPENAME, DATATYPE, WIDTH, DECI, NAMECHECK, REPLACECHAR, FCHARCHECK, VALIDCHK, MODEOFENTRY, CVALUES, DEFAULTVALUE, SQL_EDITOR_DETAILS, EXP_EDITOR_EXPRESSION, EXP_EDITOR_VALIDATEEXPRESSION, READONLY, CHIDE, CPATTERN, CMASK, CREGULAREXPRESS) VALUES(1058990000006, 'F', 0, NULL, 'admin', sysdate, 'admin', sysdate, NULL, 1, 1, NULL, NULL, NULL, 'Address', 'Character', 1000, 0, 'ADD', 'Address', 'T', 'T', 'Accept', NULL, NULL, NULL, NULL, NULL, 'F', 'F', NULL, NULL, NULL);
+INSERT INTO CUSTOMTYPES (CUSTOMTYPESID, CANCEL, SOURCEID, MAPNAME, USERNAME, MODIFIEDON, CREATEDBY, CREATEDON, WKID, APP_LEVEL, APP_DESC, APP_SLEVEL, CANCELREMARKS, WFROLES, TYPENAME, DATATYPE, WIDTH, DECI, NAMECHECK, REPLACECHAR, FCHARCHECK, VALIDCHK, MODEOFENTRY, CVALUES, DEFAULTVALUE, SQL_EDITOR_DETAILS, EXP_EDITOR_EXPRESSION, EXP_EDITOR_VALIDATEEXPRESSION, READONLY, CHIDE, CPATTERN, CMASK, CREGULAREXPRESS) VALUES(1058990000006, 'F', 0, NULL, 'admin', sysdate, 'admin', sysdate, NULL, 1, 1, NULL, NULL, NULL, 'Address', 'Character', 1000, 0, 'ADD', 'Address', 'T', 'T', 'Accept', NULL, NULL, NULL, NULL, NULL, 'F', 'F', NULL, NULL, NULL)
 >>
 
 <<
-INSERT INTO CUSTOMTYPES (CUSTOMTYPESID, CANCEL, SOURCEID, MAPNAME, USERNAME, MODIFIEDON, CREATEDBY, CREATEDON, WKID, APP_LEVEL, APP_DESC, APP_SLEVEL, CANCELREMARKS, WFROLES, TYPENAME, DATATYPE, WIDTH, DECI, NAMECHECK, REPLACECHAR, FCHARCHECK, VALIDCHK, MODEOFENTRY, CVALUES, DEFAULTVALUE, SQL_EDITOR_DETAILS, EXP_EDITOR_EXPRESSION, EXP_EDITOR_VALIDATEEXPRESSION, READONLY, CHIDE, CPATTERN, CMASK, CREGULAREXPRESS) VALUES(1058990000005, 'F', 0, NULL, 'admin', sysdate, 'admin', sysdate, NULL, 1, 1, NULL, NULL, NULL, 'Boolean', 'Character', 10, 0, 'ADD', 'Boolean', 'T', 'T', 'Accept', NULL, NULL, NULL, NULL, NULL, 'F', 'F', NULL, NULL, NULL);
+INSERT INTO CUSTOMTYPES (CUSTOMTYPESID, CANCEL, SOURCEID, MAPNAME, USERNAME, MODIFIEDON, CREATEDBY, CREATEDON, WKID, APP_LEVEL, APP_DESC, APP_SLEVEL, CANCELREMARKS, WFROLES, TYPENAME, DATATYPE, WIDTH, DECI, NAMECHECK, REPLACECHAR, FCHARCHECK, VALIDCHK, MODEOFENTRY, CVALUES, DEFAULTVALUE, SQL_EDITOR_DETAILS, EXP_EDITOR_EXPRESSION, EXP_EDITOR_VALIDATEEXPRESSION, READONLY, CHIDE, CPATTERN, CMASK, CREGULAREXPRESS) VALUES(1058990000005, 'F', 0, NULL, 'admin', sysdate, 'admin', sysdate, NULL, 1, 1, NULL, NULL, NULL, 'Boolean', 'Character', 10, 0, 'ADD', 'Boolean', 'T', 'T', 'Accept', NULL, NULL, NULL, NULL, NULL, 'F', 'F', NULL, NULL, NULL)
 >>
 
 <<
-INSERT INTO CUSTOMTYPES (CUSTOMTYPESID, CANCEL, SOURCEID, MAPNAME, USERNAME, MODIFIEDON, CREATEDBY, CREATEDON, WKID, APP_LEVEL, APP_DESC, APP_SLEVEL, CANCELREMARKS, WFROLES, TYPENAME, DATATYPE, WIDTH, DECI, NAMECHECK, REPLACECHAR, FCHARCHECK, VALIDCHK, MODEOFENTRY, CVALUES, DEFAULTVALUE, SQL_EDITOR_DETAILS, EXP_EDITOR_EXPRESSION, EXP_EDITOR_VALIDATEEXPRESSION, READONLY, CHIDE, CPATTERN, CMASK, CREGULAREXPRESS) VALUES(1058990000004, 'F', 0, NULL, 'admin', sysdate, 'admin', sysdate, NULL, 1, 1, NULL, NULL, NULL, 'Date Range', 'Character', 500, 0, 'ADD', 'Date Range', 'T', 'T', 'Accept', NULL, NULL, NULL, NULL, NULL, 'F', 'F', NULL, NULL, NULL);
+INSERT INTO CUSTOMTYPES (CUSTOMTYPESID, CANCEL, SOURCEID, MAPNAME, USERNAME, MODIFIEDON, CREATEDBY, CREATEDON, WKID, APP_LEVEL, APP_DESC, APP_SLEVEL, CANCELREMARKS, WFROLES, TYPENAME, DATATYPE, WIDTH, DECI, NAMECHECK, REPLACECHAR, FCHARCHECK, VALIDCHK, MODEOFENTRY, CVALUES, DEFAULTVALUE, SQL_EDITOR_DETAILS, EXP_EDITOR_EXPRESSION, EXP_EDITOR_VALIDATEEXPRESSION, READONLY, CHIDE, CPATTERN, CMASK, CREGULAREXPRESS) VALUES(1058990000004, 'F', 0, NULL, 'admin', sysdate, 'admin', sysdate, NULL, 1, 1, NULL, NULL, NULL, 'Date Range', 'Character', 500, 0, 'ADD', 'Date Range', 'T', 'T', 'Accept', NULL, NULL, NULL, NULL, NULL, 'F', 'F', NULL, NULL, NULL)
 >>
 
 
 <<
-INSERT INTO CUSTOMTYPES (CUSTOMTYPESID, CANCEL, SOURCEID, MAPNAME, USERNAME, MODIFIEDON, CREATEDBY, CREATEDON, WKID, APP_LEVEL, APP_DESC, APP_SLEVEL, CANCELREMARKS, WFROLES, TYPENAME, DATATYPE, WIDTH, DECI, NAMECHECK, REPLACECHAR, FCHARCHECK, VALIDCHK, MODEOFENTRY, CVALUES, DEFAULTVALUE, SQL_EDITOR_DETAILS, EXP_EDITOR_EXPRESSION, EXP_EDITOR_VALIDATEEXPRESSION, READONLY, CHIDE, CPATTERN, CMASK, CREGULAREXPRESS) VALUES(1058990000003, 'F', 0, NULL, 'admin', sysdate, 'admin', sysdate, NULL, 1, 1, NULL, NULL, NULL, 'File upload field', 'Character', 250, 0, 'ADD', 'File upload field', 'T', 'T', 'Accept', NULL, NULL, NULL, NULL, NULL, 'F', 'F', NULL, NULL, NULL);
+INSERT INTO CUSTOMTYPES (CUSTOMTYPESID, CANCEL, SOURCEID, MAPNAME, USERNAME, MODIFIEDON, CREATEDBY, CREATEDON, WKID, APP_LEVEL, APP_DESC, APP_SLEVEL, CANCELREMARKS, WFROLES, TYPENAME, DATATYPE, WIDTH, DECI, NAMECHECK, REPLACECHAR, FCHARCHECK, VALIDCHK, MODEOFENTRY, CVALUES, DEFAULTVALUE, SQL_EDITOR_DETAILS, EXP_EDITOR_EXPRESSION, EXP_EDITOR_VALIDATEEXPRESSION, READONLY, CHIDE, CPATTERN, CMASK, CREGULAREXPRESS) VALUES(1058990000003, 'F', 0, NULL, 'admin', sysdate, 'admin', sysdate, NULL, 1, 1, NULL, NULL, NULL, 'File upload field', 'Character', 250, 0, 'ADD', 'File upload field', 'T', 'T', 'Accept', NULL, NULL, NULL, NULL, NULL, 'F', 'F', NULL, NULL, NULL)
 >>
 
 <<
-INSERT INTO CUSTOMTYPES (CUSTOMTYPESID, CANCEL, SOURCEID, MAPNAME, USERNAME, MODIFIEDON, CREATEDBY, CREATEDON, WKID, APP_LEVEL, APP_DESC, APP_SLEVEL, CANCELREMARKS, WFROLES, TYPENAME, DATATYPE, WIDTH, DECI, NAMECHECK, REPLACECHAR, FCHARCHECK, VALIDCHK, MODEOFENTRY, CVALUES, DEFAULTVALUE, SQL_EDITOR_DETAILS, EXP_EDITOR_EXPRESSION, EXP_EDITOR_VALIDATEEXPRESSION, READONLY, CHIDE, CPATTERN, CMASK, CREGULAREXPRESS) VALUES(1058990000002, 'F', 0, NULL, 'admin', sysdate, 'admin', sysdate, NULL, 1, 1, NULL, NULL, NULL, 'Number range', 'Character', 500, 0, 'ADD', 'Number range', 'T', 'T', 'Accept', NULL, NULL, NULL, NULL, NULL, 'F', 'F', NULL, NULL, NULL);
+INSERT INTO CUSTOMTYPES (CUSTOMTYPESID, CANCEL, SOURCEID, MAPNAME, USERNAME, MODIFIEDON, CREATEDBY, CREATEDON, WKID, APP_LEVEL, APP_DESC, APP_SLEVEL, CANCELREMARKS, WFROLES, TYPENAME, DATATYPE, WIDTH, DECI, NAMECHECK, REPLACECHAR, FCHARCHECK, VALIDCHK, MODEOFENTRY, CVALUES, DEFAULTVALUE, SQL_EDITOR_DETAILS, EXP_EDITOR_EXPRESSION, EXP_EDITOR_VALIDATEEXPRESSION, READONLY, CHIDE, CPATTERN, CMASK, CREGULAREXPRESS) VALUES(1058990000002, 'F', 0, NULL, 'admin', sysdate, 'admin', sysdate, NULL, 1, 1, NULL, NULL, NULL, 'Number range', 'Character', 500, 0, 'ADD', 'Number range', 'T', 'T', 'Accept', NULL, NULL, NULL, NULL, NULL, 'F', 'F', NULL, NULL, NULL)
 >>
 
 <<
-INSERT INTO CUSTOMTYPES (CUSTOMTYPESID, CANCEL, SOURCEID, MAPNAME, USERNAME, MODIFIEDON, CREATEDBY, CREATEDON, WKID, APP_LEVEL, APP_DESC, APP_SLEVEL, CANCELREMARKS, WFROLES, TYPENAME, DATATYPE, WIDTH, DECI, NAMECHECK, REPLACECHAR, FCHARCHECK, VALIDCHK, MODEOFENTRY, CVALUES, DEFAULTVALUE, SQL_EDITOR_DETAILS, EXP_EDITOR_EXPRESSION, EXP_EDITOR_VALIDATEEXPRESSION, READONLY, CHIDE, CPATTERN, CMASK, CREGULAREXPRESS) VALUES(1058990000001, 'F', 0, NULL, 'admin', sysdate, 'admin', sysdate, NULL, 1, 1, NULL, NULL, NULL, 'Time Range', 'Character', 500, 0, 'ADD', 'Time Range', 'T', 'T', 'Accept', NULL, NULL, NULL, NULL, NULL, 'F', 'F', NULL, NULL, NULL);
+INSERT INTO CUSTOMTYPES (CUSTOMTYPESID, CANCEL, SOURCEID, MAPNAME, USERNAME, MODIFIEDON, CREATEDBY, CREATEDON, WKID, APP_LEVEL, APP_DESC, APP_SLEVEL, CANCELREMARKS, WFROLES, TYPENAME, DATATYPE, WIDTH, DECI, NAMECHECK, REPLACECHAR, FCHARCHECK, VALIDCHK, MODEOFENTRY, CVALUES, DEFAULTVALUE, SQL_EDITOR_DETAILS, EXP_EDITOR_EXPRESSION, EXP_EDITOR_VALIDATEEXPRESSION, READONLY, CHIDE, CPATTERN, CMASK, CREGULAREXPRESS) VALUES(1058990000001, 'F', 0, NULL, 'admin', sysdate, 'admin', sysdate, NULL, 1, 1, NULL, NULL, NULL, 'Time Range', 'Character', 500, 0, 'ADD', 'Time Range', 'T', 'T', 'Accept', NULL, NULL, NULL, NULL, NULL, 'F', 'F', NULL, NULL, NULL)
 >>
 
 <<
-INSERT INTO CUSTOMTYPES (CUSTOMTYPESID, CANCEL, SOURCEID, MAPNAME, USERNAME, MODIFIEDON, CREATEDBY, CREATEDON, WKID, APP_LEVEL, APP_DESC, APP_SLEVEL, CANCELREMARKS, WFROLES, TYPENAME, DATATYPE, WIDTH, DECI, NAMECHECK, REPLACECHAR, FCHARCHECK, VALIDCHK, MODEOFENTRY, CVALUES, DEFAULTVALUE, SQL_EDITOR_DETAILS, EXP_EDITOR_EXPRESSION, EXP_EDITOR_VALIDATEEXPRESSION, READONLY, CHIDE, CPATTERN, CMASK, CREGULAREXPRESS) VALUES(1058990000000, 'F', 0, NULL, 'admin', sysdate, 'admin', sysdate, NULL, 1, 1, NULL, NULL, NULL, 'Website', 'Character', 250, 0, 'ADD', 'Website', 'T', 'T', 'Accept', NULL, NULL, NULL, NULL, NULL, 'F', 'F', NULL, NULL, NULL);
+INSERT INTO CUSTOMTYPES (CUSTOMTYPESID, CANCEL, SOURCEID, MAPNAME, USERNAME, MODIFIEDON, CREATEDBY, CREATEDON, WKID, APP_LEVEL, APP_DESC, APP_SLEVEL, CANCELREMARKS, WFROLES, TYPENAME, DATATYPE, WIDTH, DECI, NAMECHECK, REPLACECHAR, FCHARCHECK, VALIDCHK, MODEOFENTRY, CVALUES, DEFAULTVALUE, SQL_EDITOR_DETAILS, EXP_EDITOR_EXPRESSION, EXP_EDITOR_VALIDATEEXPRESSION, READONLY, CHIDE, CPATTERN, CMASK, CREGULAREXPRESS) VALUES(1058990000000, 'F', 0, NULL, 'admin', sysdate, 'admin', sysdate, NULL, 1, 1, NULL, NULL, NULL, 'Website', 'Character', 250, 0, 'ADD', 'Website', 'T', 'T', 'Accept', NULL, NULL, NULL, NULL, NULL, 'F', 'F', NULL, NULL, NULL)
 >>
 
 <<
-INSERT INTO AXIMPDEF (AXIMPDEFID, CANCEL, SOURCEID, MAPNAME, USERNAME, MODIFIEDON, CREATEDBY, CREATEDON, WKID, APP_LEVEL, APP_DESC, APP_SLEVEL, CANCELREMARKS, WFROLES, AXIMPDEFNAME, AXIMPFORM, AXIMPTRANSID, AXIMPTEXTQUALIFIER, AXIMPMAPINFILE, AXIMPHEADERROWS, AXIMPPRIMAYFIELD, AXIMPGROUPFIELD, AXIMPFIELDSEPERATOR, AXIMPMAPFIELDS, AXIMPTHREADCOUNT, AXIMPPROCNAME, AXIMPBINDTOTSTRUCT, AXIMPSTDCOLUMNWIDTH, AXIMPIGNOREFLDEXCEPTION, AXIMPONLYAPPEND, AXIMPPROCESSMODE, AXIMPFILEFROMTABLE, AXIMPFIELDSEPERATORUI, AXIMPPRIMARYFIELD_DETAILS) VALUES(1783010000000, 'F', 0, NULL, 'admin', TIMESTAMP '2025-02-11 12:16:59.000000', 'admin', TIMESTAMP '2023-03-24 18:31:48.000000', NULL, 1, 1, 0, NULL, NULL, 'Axlanguage', 'Axlanguage Data', 'ad_li', 'F', 'F', 1, NULL, 'compname', ',', 'dispname,sname,compname,compengcap,compcaption', 1, NULL, 'F', 0, 'F', 'F', 'Process with error (ALL)', 'F', '(comma)', NULL);
+INSERT INTO AXIMPDEF (AXIMPDEFID, CANCEL, SOURCEID, MAPNAME, USERNAME, MODIFIEDON, CREATEDBY, CREATEDON, WKID, APP_LEVEL, APP_DESC, APP_SLEVEL, CANCELREMARKS, WFROLES, AXIMPDEFNAME, AXIMPFORM, AXIMPTRANSID, AXIMPTEXTQUALIFIER, AXIMPMAPINFILE, AXIMPHEADERROWS, AXIMPPRIMAYFIELD, AXIMPGROUPFIELD, AXIMPFIELDSEPERATOR, AXIMPMAPFIELDS, AXIMPTHREADCOUNT, AXIMPPROCNAME, AXIMPBINDTOTSTRUCT, AXIMPSTDCOLUMNWIDTH, AXIMPIGNOREFLDEXCEPTION, AXIMPONLYAPPEND, AXIMPPROCESSMODE, AXIMPFILEFROMTABLE, AXIMPFIELDSEPERATORUI, AXIMPPRIMARYFIELD_DETAILS) VALUES(1783010000000, 'F', 0, NULL, 'admin', TIMESTAMP '2025-02-11 12:16:59.000000', 'admin', TIMESTAMP '2023-03-24 18:31:48.000000', NULL, 1, 1, 0, NULL, NULL, 'Axlanguage', 'Axlanguage Data', 'ad_li', 'F', 'F', 1, NULL, 'compname', ',', 'dispname,sname,compname,compengcap,compcaption', 1, NULL, 'F', 0, 'F', 'F', 'Process with error (ALL)', 'F', '(comma)', NULL)
 >>
 
 <<
-INSERT INTO AXCARDTYPEMASTER (AXCARDTYPEMASTERID, CANCEL, SOURCEID, MAPNAME, USERNAME, MODIFIEDON, CREATEDBY, CREATEDON, WKID, APP_LEVEL, APP_DESC, APP_SLEVEL, CANCELREMARKS, WFROLES, CARDTYPE, CARDCAPTION, CARDICON, AXPFILE_CARDIMG, AXPFILEPATH_CARDIMG) VALUES(1132110000000, 'F', 0, NULL, 'admin', TIMESTAMP '2025-01-09 13:24:19.000000', 'admin', TIMESTAMP '2025-01-09 13:24:19.000000', NULL, 1, 1, NULL, NULL, NULL, 'menu', 'Menu Card', NULL, NULL, NULL);
+INSERT INTO AXCARDTYPEMASTER (AXCARDTYPEMASTERID, CANCEL, SOURCEID, MAPNAME, USERNAME, MODIFIEDON, CREATEDBY, CREATEDON, WKID, APP_LEVEL, APP_DESC, APP_SLEVEL, CANCELREMARKS, WFROLES, CARDTYPE, CARDCAPTION, CARDICON, AXPFILE_CARDIMG, AXPFILEPATH_CARDIMG) VALUES(1132110000000, 'F', 0, NULL, 'admin', TIMESTAMP '2025-01-09 13:24:19.000000', 'admin', TIMESTAMP '2025-01-09 13:24:19.000000', NULL, 1, 1, NULL, NULL, NULL, 'menu', 'Menu Card', NULL, NULL, NULL)
 >>
 
 <<
-INSERT INTO AXCARDTYPEMASTER (AXCARDTYPEMASTERID, CANCEL, SOURCEID, MAPNAME, USERNAME, MODIFIEDON, CREATEDBY, CREATEDON, WKID, APP_LEVEL, APP_DESC, APP_SLEVEL, CANCELREMARKS, WFROLES, CARDTYPE, CARDCAPTION, CARDICON, AXPFILE_CARDIMG, AXPFILEPATH_CARDIMG) VALUES(1132220000000, 'F', 0, NULL, 'admin', TIMESTAMP '2025-01-09 13:24:38.000000', 'admin', TIMESTAMP '2025-01-09 13:24:38.000000', NULL, 1, 1, NULL, NULL, NULL, 'modern menu', 'Modern menu', NULL, NULL, NULL);
+INSERT INTO AXCARDTYPEMASTER (AXCARDTYPEMASTERID, CANCEL, SOURCEID, MAPNAME, USERNAME, MODIFIEDON, CREATEDBY, CREATEDON, WKID, APP_LEVEL, APP_DESC, APP_SLEVEL, CANCELREMARKS, WFROLES, CARDTYPE, CARDCAPTION, CARDICON, AXPFILE_CARDIMG, AXPFILEPATH_CARDIMG) VALUES(1132220000000, 'F', 0, NULL, 'admin', TIMESTAMP '2025-01-09 13:24:38.000000', 'admin', TIMESTAMP '2025-01-09 13:24:38.000000', NULL, 1, 1, NULL, NULL, NULL, 'modern menu', 'Modern menu', NULL, NULL, NULL)
 >>
 
 <<
-INSERT INTO AXCARDTYPEMASTER (AXCARDTYPEMASTERID, CANCEL, SOURCEID, MAPNAME, USERNAME, MODIFIEDON, CREATEDBY, CREATEDON, WKID, APP_LEVEL, APP_DESC, APP_SLEVEL, CANCELREMARKS, WFROLES, CARDTYPE, CARDCAPTION, CARDICON, AXPFILE_CARDIMG, AXPFILEPATH_CARDIMG) VALUES(1132330000000, 'F', 0, NULL, 'admin', TIMESTAMP '2025-01-09 13:24:53.000000', 'admin', TIMESTAMP '2025-01-09 13:24:53.000000', NULL, 1, 1, NULL, NULL, NULL, 'image card', 'Image card', NULL, NULL, NULL);
+INSERT INTO AXCARDTYPEMASTER (AXCARDTYPEMASTERID, CANCEL, SOURCEID, MAPNAME, USERNAME, MODIFIEDON, CREATEDBY, CREATEDON, WKID, APP_LEVEL, APP_DESC, APP_SLEVEL, CANCELREMARKS, WFROLES, CARDTYPE, CARDCAPTION, CARDICON, AXPFILE_CARDIMG, AXPFILEPATH_CARDIMG) VALUES(1132330000000, 'F', 0, NULL, 'admin', TIMESTAMP '2025-01-09 13:24:53.000000', 'admin', TIMESTAMP '2025-01-09 13:24:53.000000', NULL, 1, 1, NULL, NULL, NULL, 'image card', 'Image card', NULL, NULL, NULL)
 >>
 
 <<
-INSERT INTO AXCARDTYPEMASTER (AXCARDTYPEMASTERID, CANCEL, SOURCEID, MAPNAME, USERNAME, MODIFIEDON, CREATEDBY, CREATEDON, WKID, APP_LEVEL, APP_DESC, APP_SLEVEL, CANCELREMARKS, WFROLES, CARDTYPE, CARDCAPTION, CARDICON, AXPFILE_CARDIMG, AXPFILEPATH_CARDIMG) VALUES(1132440000000, 'F', 0, NULL, 'admin', TIMESTAMP '2025-01-09 13:25:09.000000', 'admin', TIMESTAMP '2025-01-09 13:25:09.000000', NULL, 1, 1, NULL, NULL, NULL, 'calendar', 'Calendar', NULL, NULL, NULL);
+INSERT INTO AXCARDTYPEMASTER (AXCARDTYPEMASTERID, CANCEL, SOURCEID, MAPNAME, USERNAME, MODIFIEDON, CREATEDBY, CREATEDON, WKID, APP_LEVEL, APP_DESC, APP_SLEVEL, CANCELREMARKS, WFROLES, CARDTYPE, CARDCAPTION, CARDICON, AXPFILE_CARDIMG, AXPFILEPATH_CARDIMG) VALUES(1132440000000, 'F', 0, NULL, 'admin', TIMESTAMP '2025-01-09 13:25:09.000000', 'admin', TIMESTAMP '2025-01-09 13:25:09.000000', NULL, 1, 1, NULL, NULL, NULL, 'calendar', 'Calendar', NULL, NULL, NULL)
 >>
 
 <<
-INSERT INTO AXCARDTYPEMASTER (AXCARDTYPEMASTERID, CANCEL, SOURCEID, MAPNAME, USERNAME, MODIFIEDON, CREATEDBY, CREATEDON, WKID, APP_LEVEL, APP_DESC, APP_SLEVEL, CANCELREMARKS, WFROLES, CARDTYPE, CARDCAPTION, CARDICON, AXPFILE_CARDIMG, AXPFILEPATH_CARDIMG) VALUES(1132550000000, 'F', 0, NULL, 'admin', TIMESTAMP '2025-01-09 13:25:48.000000', 'admin', TIMESTAMP '2025-01-09 13:25:48.000000', NULL, 1, 1, NULL, NULL, NULL, 'html', 'HTML Card', NULL, NULL, NULL);
+INSERT INTO AXCARDTYPEMASTER (AXCARDTYPEMASTERID, CANCEL, SOURCEID, MAPNAME, USERNAME, MODIFIEDON, CREATEDBY, CREATEDON, WKID, APP_LEVEL, APP_DESC, APP_SLEVEL, CANCELREMARKS, WFROLES, CARDTYPE, CARDCAPTION, CARDICON, AXPFILE_CARDIMG, AXPFILEPATH_CARDIMG) VALUES(1132550000000, 'F', 0, NULL, 'admin', TIMESTAMP '2025-01-09 13:25:48.000000', 'admin', TIMESTAMP '2025-01-09 13:25:48.000000', NULL, 1, 1, NULL, NULL, NULL, 'html', 'HTML Card', NULL, NULL, NULL)
 >>
 
 <<
-INSERT INTO AXCARDTYPEMASTER (AXCARDTYPEMASTERID, CANCEL, SOURCEID, MAPNAME, USERNAME, MODIFIEDON, CREATEDBY, CREATEDON, WKID, APP_LEVEL, APP_DESC, APP_SLEVEL, CANCELREMARKS, WFROLES, CARDTYPE, CARDCAPTION, CARDICON, AXPFILE_CARDIMG, AXPFILEPATH_CARDIMG) VALUES(1131990000000, 'F', 0, NULL, 'admin', TIMESTAMP '2025-01-09 13:18:17.000000', 'admin', TIMESTAMP '2025-01-09 13:18:17.000000', NULL, 1, 1, NULL, NULL, NULL, 'kpi', 'KPI', NULL, NULL, NULL);
+INSERT INTO AXCARDTYPEMASTER (AXCARDTYPEMASTERID, CANCEL, SOURCEID, MAPNAME, USERNAME, MODIFIEDON, CREATEDBY, CREATEDON, WKID, APP_LEVEL, APP_DESC, APP_SLEVEL, CANCELREMARKS, WFROLES, CARDTYPE, CARDCAPTION, CARDICON, AXPFILE_CARDIMG, AXPFILEPATH_CARDIMG) VALUES(1131990000000, 'F', 0, NULL, 'admin', TIMESTAMP '2025-01-09 13:18:17.000000', 'admin', TIMESTAMP '2025-01-09 13:18:17.000000', NULL, 1, 1, NULL, NULL, NULL, 'kpi', 'KPI', NULL, NULL, NULL)
 >>
 
 <<
-INSERT INTO AXCARDTYPEMASTER (AXCARDTYPEMASTERID, CANCEL, SOURCEID, MAPNAME, USERNAME, MODIFIEDON, CREATEDBY, CREATEDON, WKID, APP_LEVEL, APP_DESC, APP_SLEVEL, CANCELREMARKS, WFROLES, CARDTYPE, CARDCAPTION, CARDICON, AXPFILE_CARDIMG, AXPFILEPATH_CARDIMG) VALUES(1132010000000, 'F', 0, NULL, 'admin', TIMESTAMP '2025-01-09 13:23:33.000000', 'admin', TIMESTAMP '2025-01-09 13:23:33.000000', NULL, 1, 1, NULL, NULL, NULL, 'list', 'List', NULL, NULL, NULL);
+INSERT INTO AXCARDTYPEMASTER (AXCARDTYPEMASTERID, CANCEL, SOURCEID, MAPNAME, USERNAME, MODIFIEDON, CREATEDBY, CREATEDON, WKID, APP_LEVEL, APP_DESC, APP_SLEVEL, CANCELREMARKS, WFROLES, CARDTYPE, CARDCAPTION, CARDICON, AXPFILE_CARDIMG, AXPFILEPATH_CARDIMG) VALUES(1132010000000, 'F', 0, NULL, 'admin', TIMESTAMP '2025-01-09 13:23:33.000000', 'admin', TIMESTAMP '2025-01-09 13:23:33.000000', NULL, 1, 1, NULL, NULL, NULL, 'list', 'List', NULL, NULL, NULL)
 >>
 
 <<
-INSERT INTO AXCARDTYPEMASTER (AXCARDTYPEMASTERID, CANCEL, SOURCEID, MAPNAME, USERNAME, MODIFIEDON, CREATEDBY, CREATEDON, WKID, APP_LEVEL, APP_DESC, APP_SLEVEL, CANCELREMARKS, WFROLES, CARDTYPE, CARDCAPTION, CARDICON, AXPFILE_CARDIMG, AXPFILEPATH_CARDIMG) VALUES(1132660000000, 'F', 0, NULL, 'admin', TIMESTAMP '2025-01-09 13:27:40.000000', 'admin', TIMESTAMP '2025-01-09 13:27:40.000000', NULL, 1, 1, NULL, NULL, NULL, 'Options card', 'Options Card', NULL, NULL, NULL);
+INSERT INTO AXCARDTYPEMASTER (AXCARDTYPEMASTERID, CANCEL, SOURCEID, MAPNAME, USERNAME, MODIFIEDON, CREATEDBY, CREATEDON, WKID, APP_LEVEL, APP_DESC, APP_SLEVEL, CANCELREMARKS, WFROLES, CARDTYPE, CARDCAPTION, CARDICON, AXPFILE_CARDIMG, AXPFILEPATH_CARDIMG) VALUES(1132660000000, 'F', 0, NULL, 'admin', TIMESTAMP '2025-01-09 13:27:40.000000', 'admin', TIMESTAMP '2025-01-09 13:27:40.000000', NULL, 1, 1, NULL, NULL, NULL, 'Options card', 'Options Card', NULL, NULL, NULL)
 >>
 
 <<
-INSERT INTO axcardtypemaster (axcardtypemasterid, cancel, sourceid, mapname, username, modifiedon, createdby, createdon, wkid, app_level, app_desc, app_slevel, cancelremarks, wfroles, cardtype, cardcaption, cardicon, axpfile_cardimg, axpfilepath_cardimg) VALUES(1362010000000, 'F', 0, NULL, 'abinash',sysdate, 'abinash', sysdate, NULL, 1, 1, NULL, NULL, NULL, 'chart', 'Chart', '', '', '');
+INSERT INTO axcardtypemaster (axcardtypemasterid, cancel, sourceid, mapname, username, modifiedon, createdby, createdon, wkid, app_level, app_desc, app_slevel, cancelremarks, wfroles, cardtype, cardcaption, cardicon, axpfile_cardimg, axpfilepath_cardimg) VALUES(1362010000000, 'F', 0, NULL, 'abinash',sysdate, 'abinash', sysdate, NULL, 1, 1, NULL, NULL, NULL, 'chart', 'Chart', '', '', '')
 >>
 
 <<
@@ -1275,7 +1279,7 @@ insert into  axmmetadatamaster( structtype, structname, structcaption,structstat
  nvl(i.updatedby,'admin') as updatedby,  nvl(i.createdby,'admin') as createdby
  from iviews i join ( select substr(pagetype,2) as stname from axpages where length(pagetype)>1) c  on i.name=c.stname
  where
- not exists( select 1 from axmmetadatamaster m where m.structname =i.name and m.STRUCTTYPE='iview') and i.blobno=1;
+ not exists( select 1 from axmmetadatamaster m where m.structname =i.name and m.STRUCTTYPE='iview') and i.blobno=1
 >>
 
 <<
@@ -1321,7 +1325,7 @@ FROM
 		parent IS NULL
 	CONNECT BY
 		PRIOR name = parent)
-ORDER BY ordno,menupath;
+ORDER BY ordno,menupath
 >>
 
 <<
@@ -1341,7 +1345,7 @@ FROM
 	FROM axpages
 	WHERE blobno = 1
 	START WITH parent IS NULL CONNECT BY PRIOR name = parent)
-ORDER BY ordno,menupath;
+ORDER BY ordno,menupath
 >>
 
 <<
@@ -1455,7 +1459,7 @@ SELECT 3 AS slno,
     NULL params,p.oldappurl
 from axp_vw_menu JOIN axpages p ON axp_vw_menu.name = p.name  
 where axp_vw_menu.pagetype='web' and axp_vw_menu.websubtype='htmlpage'
-   ORDER BY 1;
+   ORDER BY 1
 >>   
   
 <<
@@ -1524,7 +1528,7 @@ UNION
 		lg.usergroup = 'default' AND b.structname!='axurg'
 	ORDER BY
 		slno,
-		username);  
+		username)  
 >>
 
 <<
@@ -1786,7 +1790,7 @@ UNION ALL
         UNION ALL
          SELECT 'pop11' AS text,
             'View Attachment' AS text,
-            15 FROM dual) a;
+            15 FROM dual) a
 >>
 
 <<
@@ -1851,7 +1855,7 @@ FROM axcalendar a   JOIN axpdef_axcalendar_event b ON a.axpdef_axcalendar_eventi
             axpdef_axcalendar_eventst.eventstatcolor
            FROM axpdef_axcalendar_eventst) c ON a.axpdef_axcalendar_eventid = c.axpdef_axcalendar_eventid AND a.eventstatus = c.eventstatus
 WHERE a.cancel= 'F' AND a.parenteventid = 0
-ORDER BY 7;
+ORDER BY 7
 >>
 
 <<
@@ -1897,7 +1901,7 @@ LEFT JOIN
 ) uroles ON
 	a.axp_cardsid = uroles.axp_cardsid
 WHERE
-	a.indashboard = 'T';
+	a.indashboard = 'T'
 >>
 
 <<
@@ -1942,7 +1946,7 @@ LEFT JOIN
 ) uroles ON
 	a.axp_cardsid = uroles.axp_cardsid
 WHERE
-	a.inhomepage = 'T';
+	a.inhomepage = 'T'
 >>
 
 <<
@@ -2047,7 +2051,7 @@ UNION ALL
     left JOIN axpdef_peg_processmaster p ON axactivemessages.processname = p.caption
   WHERE NOT (EXISTS ( SELECT b.taskid
            FROM axactivetaskstatus b
-          WHERE axactivemessages.taskid = b.taskid));
+          WHERE axactivemessages.taskid = b.taskid))
 >>
 
 <<
@@ -2531,7 +2535,7 @@ END;
 >>
 
 <<
-CALL FN_AXPANALYTICS_INS_AXRELTN();
+CALL FN_AXPANALYTICS_INS_AXRELTN()
 >>
 
 <<
@@ -6400,13 +6404,13 @@ where structtype||structname in('tstructa__ap',
 >>
 
 <<
-update axusers set pwdauth='T',otpauth='F';
+update axusers set pwdauth='T',otpauth='F'
 >>
 
 <<
-ALTER TABLE AXP_VP ADD CONSTRAINT AXP_VP_UNIQUE UNIQUE (VPNAME) ENABLE;
+ALTER TABLE AXP_VP ADD CONSTRAINT AXP_VP_UNIQUE UNIQUE (VPNAME) ENABLE
 >>
 
 <<
-ALTER TABLE AXVARCORE ADD CONSTRAINT AXVARCORE_UNIQUE UNIQUE (VPNAME) ENABLE;
+ALTER TABLE AXVARCORE ADD CONSTRAINT AXVARCORE_UNIQUE UNIQUE (VPNAME) ENABLE
 >>
