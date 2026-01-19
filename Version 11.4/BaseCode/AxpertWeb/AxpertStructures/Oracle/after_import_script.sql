@@ -550,7 +550,7 @@ CREATE TABLE AXACTIVETASKDATA
 	KEYFIELD VARCHAR2(30), 
 	KEYVALUE VARCHAR2(500), 
 	DATAVALUES VARCHAR2(4000)
-   )
+   ) 
 >>
 
 <<
@@ -595,7 +595,7 @@ CREATE TABLE AXACTIVETASKSTATUS
 	CANCELLEDBY VARCHAR2(100), 
 	CANCELLEDON DATE, 
 	CANCEL VARCHAR2(1)
-   )
+   ) 
 >>
 
 <<
@@ -745,11 +745,27 @@ CREATE UNIQUE INDEX "AGLAXPROCESSDEFV2ID" ON "AXPROCESSDEFV2" ("AXPROCESSDEFV2ID
 >>
 
 <<
+DROP TYPE PEG_SENDTO_TAB
+>>
+
+<<
+DROP TYPE TYPE_PEG_SENDTO
+>>
+
+<<
 CREATE OR REPLACE TYPE type_peg_sendto AS OBJECT (pusername VARCHAR2(50))
 >>
 
 <<
 CREATE OR REPLACE TYPE peg_sendto_tab IS TABLE OF type_peg_sendto
+>>
+
+<<
+DROP TYPE AXPDEF_AXPANALYTICS_MDATA
+>>
+
+<<
+DROP TYPE AXPDEF_AXPANALYTICS_MDATA_OBJ
 >>
 
 <<
@@ -795,11 +811,27 @@ CREATE OR REPLACE TYPE axpdef_axpanalytics_mdata IS TABLE OF axpdef_axpanalytics
 >>
 
 <<
+DROP TYPE AXPDEF_AXPANALYTICS_PEG
+>>
+
+<<
+DROP TYPE AXPDEF_AXPANALYTICS_PEG_OBJ
+>>
+
+<<
 CREATE OR REPLACE TYPE axpdef_axpanalytics_peg_obj AS object(axpeg_processname varchar2(200),axpeg_keyvalue varchar2(200),axpeg_status NUMERIC,axpeg_statustext varchar2(4000),axpeg_recordid numeric)
 >>
 
 <<
 CREATE OR REPLACE TYPE axpdef_axpanalytics_peg IS TABLE OF axpdef_axpanalytics_peg_obj
+>>
+
+<<
+DROP TYPE AXPDEF_PEG_TASKLIST
+>>
+
+<<
+DROP TYPE AXPDEF_PEG_TASKLIST_OBJ
 >>
 
 <<
@@ -937,6 +969,8 @@ INSERT INTO axctx1 (atype, axcontext) VALUES('Property', 'Popup fillgrid data sh
 
 <<
 INSERT INTO AXDIRECTSQL (AXDIRECTSQLID, CANCEL, SOURCEID, MAPNAME, USERNAME, MODIFIEDON, CREATEDBY, CREATEDON, WKID, APP_LEVEL, APP_DESC, APP_SLEVEL, CANCELREMARKS, WFROLES, SQLNAME, DDLDATATYPE, SQLTEXT, PARAMCAL, SQLPARAMS, ACCESSSTRING, GROUPNAME, SQLSRC, SQLSRCCND) VALUES(1077770000000, 'F', 0, NULL, 'admin', TIMESTAMP '2023-11-08 14:10:11.000000', 'admin', TIMESTAMP '2023-11-08 14:10:05.000000', NULL, 1, 1, 0, NULL, NULL, 'axcalendarsource', NULL, 'select * from vw_cards_calendar_data where mapname is null and uname = :username order by startdate', 'username', 'username', 'ALL', NULL, 'General', 5)
+>>
+<<
 INSERT INTO AXDIRECTSQL (AXDIRECTSQLID, CANCEL, SOURCEID, MAPNAME, USERNAME, MODIFIEDON, CREATEDBY, CREATEDON, WKID, APP_LEVEL, APP_DESC, APP_SLEVEL, CANCELREMARKS, WFROLES, SQLNAME, DDLDATATYPE, SQLTEXT, PARAMCAL, SQLPARAMS, ACCESSSTRING, GROUPNAME, SQLSRC, SQLSRCCND) VALUES(1092550000000, 'F', 0, NULL, 'admin', TIMESTAMP '2023-11-09 17:44:55.000000', 'admin', TIMESTAMP '2023-11-09 17:44:25.000000', NULL, 1, 1, 0, NULL, NULL, 'Text_Field_Intelligence', NULL, 'select id,caption,source from(
 select fname id,caption,''Form'' source,2 ord from axpflds where asgrid=''F'' and tstruct = :txttransid 
 union all
@@ -958,9 +992,7 @@ INSERT INTO AXDIRECTSQL (AXDIRECTSQLID, CANCEL, SOURCEID, MAPNAME, USERNAME, MOD
 from vw_pegv2_alltasks where case when cstatus=''Active'' then lower(touser) else lower(username) end = :username) 
 WHERE rno BETWEEN 1 AND 100
 order by edatetime desc 
-', 'username', 'username', 'ALL', NULL, 'Home configuration', 2)
->>
-<<
+', 'username', 'username', 'ALL', NULL, 'Home configuration', 2);
 INSERT INTO AXDIRECTSQL (AXDIRECTSQLID, CANCEL, SOURCEID, MAPNAME, USERNAME, MODIFIEDON, CREATEDBY, CREATEDON, WKID, APP_LEVEL, APP_DESC, APP_SLEVEL, CANCELREMARKS, WFROLES, SQLNAME, DDLDATATYPE, SQLTEXT, PARAMCAL, SQLPARAMS, ACCESSSTRING, GROUPNAME, SQLSRC, SQLSRCCND) VALUES(1359330000000, 'F', 0, NULL, 'admin', TIMESTAMP '2024-12-24 15:56:26.000000', 'admin', TIMESTAMP '2024-12-24 15:56:26.000000', NULL, 1, 1, 0, NULL, NULL, 'ds_homepage_quicklinks', NULL, 'SELECT distinct 
 case when lower(servicename)=''get structure'' then t.caption
 when lower(servicename) in(''get iview new'',''get iview'') then i.caption end caption,
@@ -1013,6 +1045,7 @@ union
 SELECT ''Configure yourself'' as title, ''Configure functionalities as per customer needs'' as subtitle, ''Jan 01, 2025'' as time, ''https://dev.agilecloud.biz/axpert11.3web/CustomPages/images/slider1.png'' as image, '''' as link from dual
 ', NULL, NULL, 'ALL', NULL, 'Home configuration', 2)
 >>
+
 <<
 INSERT INTO AXDIRECTSQL (AXDIRECTSQLID, CANCEL, SOURCEID, MAPNAME, USERNAME, MODIFIEDON, CREATEDBY, CREATEDON, WKID, APP_LEVEL, APP_DESC, APP_SLEVEL, CANCELREMARKS, WFROLES, SQLNAME, DDLDATATYPE, SQLTEXT, PARAMCAL, SQLPARAMS, ACCESSSTRING, GROUPNAME, SQLSRC, SQLSRCCND) VALUES(1359110000000, 'F', 0, NULL, 'admin', TIMESTAMP '2025-01-08 18:37:34.000000', 'admin', TIMESTAMP '2024-12-24 15:55:02.000000', NULL, 1, 1, 0, NULL, NULL, 'ds_homepage_kpicards', NULL, 'select ''Users'' name,count(*) value,''taxusr()'' link from axusers
 union all
@@ -2393,7 +2426,7 @@ execute immediate 'update  '||psrctable ||' set cancel=cancel' ;
 
 
 
- end 
+ end
 >>
 
 <<
@@ -3012,7 +3045,7 @@ select processtable into v_processtable from axpdef_peg_processmaster where lowe
 v_createtblscr :='select taskname,tasktype,to_char(to_timestamp(SUBSTR(eventdatetime,1,14), ''YYYYMMDDHH24MISS''), ''dd/mm/yyyy hh24:mi:ss'') eventdatetime,username,taskstatus,displayicon,displaytitle,taskid,keyfield,keyvalue,recordid,transid from '|| v_processtable||' where lower(keyvalue)='''||lower(pkeyvalue)||''';';
 	
 RETURN v_createtblscr;
-END
+END;
 >>
 
 <<
@@ -3110,9 +3143,10 @@ LOOP
     PIPE ROW(type_peg_sendto(i.pusername));   
 END LOOP;
    RETURN;
-END;
+END
+>>
 
-
+<<
 CREATE OR REPLACE FUNCTION GET_SQL_COLUMNS( v_sql IN VARCHAR2)
   RETURN VARCHAR2
 IS
@@ -4531,7 +4565,7 @@ begin
 
    return v_final_sqls;
 
-END
+END;
 >>
 
 <<
@@ -4671,7 +4705,7 @@ end ;
 
 end if;
 
- end 
+ end
 >>
 
 <<
@@ -5670,6 +5704,14 @@ END axp_fn_get_scolname
 >>
 
 <<
+DROP TYPE AXPDEF_PERMISSION_GETCND
+>>
+
+<<
+DROP TYPE AXPDEF_PERMISSION_GETCND_OBJ
+>>
+
+<<
 CREATE OR REPLACE TYPE AXPDEF_PERMISSION_GETCND AS OBJECT (
     fullcontrol VARCHAR2(1),
     userrole VARCHAR2(250),
@@ -5691,7 +5733,15 @@ CREATE OR REPLACE TYPE AXPDEF_PERMISSION_GETCND AS OBJECT (
 >>
 
 <<
-CREATE OR REPLACE TYPE AXPDEF_PERMISSION_GETCND_OBJ AS TABLE OF AXPDEF_PERMISSION_GETCND;
+CREATE OR REPLACE TYPE AXPDEF_PERMISSION_GETCND_OBJ AS TABLE OF AXPDEF_PERMISSION_GETCND
+>>
+
+<<
+DROP TYPE AXPDEF_PERMISSION_MDATA
+>>
+
+<<
+DROP TYPE AXPDEF_PERMISSION_MDATA_OBJ
 >>
 
 <<
@@ -6026,6 +6076,14 @@ ALTER TABLE  AXIMPJOBS  ADD AXIMPPRIMARYFIELD_DETAILS varchar2(4000)
 >>
 
 <<
+DROP TYPE AXPDEF_TSTRUCT_REC
+>>
+
+<<
+DROP TYPE AXPDEF_TSTRUCT_REC_OBJ
+>>
+
+<<
 CREATE OR REPLACE TYPE Axpdef_tstruct_rec_obj AS OBJECT (
   dcname    VARCHAR2(100),
   rowno     NUMBER,
@@ -6136,9 +6194,10 @@ BEGIN
             PIPE ROW(AXPDEF_PERMISSION_GETADSCND('T', NULL, NULL, NULL, NULL, NULL, NULL));
     
     RETURN;
-END;
+END
+>>
 
-
+<<
 CREATE OR REPLACE FUNCTION fn_permissions_getadssql (
     ptransid   VARCHAR2,
     padsname   VARCHAR2,
@@ -6179,7 +6238,7 @@ END
 >>
 
 <<
-delete from axmmetadatamaster a 
+delete from axmmetadatamaster 
 where structtype||structname in('tstructa__ap',
 'tstructa__fn',
 'tstructa__iq',
@@ -6400,7 +6459,7 @@ where structtype||structname in('tstructa__ap',
 'iviewad_dacmc',
 'tstructa_pgt',
 'tstructa_dup',
-'tstructad__d');
+'tstructad__d')
 >>
 
 <<
