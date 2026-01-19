@@ -18,9 +18,7 @@ typename,
 datatype,
 width,
 dwidth,
-isactive,
-isspldatatpye,
-spldatatype from {axdef}.axp_customdatatype;
+isactive from {axdef}.axp_customdatatype;
 
 
 select axpdef_languageid,
