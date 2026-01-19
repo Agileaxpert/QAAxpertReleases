@@ -2072,7 +2072,7 @@ BEGIN
            ELSE 'In Progress'
          END;
 
-END;
+END
 >>
 
 <<
@@ -2264,7 +2264,7 @@ SELECT
 from
 	axactivetasks a
 join axactivetaskstatus b on
-	a.taskid = b.taskid;
+	a.taskid = b.taskid
 >>
 
 <<
@@ -2284,7 +2284,7 @@ SELECT axprocessdefv2.processname,
     axprocessdefv2.displayicon,
     axprocessdefv2.groupwithprior,
     axprocessdefv2.keyfield
-   FROM axprocessdefv2;
+   FROM axprocessdefv2
 >>
 
 <<
@@ -2393,7 +2393,7 @@ execute immediate 'update  '||psrctable ||' set cancel=cancel' ;
 
 
 
- end ;
+ end 
 >>
 
 <<
@@ -2413,7 +2413,7 @@ end if;
 
 exception when others then  null ;
 
-END;
+END
 >>
 
 <<
@@ -2448,7 +2448,7 @@ and fromuser= p_fromuser and touser= p_existingapp and not exists
 (SELECT b.taskid FROM axactivetaskstatus b WHERE a.taskid = b.taskid);
 
 
-end;
+end
 >>
 
 <<
@@ -2531,7 +2531,7 @@ UNION ALL
 
    commit; 
 
-END;
+END
 >>
 
 <<
@@ -2554,7 +2554,7 @@ begin
 	  
 EXCEPTION WHEN OTHERS THEN NULL;
 
-end;
+end
 >>
 
 <<
@@ -2620,7 +2620,7 @@ SELECT 'iif('||LISTAGG(cstr,' ') WITHIN GROUP(order BY rownum)||',{T},{F})'  int
 
 end if;
 return v_formula;
-end;
+end
 >>
 
 <<
@@ -2647,7 +2647,7 @@ END IF;
 RETURN T_RESULT;
 
 
-END;
+END
 >>
 
 <<
@@ -2673,7 +2673,7 @@ END LOOP;
 
 
   RETURN parsed_array;
-END;
+END
 >>
 
 <<
@@ -2689,7 +2689,7 @@ BEGIN
    from table(input_array) colval  ;
 
   RETURN v_result;
-END;
+END
 >>
 
 <<
@@ -2714,7 +2714,7 @@ from dual;
  
 RETURN cardprops1;
 
-END;
+END
 >>
 
 <<
@@ -2805,7 +2805,7 @@ BEGIN
 	 	RETURN v_datagrpusers;
 		ELSE RETURN '0';
 	 END IF;
-END;
+END
 >>
 
 <<
@@ -2855,7 +2855,7 @@ when v_currentuser='T' and v_nextleveluser > 0 then 'T'
 when v_currentuser='F' and v_activeuser = 0  then v_flag else v_flag end end  into v_editable FROM dual;
 
 return v_editable;
-end;
+end
 >>
 
 <<
@@ -2909,7 +2909,7 @@ end if;
 
   RETURN v_json;
  
-END;
+END
 >>
 
 <<
@@ -2995,7 +2995,7 @@ elsif pcnd=7 then
 end if;
 	 
 RETURN v_formula;
-END;
+END
 >>
 
 <<
@@ -3012,7 +3012,7 @@ select processtable into v_processtable from axpdef_peg_processmaster where lowe
 v_createtblscr :='select taskname,tasktype,to_char(to_timestamp(SUBSTR(eventdatetime,1,14), ''YYYYMMDDHH24MISS''), ''dd/mm/yyyy hh24:mi:ss'') eventdatetime,username,taskstatus,displayicon,displaytitle,taskid,keyfield,keyvalue,recordid,transid from '|| v_processtable||' where lower(keyvalue)='''||lower(pkeyvalue)||''';';
 	
 RETURN v_createtblscr;
-END;
+END
 >>
 
 <<
@@ -3059,7 +3059,7 @@ j.processname,j.taskname,j.taskid,j.recordid    from axactivetasks j
 RETURN  v_createtblscr;
 
 
-END;
+END
 >>
 
 <<
@@ -3140,7 +3140,7 @@ exception when others then
     dbms_sql.close_cursor(v_cursor_id);
     raise_application_error(-20000, 'Invalid SQL in GET_SQL_COLUMNS');
     end; 
-end;
+end
 >>
 
 <<
@@ -3158,7 +3158,7 @@ select  '{"queuename":"ARMPeriodicNotificationQueue","queuedata":"ARMPeriodicNot
  
 RETURN queuejson;
 
-END;
+END
 >>
 
 <<
@@ -3168,7 +3168,7 @@ AS
    v_results varchar2(2000) := ' '; 
 BEGIN
    RETURN pstring1||pstring2;   
-END;
+END
 >>
 
 <<
@@ -3426,7 +3426,7 @@ begin
 
    return v_final_sqls;
 
-END;
+END
 >>
 
 <<
@@ -3451,7 +3451,7 @@ begin
 return v_result_array;
 
  
-END;
+END
 >>
 
 <<
@@ -3668,7 +3668,7 @@ END LOOP;
 
 return v_final_sqls;
 
- END;
+ END
 >>
 
 <<
@@ -3769,7 +3769,7 @@ select axpflds.tstruct transid,coalesce(lf.compcaption,t.caption) formcap, fname
 -- Return consolidated metadata. 
     RETURN recdata_consoliate_array; 
 	 
-END;
+END
 >>
 
 <<
@@ -3934,7 +3934,7 @@ begin
    	
 
 RETURN v_final_sqls;
-END;
+END
 >>
 
 <<
@@ -4198,7 +4198,7 @@ else 'T' end;
 
 
 
-END;
+END
 >>
 
 <<
@@ -4445,7 +4445,7 @@ begin
 	      	
 
    return v_final_sqls ;
-END;
+END
 >>
 
 <<
@@ -4531,7 +4531,7 @@ begin
 
    return v_final_sqls;
 
-END;
+END
 >>
 
 <<
@@ -4551,7 +4551,7 @@ v_sql := 'select axpdef_peg_tasklist_obj(taskname) from(SELECT TASKNAME FROM AXP
     RETURN recdata_consoliate_array;
     	
 
-END;
+END
 >>
 
 <<
@@ -4581,7 +4581,7 @@ BEGIN
    EXECUTE IMMEDIATE 'DROP TABLE ' || v_temp_table_name;
 
    RETURN;
-END;
+END
 >>
 
 <<
@@ -4612,7 +4612,7 @@ exception when others then
     dbms_sql.close_cursor(v_cursor_id);
     raise_application_error(-20000, 'Invalid SQL in GET_SQL_COLUMNS');
     end; 
-end;
+end
 >>
 
 <<
@@ -4635,7 +4635,7 @@ FROM dual;
 RETURN v_json;
 
 
-END;
+END
 >>
 
 <<
@@ -4671,7 +4671,7 @@ end ;
 
 end if;
 
- end ;
+ end 
 >>
 
 <<
@@ -5225,7 +5225,7 @@ if :new.assigntoflg ='2' then
 	END IF;	
 END IF;
 COMMIT;
-END;
+END
 >>
 
 <<
@@ -5268,7 +5268,7 @@ BEGIN
 		
 	
 		end if;
-end;
+end
 >>
 
 <<
@@ -5347,7 +5347,7 @@ insert into axactivetasks(eventdatetime,taskid,processname,tasktype,taskname,tas
 	 and to_char(actor_user_groups)  = :new.usergroupname 
 	 and not exists (SELECT b.taskid FROM axactivetaskstatus b WHERE a.taskid = b.taskid); 
 
-end;
+end
 >>
 
 <<
@@ -5424,7 +5424,7 @@ insert into axactivetasks(eventdatetime,taskid,processname,tasktype,taskname,tas
 	and actor_data_grp  = :new.dgname 
 	and not exists (SELECT b.taskid FROM axactivetaskstatus b WHERE a.taskid = b.taskid); 
 
-end;
+end
 >>
 
 <<
@@ -5438,7 +5438,7 @@ BEGIN
 	VALUES (to_char(SYSDATE,'YYYYMMDDHH24MISSSS'),:new.msgtype,:new.fromuser,:new.touser,:new.msgtitle,:new.message,trunc(SYSDATE),
 	:new.effectiveto,:new.hlink_transid,:new.hlink_params);
 	  
-end;
+end
 >>
 
 <<
@@ -5513,7 +5513,7 @@ UNION ALL
      LEFT JOIN axpdc pd ON :NEW.mstruct = pd.tstruct AND pd.dname = 'dc1'
      where mt.name = :new.mstruct and 'gm' = :new.rtype)a;
 	 
-END;
+END
 >>
 
 <<
@@ -5589,7 +5589,7 @@ insert into axactivetasks(eventdatetime,taskid,processname,tasktype,taskname,tas
 	 and assigntoactor = :new.actorname	 
 	 and not exists (SELECT b.taskid FROM axactivetaskstatus b WHERE a.taskid = b.taskid); 
 
-end;
+end
 >>
 
 <<
@@ -5619,7 +5619,7 @@ BEGIN
       INSERT INTO axlanguage (lngname, sname, fontname, fontsize, compname, compcaption, comphint, dispname)
       VALUES (:NEW.lngname, :NEW.sname, :NEW.fontname, :NEW.fontsize, :NEW.compname, :NEW.compcaption, :NEW.comphint, :NEW.dispname);
    END IF;
-END;
+END
 >>
 
 <<
@@ -5640,7 +5640,7 @@ BEGIN
            ELSE 'In Progress'
          END;
 
-END;
+END
 >>
 
 <<
@@ -5666,7 +5666,7 @@ BEGIN
     END IF;
 
     RETURN scolname;
-END axp_fn_get_scolname;
+END axp_fn_get_scolname
 >>
 
 <<
@@ -5687,7 +5687,7 @@ CREATE OR REPLACE TYPE AXPDEF_PERMISSION_GETCND AS OBJECT (
     maskedflds VARCHAR2(4000),
     filtercnd CLOB, 
     recordid NUMBER 
-);
+)
 >>
 
 <<
@@ -5712,11 +5712,11 @@ CREATE OR REPLACE TYPE AXPDEF_PERMISSION_MDATA AS OBJECT (
     edit_excludeflds VARCHAR2(4000),
     maskedflds VARCHAR2(4000),
     filtercnd CLOB 
-);
+)
 >>
 
 <<
-CREATE OR REPLACE TYPE AXPDEF_PERMISSION_MDATA_OBJ AS TABLE OF AXPDEF_PERMISSION_MDATA;
+CREATE OR REPLACE TYPE AXPDEF_PERMISSION_MDATA_OBJ AS TABLE OF AXPDEF_PERMISSION_MDATA
 >>
 
 <<
@@ -5863,7 +5863,7 @@ BEGIN
         ));
       
     RETURN; 
-END;
+END
 >>
 
 <<
@@ -5963,7 +5963,7 @@ BEGIN
     END LOOP; -- End of rec_transid loop
 
     RETURN; 
-END;
+END
 >>
 
 <<
@@ -5995,7 +5995,7 @@ EXCEPTION
 WHEN OTHERS THEN
 DBMS_OUTPUT.PUT_LINE('Error: ' || SQLERRM);
 RAISE;
-END;
+END
 >>
 
 
@@ -6018,11 +6018,11 @@ CLOSE sqlstmt;
 temp1 := 'drop table ' || ptablename;
 
 EXECUTE IMMEDIATE temp1;
-END;
+END
 >>
 
 <<
-ALTER TABLE  AXIMPJOBS  ADD AXIMPPRIMARYFIELD_DETAILS varchar2(4000);
+ALTER TABLE  AXIMPJOBS  ADD AXIMPPRIMARYFIELD_DETAILS varchar2(4000)
 >>
 
 <<
@@ -6030,11 +6030,11 @@ CREATE OR REPLACE TYPE Axpdef_tstruct_rec_obj AS OBJECT (
   dcname    VARCHAR2(100),
   rowno     NUMBER,
   recordid  NUMBER
-);
+)
 >>
 
 <<
-CREATE OR REPLACE TYPE Axpdef_tstruct_rec AS TABLE OF Axpdef_tstruct_rec_obj;
+CREATE OR REPLACE TYPE Axpdef_tstruct_rec AS TABLE OF Axpdef_tstruct_rec_obj
 >>
 
 <<
@@ -6098,7 +6098,7 @@ BEGIN
   END LOOP;
 
   RETURN;
-END;
+END
 >>
 
 <<
@@ -6109,7 +6109,7 @@ CREATE TABLE "AX_MOBILENOTIFY"
 	"FIREBASE_ID" VARCHAR2(500), 
 	"IMEI_NO" VARCHAR2(50), 
 	"STATUS" VARCHAR2(2)
-   );
+   )
 >>
 
 <<
@@ -6175,7 +6175,7 @@ BEGIN
                WHEN pcond = 'NA' THEN v_adssql
                ELSE v_filtersql
            END;
-END;
+END
 >>
 
 <<
