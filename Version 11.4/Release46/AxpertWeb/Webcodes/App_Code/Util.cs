@@ -2625,7 +2625,8 @@ namespace Util
                             updateAppSettingsini(strProj, xmlcontents);
                             FDW fdwObj = new FDW(strProj);
                             //fdwObj.SaveInRedisServer(Constants.AXAPPS_XML_KEY, xmlcontents, Constants.AXAPPS_XML_KEY, strProj);
-                            fdwObj.HashSetKeyWithSchema(Constants.AX_COMMON_APPSETTING_KEY, Constants.AXAPPS_XML_KEY, xmlcontents, strProj);
+                            //fdwObj.HashSetKeyWithSchema(Constants.AX_COMMON_APPSETTING_KEY, Constants.AXAPPS_XML_KEY, xmlcontents, strProj);
+                            GetAxIniFileKeys(strProj);
                         }
                     }
                 }

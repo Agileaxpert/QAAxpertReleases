@@ -4035,7 +4035,7 @@ function SetParamValues(pval, depsForViewsObj = "") {
                             $j(this).removeAttr("selected");
                             if ($j(this).text() == strVal[1]) {
                                 $j(this).prop("selected", true);
-
+                                $j(this).val(strVal[1]).trigger('change');
                             }
                         });
                     } else if (fldType == "select-multiple" && !pctrl.parents(".paramtd2").hasClass("pick-list")) {
