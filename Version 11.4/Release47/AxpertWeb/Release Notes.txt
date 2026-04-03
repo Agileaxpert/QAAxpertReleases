@@ -1,0 +1,28 @@
+AxpertWeb:
+----------
+TASK-5506 -- Enhancement: ARMCachedSaveworkservice has been enhanced to handle multiple transactions from multiple transids. 
+    Note:1. A predefined input JSON format must be pushed to the queue. A sample JSON format is provided in the README.
+         2. The queue name for ARMCachedSaveworkservice has been changed to 'CachedSaveQueue' from 'RapidSaveQueue'. Update this in your appsettings.json file under the ARMCachedSaveworkservice folder, or use the updated file provided in the patch.
+
+TASK-5227 -JF&I- Issue with Column Visibility in List View - In the list view, "modified by" field cannot be enabled 
+
+TASK-5327 -BMRCL- In the Fill Grid configuration, we need to populate data based on dependency from a previous DC by passing values dynamically into the SQL query. However, the dependency is not working in the current version. But This functionality was working in the earlier version.
+
+TASK-5265 -Better works- Issue with Button Icons Displaying as Black Circles in 11.4 Web
+
+TASK-5244 -MPCO- Transaction Cancel/ delete issue : Read-only transactions are allowing for cancel / delete, Same not allowed in desktop
+Transaction Cancel/ delete issue : Read-only transactions are allowing for cancel / delete. Field access / readonly action defined in desktop - Cancel/ Delete is not allowed in desktop.
+
+TASK-4715 -MPCO- During entry and modification mode: Calendar expanding even though date is selected, when navigating previous and next tabs.  
+
+TASK-5505 -Kauvery- Scroll bar issue in tstruct popup screens during GridDc Data import from Excel file. 
+
+
+Consumer Service:
+----------------
+TASK-5506 -- Enhancement: ARMCachedSaveworkservice has been enhanced to handle multiple transactions from multiple transids. 
+    Note:1. A predefined input JSON format must be pushed to the queue. A sample JSON format is provided in the README.
+         2. The queue name for ARMCachedSaveworkservice has been changed to 'CachedSaveQueue' from 'RapidSaveQueue'. Update this in your appsettings.json file under the ARMCachedSaveworkservice folder, or use the updated file provided in the patch.
+
+
+
