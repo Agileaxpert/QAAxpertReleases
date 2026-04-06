@@ -19,7 +19,7 @@ TASK-5505 -Kauvery- Scroll bar issue in tstruct popup screens during GridDc Data
 
 
 Consumer Service:
-----------------
+
 TASK-5506 -- Enhancement: ARMCachedSaveworkservice has been enhanced to handle multiple transactions from multiple transids. 
     Note:1. A predefined input JSON format must be pushed to the queue. A sample JSON format is provided in the README.
          2. The queue name for ARMCachedSaveworkservice has been changed to 'CachedSaveQueue' from 'RapidSaveQueue'. Update this in your appsettings.json file under the ARMCachedSaveworkservice folder, or use the updated file provided in the patch.
