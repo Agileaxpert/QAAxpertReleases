@@ -6273,7 +6273,6 @@ function AssignJQueryEvents(dcArray,_calledFrom="") {
                     dtFormat = "m/d/Y";
                     tsFormat = "m/d/Y H:i:S";
                 }
-                let isNewMode = (typeof recordid != "undefined" && recordid != "0") ? false : true;
                 $j(dvId + " .flatpickr-input:not(.tstOnlyTime,.tstOnlyTime24hours,.fldtimestamp)").each(function () {
                     let $input = $j(this);
                     let fp = flatpickr(this, {
@@ -6283,7 +6282,8 @@ function AssignJQueryEvents(dcArray,_calledFrom="") {
                         clickOpens: false,
                         onReady: function (selectedDates, dateStr, instance) {
                             $input.on("focus", function () {
-                                if (isNewMode) {
+                                let val = $input.val();
+                                if (!val || val.trim() === "") {
                                     instance.open();
                                 }
                             });
@@ -6291,9 +6291,7 @@ function AssignJQueryEvents(dcArray,_calledFrom="") {
                                 instance.open();
                             });
                             $input.on("keydown", function () {
-                                if (!isNewMode) {
-                                    instance.open();
-                                }
+                                instance.open();
                             });
                         },
                         onOpen: function (selectedDates, dateStr, instance) {
@@ -6326,7 +6324,8 @@ function AssignJQueryEvents(dcArray,_calledFrom="") {
                         defaultSeconds: new Date().getSeconds(),
                         onReady: function (selectedDates, dateStr, instance) {
                             $input.on("focus", function () {
-                                if (isNewMode) {
+                                let val = $input.val();
+                                if (!val || val.trim() === "") {
                                     instance.open();
                                 }
                             });
@@ -6334,9 +6333,7 @@ function AssignJQueryEvents(dcArray,_calledFrom="") {
                                 instance.open();
                             });
                             $input.on("keydown", function () {
-                                if (!isNewMode) {
-                                    instance.open();
-                                }
+                                instance.open();
                             });
                         },
                         onPreCalendarPosition: function (selectedDates, dateStr, instance) {
@@ -6365,26 +6362,40 @@ function AssignJQueryEvents(dcArray,_calledFrom="") {
                         });
                 });
                 $j(dvId + " .tstOnlyTime").each(function () {
+                    let $input = $j(this);
                     let fp = flatpickr(this, {
                         enableTime: true,
-                        //allowInput: true,
                         noCalendar: true,
                         dateFormat: "h:i K",
                         disableMobile: true,
+                        clickOpens: false,
+                        onReady: function (selectedDates, dateStr, instance) {
+                            $input.on("focus", function () {
+                                let val = $input.val();
+                                if (!val || val.trim() === "") {
+                                    instance.open();
+                                }
+                            });
+                            $input.on("click", function () {
+                                instance.open();
+                            });
+                            $input.on("keydown", function () {
+                                instance.open();
+                            });
+                        },
                         onPreCalendarPosition: function (selectedDates, dateStr, instance) {
-                            let _thisfpVal = $(instance.element).val();
+                            let _thisfpVal = $input.val();
                             if (_thisfpVal != "")
                                 instance.setDate(_thisfpVal);
                         },
                         onOpen: function (selectedDates, dateStr, instance) {
-                            MainFocus($(instance.element));
+                            MainFocus($input);
                         },
                         onClose: function (selectedDates, dateStr, instance) {
-                            MainBlur($(instance.element));
+                            MainBlur($input);
                         }
                     });
-
-                    $j(this)
+                    $input
                         .closest(".input-group")
                         .find(".input-group-text")
                         .on("click", function () {
@@ -6392,27 +6403,41 @@ function AssignJQueryEvents(dcArray,_calledFrom="") {
                         });
                 });
                 $j(dvId + " .tstOnlyTime24hours").each(function () {
+                    let $input = $j(this);
                     let fp = flatpickr(this, {
                         enableTime: true,
                         noCalendar: true,
-                        //allowInput: true,
                         dateFormat: "H:i",
                         time_24hr: true,
                         disableMobile: true,
+                        clickOpens: false,
+                        onReady: function (selectedDates, dateStr, instance) {
+                            $input.on("focus", function () {
+                                let val = $input.val();
+                                if (!val || val.trim() === "") {
+                                    instance.open();
+                                }
+                            });
+                            $input.on("click", function () {
+                                instance.open();
+                            });
+                            $input.on("keydown", function () {
+                                instance.open();
+                            });
+                        },
                         onPreCalendarPosition: function (selectedDates, dateStr, instance) {
-                            let _thisfpVal = $(instance.element).val();
+                            let _thisfpVal = $input.val();
                             if (_thisfpVal != "")
                                 instance.setDate(_thisfpVal);
                         },
                         onOpen: function (selectedDates, dateStr, instance) {
-                            MainFocus($(instance.element));
+                            MainFocus($input);
                         },
                         onClose: function (selectedDates, dateStr, instance) {
-                            MainBlur($(instance.element));
+                            MainBlur($input);
                         }
                     });
-
-                    $j(this)
+                    $input
                         .closest(".input-group")
                         .find(".input-group-text")
                         .on("click", function () {

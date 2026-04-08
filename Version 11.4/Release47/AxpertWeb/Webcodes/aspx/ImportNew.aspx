@@ -605,9 +605,9 @@
         <script type="text/javascript" src="../Js/jquery.multi-select.min.js"></script>
         <script type="text/javascript" src="../Js/alerts.min.js?v=32"></script>
         <script type="text/javascript" src="../Js/helper.min.js?v=173"></script>
-        <script type="text/javascript" src="../Js/jsclient.min.js?v=118"></script>
+        <script type="text/javascript" src="../Js/jsclient.min.js?v=119"></script>
         <script type="text/javascript" src="../Js/common.min.js?v=163"></script>
-        <script type="text/javascript" src="../Js/AxInterface.min.js?v=18"></script>
+        <script type="text/javascript" src="../Js/AxInterface.min.js?v=19"></script>
         <script type="text/javascript" src="../Js/multiselect.min.js"></script>
         <script type="text/javascript" src="../Js/import.min.js?v=51"></script>
         <script type="text/javascript">

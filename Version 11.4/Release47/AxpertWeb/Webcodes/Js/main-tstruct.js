@@ -2037,17 +2037,17 @@ function LoadEvents(dvId) {
         dtFormat = "m/d/Y";
         tsFormat = "m/d/Y H:i:S";
     }
-    let isNewMode = (typeof recordid != "undefined" && recordid != "0") ? false : true;
     $(".flatpickr-input:not(.tstOnlyTime,.tstOnlyTime24hours,.fldtimestamp)").parent(".input-group").flatpickr({
         dateFormat: dtFormat,
         disableMobile: "true",
         allowInput: true,
         wrap: true,
-        clickOpens: false, 
+        clickOpens: false,
         onReady: function (selectedDates, dateStr, instance) {
             let $input = $(instance.element).find("input");
             $input.on("focus", function () {
-                if (isNewMode) {
+                let val = $(this).val();
+                if (!val || val.trim() === "") {
                     instance.open();
                 }
             });
@@ -2055,9 +2055,7 @@ function LoadEvents(dvId) {
                 instance.open();
             });
             $input.on("keydown", function () {
-                if (!isNewMode) {
-                    instance.open();
-                }
+                instance.open();
             });
         },
         onPreCalendarPosition: function (selectedDates, dateStr, instance) {
@@ -2095,7 +2093,8 @@ function LoadEvents(dvId) {
         onReady: function (selectedDates, dateStr, instance) {
             let $input = $(instance.element).find("input");
             $input.on("focus", function () {
-                if (isNewMode) {
+                let val = $(this).val();
+                if (!val || val.trim() === "") {
                     instance.open();
                 }
             });
@@ -2103,9 +2102,7 @@ function LoadEvents(dvId) {
                 instance.open();
             });
             $input.on("keydown", function () {
-                if (!isNewMode) {
-                    instance.open();
-                }
+                instance.open();
             });
         },
         onPreCalendarPosition: function (selectedDates, dateStr, instance) {
@@ -2132,6 +2129,22 @@ function LoadEvents(dvId) {
         disableMobile: "true",
         //allowInput: true,
         wrap: true,
+        clickOpens: false,  
+        onReady: function (selectedDates, dateStr, instance) {
+            let $input = $(instance.element).find("input");
+            $input.on("focus", function () {
+                let val = $(this).val();
+                if (!val || val.trim() === "") {
+                    instance.open();
+                }
+            });
+            $input.on("click", function () {
+                instance.open();
+            });
+            $input.on("keydown", function () {
+                instance.open();
+            });
+        },
         onPreCalendarPosition: function (selectedDates, dateStr, instance) {
             let _thisfpVal = $(instance.element).find("input").val();
             if (_thisfpVal != "")
@@ -2161,6 +2174,22 @@ function LoadEvents(dvId) {
         disableMobile: "true",
         //allowInput: true,
         wrap: true,
+        clickOpens: false,
+        onReady: function (selectedDates, dateStr, instance) {
+            let $input = $(instance.element).find("input");
+            $input.on("focus", function () {
+                let val = $(this).val();
+                if (!val || val.trim() === "") {
+                    instance.open();
+                }
+            });
+            $input.on("click", function () {
+                instance.open();
+            });
+            $input.on("keydown", function () {
+                instance.open();
+            });
+        },
         onPreCalendarPosition: function (selectedDates, dateStr, instance) {
             let _thisfpVal = $(instance.element).find("input").val();
             if (_thisfpVal != "")

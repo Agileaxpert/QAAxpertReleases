@@ -1053,7 +1053,8 @@ public partial class axinterface : System.Web.UI.Page
                 JObject param = (JObject)paramArr[0];
                 param["sessionid"] = HttpContext.Current.Session.SessionID;
                 param["appsessionkey"] = HttpContext.Current.Session["AppSessionKey"].ToString();
-                param["ARMSessionId"] = HttpContext.Current.Session["ARM_SessionId"].ToString();                
+                param["ARMSessionId"] = HttpContext.Current.Session["ARM_SessionId"].ToString();
+                param["trace"] = HttpContext.Current.Session["AxTrace"].ToString();
             }
             jsonData = jsonObj.ToString(Newtonsoft.Json.Formatting.None);
             string URL = String.Empty;

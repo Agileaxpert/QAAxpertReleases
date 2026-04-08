@@ -34,7 +34,7 @@
     <%--custom alerts end--%>
     <script src="../Js/gen.min.js?v=14" type="text/javascript"></script>
  	<script src="../Js/common.min.js?v=163" type="text/javascript"></script>   
- 	<script src="../Js/tstruct.min.js?v=682" type="text/javascript"></script>
+ 	<script src="../Js/tstruct.min.js?v=683" type="text/javascript"></script>
 
     <script src="../Js/gridFileUpload.min.js?v=53" type="text/javascript"></script>
    

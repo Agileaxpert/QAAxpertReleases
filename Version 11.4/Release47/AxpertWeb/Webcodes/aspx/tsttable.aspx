@@ -30,7 +30,7 @@
     <script type="text/javascript" src="../Js/iFrameHandler.min.js"></script>
     <script src="../Js/common.min.js?v=163"></script>
     <script src="../Js/tstructvars.min.js?v=96"></script>
-    <script src="../Js/tstruct.min.js?v=682"></script>
+    <script src="../Js/tstruct.min.js?v=683"></script>
     <script src="../Js/tstTable.min.js?v=34"></script>
 </head>
 <body dir="<%=direction%>">
