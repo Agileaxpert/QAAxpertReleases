@@ -87,13 +87,13 @@ END;
 >>
 
 <<
-update axdirectsql set sqlsrc ='For developers',sqlsrccnd =2 where sqlsrc ='Internal';
+update axdirectsql set sqlsrc ='For developers',sqlsrccnd =2 where sqlsrc ='Internal'
 >>
 
 <<
 update axdirectsql set sqlsrc='For developers',sqlsrccnd=2  where sqlname in('axcalendarsource','ds_homepage_banner',
 'ds_homepage_events',
-'ds_homepage_kpicards');
+'ds_homepage_kpicards')
 >>
 
 <<
@@ -134,13 +134,13 @@ update axdirectsql set sqlsrc='Internal',sqlsrccnd=1  where sqlname in(
 'axi_userlist',
 'axi_userpwd',
 'axi_viewlist',
-'ds_getsmartlists','Text_Field_Intelligence','ds_smartlist_filters','ds_smartlist_ads_metadata');
+'ds_getsmartlists','Text_Field_Intelligence','ds_smartlist_filters','ds_smartlist_ads_metadata')
 >>
 
 <<
-update axdirectsql set sqlsrc ='Internal',sqlsrccnd =1 where sqlsrc ='Metadata';
+update axdirectsql set sqlsrc ='Internal',sqlsrccnd =1 where sqlsrc ='Metadata'
 >>
 
 <<
-update axdirectsql set sqlsrc ='For users',sqlsrccnd =3 where sqlsrc ='Application';
+update axdirectsql set sqlsrc ='For users',sqlsrccnd =3 where sqlsrc ='Application'
 >>
