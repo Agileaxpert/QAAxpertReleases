@@ -10041,7 +10041,7 @@ public class TStructData
                     foreach (var lst in list)
                     {
                         string strFld = lst.Split('{')[1].Split('}')[0];
-                        sqlParamsXML += util.CheckSpecialChars(xmlDoc.SelectSingleNode("fldXML/" + strFld + "").OuterXml);
+                        sqlParamsXML += xmlDoc.SelectSingleNode("fldXML/" + strFld + "").OuterXml;
                         parentFldVals += strFld + ":" + xmlDoc.SelectSingleNode("fldXML/" + strFld + "").InnerXml + "~";
                         parentFldNames.Append(strFld + "~");
                         int fldidxs = tstStrObj.GetFieldIndex(strFld);
@@ -10094,7 +10094,7 @@ public class TStructData
                             {
                                 int fldidxs = tstStrObj.GetFieldIndex(parmsVal[0]);
                                 TStructDef.FieldStruct flds = (TStructDef.FieldStruct)tstStrObj.flds[fldidxs];
-                                sqlParamsXML += "<" + parmsVal[0] + " rowno=\"001\">" + util.CheckSpecialChars(parmsVal[1]) + "</" + parmsVal[0] + ">";
+                                sqlParamsXML += "<" + parmsVal[0] + " rowno=\"001\">" + parmsVal[1] + "</" + parmsVal[0] + ">";
                                 parentFldVals += parms + "~";
                                 parentFldNames.Append(parmsVal[0] + "~");
                                 if (flds.datatype == "Character" || flds.datatype == "Text")
@@ -10124,7 +10124,7 @@ public class TStructData
                         isDcGrid = IsDcGrid(flds.fldframeno.ToString(), tstStrObj);
                         if (isDcGrid == true && int.Parse(parms.Attributes["rowno"].Value) == activeRow)
                         {
-                            sqlParamsXML += util.CheckSpecialChars(parms.OuterXml);
+                            sqlParamsXML += parms.OuterXml;
                             parentFldVals += parms.Name + ":" + parms.InnerXml + "~";
                             parentFldNames.Append(parms.Name + "~");
                             if (flds.datatype == "Character" || flds.datatype == "Text")
@@ -10136,7 +10136,7 @@ public class TStructData
                         }
                         else if (isDcGrid == false)
                         {
-                            sqlParamsXML += util.CheckSpecialChars(parms.OuterXml);
+                            sqlParamsXML += parms.OuterXml;
                             parentFldVals += parms.Name + ":" + parms.InnerXml + "~";
                             parentFldNames.Append(parms.Name + "~");
                             if (flds.datatype == "Character" || flds.datatype == "Text")
@@ -10158,7 +10158,7 @@ public class TStructData
                 {
                     if (Regex.Match(sqlQuery, String.Format(@":\b{0}\b", parms.Name.ToString()), RegexOptions.IgnoreCase).Success && parms.Name != "appvartypes" && !Regex.Match(sqlParamsXML, System.String.Format(@"<\b{0}\b", parms.Name.ToString()), RegexOptions.IgnoreCase).Success)
                     {
-                        sqlParamsXML += util.CheckSpecialChars(parms.OuterXml);
+                        sqlParamsXML += parms.OuterXml;
                         parentFldVals += parms.Name + ":" + parms.InnerXml + "~";
                         parentFldNames.Append(parms.Name + "~");
                         if (blgAppVar.Length >= gblIcnt)
@@ -10175,7 +10175,7 @@ public class TStructData
                 {
                     if (Regex.Match(sqlQuery, String.Format(@":\b{0}\b", parms.Name.ToString()), RegexOptions.IgnoreCase).Success)
                     {
-                        sqlParamsXML += util.CheckSpecialChars(parms.OuterXml);
+                        sqlParamsXML += parms.OuterXml;
                         parentFldVals += parms.Name + ":" + parms.InnerXml + "~";
                         parentFldNames.Append(parms.Name + "~");
                         appVarTypes += "c";
@@ -10263,7 +10263,7 @@ public class TStructData
                             if (exists.Count > 0)
                             {
                                 string[] parmsVal = exists[0].Split(':');
-                                sqlParamsXML.Append("<" + parmsVal[0] + " rowno=\"001\">" + util.CheckSpecialChars(parmsVal[1]) + "</" + parmsVal[0] + ">");
+                                sqlParamsXML.Append("<" + parmsVal[0] + " rowno=\"001\">" + parmsVal[1] + "</" + parmsVal[0] + ">");
                                 parentFldVals.Append(exists[0] + "~");
                                 continue;
                             }
@@ -10283,16 +10283,14 @@ public class TStructData
                                 XmlNode selectedNode = xmlDoc.SelectSingleNode(xPathQuery);
                                 if (selectedNode != null)
                                 {
-                                    string _thisfVal = util.CheckSpecialChars(selectedNode.OuterXml);
-                                    sqlParamsXML.Append(_thisfVal);
+                                    sqlParamsXML.Append(selectedNode.OuterXml);
                                     parentFldVals.Append(thisFldp + ":" + selectedNode.InnerXml + "~");
                                 }
                                 else
                                 {
                                     try
                                     {
-                                        string _thisfVal = util.CheckSpecialChars(xmlDoc.SelectSingleNode("fldXML/" + thisFldp + "").OuterXml);
-                                        sqlParamsXML.Append(_thisfVal);
+                                        sqlParamsXML.Append(xmlDoc.SelectSingleNode("fldXML/" + thisFldp + "").OuterXml);
                                         parentFldVals.Append(thisFldp + ":" + xmlDoc.SelectSingleNode("fldXML/" + thisFldp + "").InnerXml + "~");
                                     }
                                     catch (Exception ex) { }
@@ -10302,8 +10300,7 @@ public class TStructData
                             {
                                 try
                                 {
-                                    string _thisfVal = util.CheckSpecialChars(xmlDoc.SelectSingleNode("fldXML/" + thisFldp + "").OuterXml);
-                                    sqlParamsXML.Append(_thisfVal);
+                                    sqlParamsXML.Append(xmlDoc.SelectSingleNode("fldXML/" + thisFldp + "").OuterXml);
                                     parentFldVals.Append(thisFldp + ":" + xmlDoc.SelectSingleNode("fldXML/" + thisFldp + "").InnerXml + "~");
                                 }
                                 catch (Exception ex) { }
