@@ -36,7 +36,7 @@
 
     <script src="../Js/alerts.min.js?v=33" type="text/javascript"></script>
 
-    <script type="text/javascript" src="../Js/login.min.js?v=115"></script>
+    <script type="text/javascript" src="../Js/login.min.js?v=116"></script>
     <script src="../Js/ForgotPassword.min.js?v=16" type="text/javascript"></script>
     <script src="../Js/common.min.js?v=165" type="text/javascript"></script>
 

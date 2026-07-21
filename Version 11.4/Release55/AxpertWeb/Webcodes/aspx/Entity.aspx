@@ -14,9 +14,9 @@
     <link href="../css/datatables.min.css" rel="stylesheet" />
     <link rel="stylesheet" href="../css/Entity.min.css?v=13" />
     <script type="text/javascript">
-        var entityPageLoadData = `<%= HttpUtility.JavaScriptStringEncode(PageLoadData) %>`;
+        var entityPageLoadData = `<%= HttpUtility.JavaScriptStringEncode(PageLoadData).Replace("`", @"\`") %>`;
         var entityPageVarsData = `<%= HttpUtility.JavaScriptStringEncode(PageVarsData) %>`;
-</script>
+    </script>
 
 </head>
 

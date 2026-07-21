@@ -336,7 +336,16 @@ public partial class Tstruct : System.Web.UI.Page
                 util.TempAttaServerFiles();
                 util.DeleteKeyOnRefreshSave();
                 if (Session["project"] != null)
+                {
+                    string _isDupTab = string.Empty;
+                    if (Request.QueryString["isDupTab"] != null)
+                        _isDupTab = Request.QueryString["isDupTab"].ToString();
+                    if (_isDupTab != "" && _isDupTab.StartsWith("true-"))
+                        HttpContext.Current.Session["isDupTab"] = _isDupTab;
+                    else
+                        HttpContext.Current.Session["isDupTab"] = "false";
                     hdnTstSInfo.Value = Session["project"].ToString() + "~" + Session["user"].ToString() + "~" + _thistrId + "~" + Session["nsessionid"].ToString() + "~" + Session["AxRole"].ToString() + "~" + Session["AxTrace"].ToString();
+                }
                 ScriptManager.RegisterStartupScript(this, this.GetType(), "dummyload", "tstDummyLoad('" + _thistrId + "');", true);
                 return;
             }

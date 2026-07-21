@@ -488,10 +488,11 @@ $j(document).ready(function () {
     });
 
     $('#axSelectProj').on('change', function (e) {
-
-        GetProjLang();
-    }
-    )
+        if (sessionStorage.getItem("CaptchaLoaded") === "true")
+            sessionStorage.removeItem("CaptchaLoaded");
+        else
+            GetProjLang();
+    });
 
     $('#axSelectProj').css("background-color", "#e8f0fe");
 

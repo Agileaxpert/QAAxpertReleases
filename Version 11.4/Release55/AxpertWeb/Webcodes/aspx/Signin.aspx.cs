@@ -2239,7 +2239,7 @@ public partial class Signin : System.Web.UI.Page
     public static string GetCurrLang(string name)
     {
         Util.Util utilObj = new Util.Util();
-        utilObj.GetAxIniFileKeys(name);
+        utilObj.GetAxIniFileKeys(name, "true");
         string AxStaySignIn = utilObj.GetConfigAttrValue(name, "AxStaySignIn");
         //return utilObj.GetConfigLangInfo(name);
         string uLang = utilObj.GetConfigLangInfo(name);

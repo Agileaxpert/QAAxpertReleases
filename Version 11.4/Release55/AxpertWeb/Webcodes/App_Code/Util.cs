@@ -8458,7 +8458,7 @@ namespace Util
             return jsoncontents;
         }
 
-        public void GetAxIniFileKeys(string strProj)
+        public void GetAxIniFileKeys(string strProj, string iniRead = "")
         {
             string jsoncontents = string.Empty;
             if (strProj != string.Empty)
@@ -8486,7 +8486,7 @@ namespace Util
                             fdwObj.HashSetKeyWithSchema(Constants.AX_COMMON_APPSETTING_KEY, Constants.CONFIGAPP_JSON_KEY, readconfigFile, strProj);
                         }
 
-                        string readIniFile = ReadIniFile(strProj, "ini");
+                        string readIniFile = ReadIniFile(strProj, "ini", iniRead);
                         //logobj.CreateLog("start after file in read - util.cs- ini:" + readIniFile + " axapps:" + readaxappsFile + " config:" + readconfigFile, HttpContext.Current.Session.SessionID, "GetAxARMConnection", "", "true");
                         if (readIniFile != string.Empty)
                         {
@@ -8600,14 +8600,14 @@ namespace Util
             }
         }
 
-        public string ReadIniFile(string strProj, string fileType)
+        public string ReadIniFile(string strProj, string fileType, string iniRead = "")
         {
             string ReadIniFileValue = string.Empty;
             try
             {
                 if (fileType == "ini")
                 {
-                    if (HttpContext.Current.Session["ReadIniFile-" + strProj] == null)
+                    if (iniRead == "true" || HttpContext.Current.Session["ReadIniFile-" + strProj] == null)
                     {
                         FileInfo fi = new FileInfo(ScriptsPath + "\\AppSettings.ini");
                         if (fi.Exists)
