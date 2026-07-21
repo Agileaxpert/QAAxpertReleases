@@ -152,7 +152,7 @@ public partial class Signin : System.Web.UI.Page
             Session.Remove("CaptchaLength");
             Session.Remove("CaptchaStyle");
         }
-        else
+        else if (!IsPostBack || Session["captchaenabledFlag"] == null || Session["captchaenabledFlag"].ToString() == "false")
         {
             Session["captchaenabledFlag"] = "false";
             pnlCaptcha.Visible = false;
