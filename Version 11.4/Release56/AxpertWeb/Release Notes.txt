@@ -71,3 +71,10 @@ TKT-0705 -QA- Iview dev studio window-Submit button is not working in SQL Query 
 
 TSK-0551 -QA- Developer Studio: Auto-Expand Navigation and Auto-Select Form During Edit
 
+Structures:
+-----------
+TSK-0513 -- Enhancement: Data posting API  (used in custom pages) - Introduce Progress Update.
+Posting from custom pages is now done by pushing a JSON to Queue. The JSON may contain one or more transactions related to one or more tstructs.
+
+TKT-0912 -RFPL- Tstruct Grid View in Mobile and Tab Browser - Tstruct with Grid should load in Desktop Mode if i will open in the browser  on opening web app in mobile or tab
+

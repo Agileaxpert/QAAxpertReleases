@@ -10314,7 +10314,7 @@ function getNextDtRecords(pageNo) {
                                         scrollDataTableToTop();
                                     });
                                 }, 0);
-                            }, 50);
+                            }, 200);
                             pageScrollToEnd = false;
 
                             $("#lnkShowAll, #requestNextRecords").remove();
