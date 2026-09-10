@@ -5069,6 +5069,11 @@ function ProcessFormControl(fld, actionStr, fldValue) {
                     else
                         EnableDisableBtns(destfld, true);
                 } else {
+                    try {
+                        let _fName = GetFieldsName(destfld.attr("id"));
+                        let _fldIndex = $j.inArray(_fName, FNames);
+                        FFieldReadOnly[_fldIndex] = "False";
+                    } catch (ex) { }
 
                     if (IsPickListField(destfld.attr("id")) == true) {
                         var pickFld = document.getElementById("img~" + destfld.attr("id"));
@@ -5112,6 +5117,11 @@ function ProcessFormControl(fld, actionStr, fldValue) {
                     else
                         EnableDisableBtns(destfld, false);
                 } else {
+                    try {
+                        let _fName = GetFieldsName(destfld.attr("id"));
+                        let _fldIndex = $j.inArray(_fName, FNames);
+                        FFieldReadOnly[_fldIndex] = "True";
+                    } catch (ex) { }
                     if (IsPickListField(destfld.attr("id")) == true) {
                         var pickFld = document.getElementById("img~" + destfld.attr("id"));
                         pickFld.disabled = true;
@@ -5195,6 +5205,11 @@ function ProcessFormControl(fld, actionStr, fldValue) {
                     else
                         EnableDisableBtns(destfld, true);
                 } else {
+                    try {
+                        let _fName = GetFieldsName(destfld.attr("id"));
+                        let _fldIndex = $j.inArray(_fName, FNames);
+                        FFieldReadOnly[_fldIndex] = "False";
+                    } catch (ex) { }
                     if (IsPickListField(destfld.attr("id")) == true) {
                         var pickFld = document.getElementById("img~" + destfld.attr("id"));
                         pickFld.disabled = false;
@@ -5215,6 +5230,11 @@ function ProcessFormControl(fld, actionStr, fldValue) {
                     else
                         EnableDisableBtns(destfld, false);
                 } else {
+                    try {
+                        let _fName = GetFieldsName(destfld.attr("id"));
+                        let _fldIndex = $j.inArray(_fName, FNames);
+                        FFieldReadOnly[_fldIndex] = "True";
+                    } catch (ex) { }
                     if (IsPickListField(destfld.attr("id")) == true) {
                         var pickFld = document.getElementById("img~" + destfld.attr("id"));
                         pickFld.disabled = true;

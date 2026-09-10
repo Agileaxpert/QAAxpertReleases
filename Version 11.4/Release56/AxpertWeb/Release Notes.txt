@@ -27,7 +27,9 @@ Developer option:
 
 TKT-0954 -RFPL- Mobile App Getting an Error on Submit of FG Weight tstruct for RFPL site in rfpluat schema
 
-TSK-0569 -ERPGOLDDEV- Getting error while submitting transaction in Payment and Receipt
+TSK-0569 -ERPGOLDDEV/BAFCO- Getting error while submitting transaction in Payment and Receipt
+
+TKT-1031 -BAFCO- Selected data is not storing in DB , instead it is saving the default expression value. 
 
 TKT-0681 -BMRCL- We are experiencing issue with a popup tstruct which is opened via an another popup iview.  While coming out of the popup tstruct after submitting, the session is getting expired.
 
@@ -36,6 +38,16 @@ TKT-0748 -BMRCL- In the iView, when the "All Records" option is selected and the
 TKT-0879 -Delmo- Dev options automatically disable error. When we enter the global parameter after the login dev option automatically will remove. But if we close the parameter screen dev option remain.
 
 TKT-0910 -MPCO- Application session expires when accessing Configuration Studio, Import and export 
+
+TSK-0573 -PayAzzure- Axpert Experts – Fill Grid SQL Not Persisting in Database Metadata
+
+TSK-0616 -PayAzzure- Dropdown List Values Not Captured Completely in axpflds(column listvalues ) Metadata
+
+TSK-0615 -PayAzzure- axHiddenColumn and axpdynamiccaption Not Working in Pay Register Report
+
+TKT-1047 -Kauvery- Invalid Selection in Grid Drop down query on Save data
+
+TKT-1048 -Kauvery- On Save and Print, PDF data is viewed but in Email Empty PDF is sending
 
 TSK-0216 -QA- API: AxRedisDelete API has been introduced to delete keys from Redis.
 Note: The detailed readme note has been provided along with sample JSON, examples and postman collections. 
