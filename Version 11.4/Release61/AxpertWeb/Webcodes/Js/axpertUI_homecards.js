@@ -153,7 +153,7 @@
                                 let isListView = true;
                                 childObj.name = childObj.name.replace(/;bkslh/g, "\\");
                                 try {
-                                    if (typeof isAxOldModel != "undefined" && isAxOldModel == "true") {
+                                    if (typeof axOldModelFlag != "undefined" && axOldModelFlag == "true") {
                                         if (childObj.target && childObj.target.indexOf("tstruct.aspx") > -1) {
                                             if (listviewAsDefault.length > 0) {
                                                 if (openListviewConf = listviewAsDefault.filter(list => list.structname == findGetParameter("transid", childObj.target))?.[0]) {
@@ -161,7 +161,7 @@
                                                 }
 
                                                 if (openListviewConf?.propsval == "true") {
-                                                    childObj.target = `${childObj.target.replace("tstruct.aspx?transid=", "iview.aspx?ivname=")}&tstcaption=${(childObj.name || findGetParameter("transid", childObj.target))}`;
+                                                    childObj.target = `${childObj.target.replace("tstruct.aspx?transid=", "iview.aspx?ivname=")}&tstcaption=${findGetParameter("transid", childObj.target)}`;
 
                                                     isListView = false;
                                                 } else {
@@ -180,35 +180,35 @@
                                                 } else if (openListviewConf = listviewAsDefault.filter(list => list.structname == "ALL Forms")?.[0]) {
                                                 }
 
-                                                if (openListviewConf?.propsval == "false") {
-                                                    childObj.target += `&openerIV=${findGetParameter("transid", childObj.target)}&isIV=false`;
-                                                    isListView = false;
-                                                } else {
-                                                    //childObj.target += `&openerIV=${findGetParameter("transid", childObj.target)}&isIV=false`;
-                                                    if (childObj.target.indexOf("act=load") > -1)
-                                                        childObj.target = childObj.target.replace("tstruct.aspx?transid=", "EntityForm.aspx?tstid=") + "&ename=" + childObj.name;
-                                                    else
-                                                        childObj.target = childObj.target.replace("tstruct.aspx?transid=", "Entity.aspx?tstid=") + "&ename=" + childObj.name;
-
-                                                    isListView = false;
-                                                }
+                                            if (openListviewConf?.propsval == "false") {
+                                                childObj.target += `&openerIV=${findGetParameter("transid", childObj.target)}&isIV=false`;
+                                                isListView = false;
                                             } else {
                                                 //childObj.target += `&openerIV=${findGetParameter("transid", childObj.target)}&isIV=false`;
-                                                childObj.target += `&openerIV=${findGetParameter("transid", childObj.target)}&isIV=false`;
                                                 if (childObj.target.indexOf("act=load") > -1)
-                                                    childObj.target = childObj.target.replace("tstruct.aspx?transid=", "EntityForm.aspx?tstid=") + "&ename=" + childObj.name;
+                                                    childObj.target = childObj.target.replace("tstruct.aspx?transid=", "EntityForm.aspx?tstid=");
                                                 else
-                                                    childObj.target = childObj.target.replace("tstruct.aspx?transid=", "Entity.aspx?tstid=") + "&ename=" + childObj.name;
+                                                    childObj.target = childObj.target.replace("tstruct.aspx?transid=", "Entity.aspx?tstid=");
+
                                                 isListView = false;
                                             }
+                                        } else {
+                                            //childObj.target += `&openerIV=${findGetParameter("transid", childObj.target)}&isIV=false`;
+                                            childObj.target += `&openerIV=${findGetParameter("transid", childObj.target)}&isIV=false`;
+                                            if (childObj.target.indexOf("act=load") > -1)
+                                                childObj.target = childObj.target.replace("tstruct.aspx?transid=", "EntityForm.aspx?tstid=");
+                                            else
+                                                childObj.target = childObj.target.replace("tstruct.aspx?transid=", "Entity.aspx?tstid=");
+                                            isListView = false;
                                         }
                                     }
+}
                                 } catch (ex) { }
 
                                 if (iconClass === "") {
                                     if (!childObj.icon) {
                                         iconClass = "material-icons";
-                                        if (typeof isAxOldModel != "undefined" && isAxOldModel == "true") {
+                                        if (typeof axOldModelFlag != "undefined" && axOldModelFlag == "true") {
                                             if (childObj.target != undefined && childObj.target != "") {
                                                 if (childObj.target.indexOf("tstruct.aspx") > -1) {
                                                     iconText = "assignment";
@@ -443,87 +443,97 @@
                     </div>
                     `,
                     kpi: `
-                    <div class=" widgetWrapper kpiWrapper " card-index="0">
-                        <div class="card rounded-1 shadow-sm h-100 cardbg-3">
-                            <!--begin::Card content wrapper-->
-                            <div class="card-content-wrapper d-flex align-items-center">
-                                <div class="card-title d-flex ">
-
+                    <div class="col-xs-12 col-sm-12 col-md-3 col-lg-3 mt-3 widgetWrapper kpiWrapper">
+                        <div class="card rounded-1 shadow-sm h-100">
+                            <!--begin::Card header-->
+                            <div class="card-header border-0">
+                                <!--begin::Card title-->
+                                <div class="card-title">
                                     <div class="d-none mainIcon w-100--- me-2">
-                                        <img alt="Icon" src="" class="mh-35px mw-35px">
+                                        <img alt="Icon" src="" class="mh-35px mw-35px" />
                                     </div>
-
                                     <div class="symbol symbol-35px me-2 mainIcon">
-                                        <div class="symbol-label cardbg-inverse-3">
-                                            <div class="Invoice-icon" style="display: flex;">
-                                                <span class="material-icons material-icons-style material-icons-2"><iconContent></iconContent></span>
-                                            </div>
+                                        <div class="symbol-label">
+                                            <span class="material-icons material-icons-style">
+                                                <iconContent></iconContent>
+                                            </span>
                                         </div>
                                     </div>
-
-                                    <div class="Kpi-content">
-                                        <span class="Kpi-caption mainHeading"><headerContent></headerContent></span>
-                                        <bodyContent>No Data Found</bodyContent></span>
-
-                                    </div>
+                                    <h4 class="fw-bolder mainHeading">
+                                        <headerContent></headerContent>
+                                    </h4>
                                 </div>
-
-
-                                <!-- Card Body Content -->
-
-                            </div>
-
-                            <!-- Card Toolbar -->
-                            <div class="card-toolbar d-flex justify-content-end d-none">
-                                <a href="#" class="btn btn-sm btn-flex btn-light-primary cardbg-3">
-                                    <statuscontent></statuscontent>
-                                </a>
-                            </div>
-
-                            <!-- Card Footer -->
-                            <div class="card-footer border-0 d-none">
-                                <div class="fs-7 fw-normal text-muted">
-                                    <footercontent></footercontent>
+                                <!--end::Card title-->
+                                <!--begin::Card toolbar-->
+                                <div class="card-toolbar d-none">
+                                    <a href="javascript:void(0);" class="btn btn-sm btn-flex btn-light-primary">
+                                        <statusContent></statusContent>
+                                    </a>
                                 </div>
+                                <!--end::Card toolbar-->
                             </div>
-                        </div>
-                    </div>
-
-                    `,
-                    chart: `
-                    <div class="accordion col-lg-12 col-md-12 col-sm-12 col-xs-12" id="chartAccordion_<orderno>" card-orderno="<orderno>">
-                        <div class="accordion-item">
-                            <div class="card rounded-1 h-100 shadow-sm">
-                                <button class="card-header border-0" id="headingChart_<orderno>" type="button" data-bs-toggle="collapse" data-bs-target="#collapseChart_<orderno>" aria-expanded="false" aria-controls="collapseChart_<orderno>">
-                                    <div class="d-flex align-items-center justify-content-between w-100">
-                                        <div class="d-flex align-items-center">
-                                            <div class="symbol symbol-35px me-2 mainIcon">
-                                                <div class="symbol-label">
-                                                    <span class="material-icons material-icons-style">
-                                                        <iconContent></iconContent>
-                                                    </span>
-                                                </div>
-                                            </div>
-                                            <h4 class="fw-bolder mainHeading mb-0">
-                                                <headerContent></headerContent>
-                                            </h4>
-                                        </div>
-                                        <span class="accordion-arrow material-icons rotate-arrow">
-                                            expand_more
-                                        </span>
-                                    </div>
-                                </button>
-                                <div id="collapseChart_<orderno>" class="collapse" aria-labelledby="headingChart_<orderno>" data-bs-parent="#chartAccordion_<orderno>">
-                                    <div class="card-body min-h-300px heightControl pt-0">
+                            <!--end::Card header-->
+                            <!--begin::Card body-->
+                            <div class="card-body heightControl pt-0">
+                                <div class="fw-bolder fs-2">
+                                    <div class="">
                                         <bodyContent>No Data Found</bodyContent>
                                     </div>
                                 </div>
                             </div>
+                            <!--end::Card body-->
+                            <div class="card-footer border-0 d-none">
+                                <div class="fs-7 fw-normal text-muted">
+                                    <footerContent></footerContent>
+                                </div>
+                            </div>
                         </div>
-                    </div>`,
-
+                    </div>
+                    `,
+                    chart: `
+                    <div class="col-xs-12 col-sm-12 col-md-4 col-lg-4 mt-3 widgetWrapper chartWrapper">
+                        <div class="card rounded-1 h-100 shadow-sm">
+                            <div class="card-header border-0---">
+                                <div class="card-title">
+                                    <div class="d-none mainIcon w-100--- me-2">
+                                        <img alt="Icon" src="" class="mh-35px mw-35px" />
+                                    </div>
+                                    <div class="symbol symbol-35px me-2 mainIcon">
+                                        <div class="symbol-label">
+                                            <span class="material-icons material-icons-style">
+                                                <iconContent></iconContent>
+                                            </span>
+                                        </div>
+                                    </div>
+                                    <h4 class="fw-bolder mainHeading">
+                                        <headerContent></headerContent>
+                                    </h4>
+                                </div>
+                                <div class="card-toolbar">
+                                    <a href="javascript:void(0);" class="d-none btn btn-sm btn-icon btn-icon-primary btn-active-light-primary me-n3" data-kt-menu-trigger="click" data-kt-menu-placement="bottom-end" data-kt-menu-flip="top-end">
+                                        <span class="material-icons material-icons-style">
+                                            more_vert
+                                        </span>
+                                    </a>
+                                    <div class="menu menu-sub menu-sub-dropdown menu-column menu-rounded menu-gray-600 menu-state-bg-light-primary fw-bolder w-200px rounded-1" data-kt-menu="true" style="">
+                                        <div class="menu-item px-3">
+                                            <div class="menu-content fs-6 text-dark fw-boldest px-3 py-4">Quick Actions</div>
+                                        </div>
+                                        <div class="separator mb-3 opacity-75"></div>
+                                        <div class="menu-item px-3">
+                                            <a href="javascript:void(0);" class="menu-link px-3">New Ticket</a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="card-body min-h-300px heightControl pt-0---">
+                                <bodyContent>No Data Found</bodyContent>
+                            </div>
+                        </div>
+                    </div>
+                    `,
                     list: `
-                    <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 mt-3 widgetWrapper listWrapper">
+                    <div class="col-xs-12 col-sm-12 col-md-6 col-lg-6 mt-3 widgetWrapper listWrapper">
                         <div class="card rounded-1 h-100 shadow-sm">
                             <div class="card-header border-0---">
                                 <div class="card-title">
@@ -549,7 +559,7 @@
                     </div>
                     `,
                     menu: `
-                    <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 mt-3 widgetWrapper menuWrapper">
+                    <div class="col-xs-12 col-sm-12 col-md-6 col-lg-6 mt-3 widgetWrapper menuWrapper">
                         <div class="card rounded-1 h-100 shadow-sm">
                             <div class="card-header border-0---">
                                 <div class="card-title">
@@ -579,13 +589,13 @@
                         </div>
                     </div>
                     `,
-                    "modern menu":`
+                    "modern menu": `
                     <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12 widgetWrapper modernMenuWrapper">
                         <modernMenuContent></modernMenuContent>
                     </div>
                     `,
-                    modernMenuContent:`
-                    <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12 mt-3">
+                    modernMenuContent: `
+                    <div class="col-lg-2 col-md-2 col-sm-12 col-xs-12 mt-3">
                         <div class="card rounded-1 h-100 shadow-sm">
                             <div class="card-body cursor-pointer">
                                 <div class="text text-center header---">
@@ -599,7 +609,7 @@
                     </div>
                     `,
                     "image card": `
-                    <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 mt-3 widgetWrapper imageWrapper">
+                    <div class="col-xs-12 col-sm-12 col-md-4 col-lg-4 mt-3 widgetWrapper imageWrapper">
                         <div class="card rounded-1 h-100 shadow-sm">
                             <div class="h-400px heightControl">
                                 <imageContent></imageContent>
@@ -645,7 +655,7 @@
                     </div>
                     `,
                     calendar: `
-                    <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 mt-3 widgetWrapper calendarWrapper">
+                    <div class="col-xs-12 col-sm-12 col-md-6 col-lg-6 mt-3 widgetWrapper calendarWrapper">
                         <div class="card rounded-1 h-100 shadow-sm">
                             <div class="card-header border-0---">
                                 <div class="card-title">
@@ -689,7 +699,7 @@
                     </div>
                     `,
                     "html": `
-                    <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 mt-3 widgetWrapper htmlDomWrapper">
+                    <div class="col-xs-12 col-sm-12 col-md-6 col-lg-6 mt-3 widgetWrapper htmlDomWrapper">
                         <div class="card rounded-1 h-100 shadow-sm">
                             <div class="d-none card-header border-0---">
                                 <div class="card-title">
@@ -715,7 +725,7 @@
                     </div>
                     `,
                     "options card": `
-                    <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 mt-3 widgetWrapper optionCardWrapper">
+                    <div class="col-xs-12 col-sm-12 col-md-3 col-lg-3 mt-3 widgetWrapper optionCardWrapper">
                         <div class="card rounded-1 shadow-sm h-100">
                             <!--begin::Card header-->
                             <div class="card-header border-0">
@@ -1001,20 +1011,24 @@
                 let _this = this;
                 let result = "";
                 $.ajax({
-                    url: 'mainnew.aspx/refreshCards',
+                    url: 'mainnew.aspx/GetCardsWithDataWS',
                     type: 'POST',
                     cache: false,
                     async: false,
                     data: JSON.stringify({
-                        json: (axp_cardsid || _this.options.cards.map(card => card["axp_cardsid"]).join(",") || ""),
-                        isJSON: false,
-                        singleLoad
+                        isHomePage: true,
+                        refreshData : false
                     }),
                     dataType: 'json',
                     contentType: "application/json",
                     success: function (data) {
                         if (data && data.d) {
                             try {
+                                if (data.d !== "" && data.d.indexOf("SESSION_TIMEOUT") > -1) {
+                                    window.location.href = "../aspx/sess.aspx";
+                                    return;
+                                }
+
                                 result = (JSON.parse(data.d !== "" ? data.d : "[]",
                                     function (k, v) {
                                         try {
@@ -1190,8 +1204,13 @@
 
                 _this.options.cards.forEach((card, index) => {
                     let cardType = card["cardtype"];
+
+                    if (cardType?.toLowerCase() == "custom plugin") {
+                        cardType = "html";
+                        card["cardtype"] = "html";
+                    }
                     if (cardType) {
-                        if ([ "kpi"].indexOf(cardType) == -1) {
+                        if (["chart", "kpi", "list", "menu", "modern menu", "image card", "calendar", "html", "options card"].indexOf(cardType) == -1) {
                             return;
                         }
 
@@ -1227,6 +1246,7 @@
                         let cardElement = $(_this.options.html[cardType]).attr("card-index", index).data("card-index", index);
 
                         $(_this.options.staging.cardsFrame.cardsDiv).append(cardElement);
+
                         switch (cardType) {
                             case "kpi":
                                 _this._addCardHeight(cardElement, card, "");
@@ -1256,43 +1276,9 @@
                                 _this._addCardBackground(cardElement, card);
                                 break;
                             case "chart":
-                                let orderno = card["axp_cardsid"];
-                                if (orderno) {
-                                    let accordionId = `chartAccordion_${orderno}`;
-                                    let headingId = `headingChart_${orderno}`;
-                                    let collapseId = `collapseChart_${orderno}`;
-
-                                    let $accordion = cardElement.closest(".accordion");
-                                    if ($accordion.length > 0) {
-                                        $accordion.attr("id", accordionId).attr("card-orderno", orderno);
-                                    } else {
-                                        console.error(".accordion element not found.");
-                                    }
-
-                                    let $cardHeader = cardElement.find(".card-header");
-                                    if ($cardHeader.length > 0) {
-                                        $cardHeader
-                                            .attr("id", headingId)
-                                            .attr("data-bs-toggle", "collapse")
-                                            .attr("data-bs-target", `#${collapseId}`)
-                                            .attr("aria-controls", collapseId);
-                                    } else {
-                                        console.error(".card-header element not found.");
-                                    }
-
-                                    let $collapse = cardElement.find(".collapse");
-                                    if ($collapse.length > 0) {
-                                        $collapse
-                                            .attr("id", collapseId)
-                                            .attr("aria-labelledby", headingId)
-                                            .attr("data-bs-parent", `#${accordionId}`);
-                                    } else {
-                                        console.error(".collapse element not found.");
-                                    }
-                                }
-
                                 _this._addCardHeight(cardElement, card, "");
                                 _this._addCardWidth(cardElement, card, "4");
+
                                 _this._addCardIcon(cardElement, card);
                                 _this._addCardHeader(cardElement, card);
 
@@ -1300,21 +1286,13 @@
                                     setTimeout(() => {
                                         let body = cardElement.find("bodyContent").parent();
                                         try {
-                                            AxPlotHighChartWidgets(
-                                                card["charttype"],
-                                                body,
-                                                cardFormattedData.rows,
-                                                cardFormattedData.metaData,
-                                                (_this._getChartJsonProps(card, "attributes") || {}),
-                                                (_this._getChartJsonProps(card, "attributes.enableSlick") || false)
-                                            );
+                                            AxPlotHighChartWidgets(card["charttype"], body, cardFormattedData.rows, cardFormattedData.metaData, (_this._getChartJsonProps(card, "attributes") || {}), (_this._getChartJsonProps(card, "attributes.enableSlick") || false));
                                             setTimeout(() => {
                                                 body.find(".highcharts-button.highcharts-contextbutton, .highcharts-button.highcharts-contextbutton *").hide();
                                             }, 0);
                                         } catch (ex) { }
                                     }, 0);
                                 }
-
                                 break;
                             case "list":
                                 _this._addCardHeight(cardElement, card, "");
@@ -1401,76 +1379,72 @@
                 _this._registerPlugins();
             },
             _getCardData(card) {
-                let cardData = card.cardsql.row || card.cardsql["@value"] || "";
+                let _this = this;
+                let cardData = card.carddata || "";
                 if (typeof cardData.length == "undefined") {
                     cardData = [cardData];
+                }
+                else {
+                    try {
+                        cardData = JSON.parse(cardData)
+                    }
+                    catch { };
+                }
+
+                if (card["cardtype"] == "html") {
+                    card["html_editor_card"] = Handlebars.compile(card["html_editor_card"])(card);
+
+                    if (!_this.cardsData) {
+                        _this.cardsData = {};
+                    }
+
+                    _this.cardsData[card.cardname] = cardData;
                 }
 
                 return cardData;
             },
             _addCardIcon(cardElement, card) {
-                let iconDiv = cardElement.find(".symbol .iconContent").closest(".mainIcon");
+                let iconDiv = cardElement.find("iconContent").parents(".mainIcon");
+
                 let imgIconElemParent = iconDiv.prev(".mainIcon");
-            
-                let icon = card["cardicon"] ? (card["cardicon"] !== "*" ? card["cardicon"].toString() : "bar_chart") : "bar_chart";
-            
+
+                let icon = card["cardicon"] ? (card["cardicon"] != "*" ? card["cardicon"].toString() : "") : "";
+
                 if (icon) {
-                    if (icon.toLowerCase().startsWith("http://") || icon.toLowerCase().startsWith("https://")) {
+                    if (icon.toLowerCase().indexOf("http:") == 0 || icon.toLowerCase().indexOf("https:") == 0) {
                         let imgIconElem = imgIconElemParent.find("img");
+
                         imgIconElem.attr("src", icon);
-                        imgIconElemParent.removeClass("d-none");
+                        imgIconElemParent.removeClass("d-none")
                         imgIconElemParent.addClass("iconAdded");
                         iconDiv.addClass("d-none");
                     } else {
-                        cardElement.find(".symbol iconcontent").html(icon).show();
+                        cardElement.find("iconContent").replaceWith(icon);
                         iconDiv.addClass("iconAdded");
-                        imgIconElemParent.addClass("d-none");
+                        imgIconElemParent.addClass("d-none")
                     }
-                } 
-            }
-            
-            
-            ,
+                } else {
+                    iconDiv.addClass("d-none");
+                    imgIconElemParent.addClass("d-none");
+                }
+            },
             _addCardHeader(cardElement, card) {
                 cardElement.find(".mainHeading").attr("title", (card["cardname"] || "")).find("headerContent").replaceWith(card["cardname"] || "");
             },
             _addCardBackground(cardElement, card) {
                 cardElement.find(".card-body a:not(.dropdown a)").addClass("border-bottom");
-            
+
                 if (card["axpfile_imgcard"] && card["cardtype"] == "image card") {
                     cardElement.find("imageContent").replaceWith($(`<img class="w-100 h-100 card-img img-fluid" style="object-fit: cover;" />`).attr("src", `../${thmProj}/ImageCard/${card["axpfile_imgcard"].split(",")[0]}`));
                 }
-            
-                if (card["cardbgclr"] && card["cardtype"] != "kpi") {
+
+                if (card["cardbgclr"]) {
                     cardElement.find(".card, table, a:not(.dropdown a, .menu-sub-dropdown a)").addClass("cardbg-" + card["cardbgclr"]);
 
                     cardElement.find(".widgetWrapper:not(.optionCardWrapper---) .symbol .symbol-label, button").addClass("cardbg-inverse-" + card["cardbgclr"]);
                 }
-                else{
-                    if (card["orderno"]) {
-                        const maxClasses = 6;
-                        const colorIndex = (card["orderno"] - 1) % maxClasses + 1;
-                
-                        // Remove old classes
-                        cardElement.find(".card, table, a:not(.dropdown a, .menu-sub-dropdown a)").removeClass(function(index, className) {
-                            return (className.match(/(^|\s)cardbg-\S+/g) || []).join(' ');
-                        });
-                
-                        cardElement.find(".symbol .symbol-label, button").removeClass(function(index, className) {
-                            return (className.match(/(^|\s)cardbg-inverse-\S+/g) || []).join(' ');
-                        });
-                
-                        // Add new background color classes
-                        cardElement.find(".card, table, a:not(.dropdown a, .menu-sub-dropdown a)").addClass('cardbg-' + colorIndex);
-                        cardElement.find(".symbol .symbol-label, button").addClass('cardbg-inverse-' + colorIndex);
-                    }
-                }
-                
-            }
-            
-            
-            ,           
-             _addCardWidth(cardElement, card, defaultWidth) {
+            },
+            _addCardWidth(cardElement, card, defaultWidth) {
                 let _this = this;
                 if (_this._getSetCardWidth(cardElement, card, defaultWidth)) {
                     if (_this.options.enableMasonry) {
@@ -1608,7 +1582,7 @@
                     data = customizeData(plotName);
                 }
 
-                cardElement.find("bodyContent").replaceWith($(`<span class="Kpi-value">${data}</span>`).attr("title", `${(cardData[0][Object.keys(cardData[0])[0]]) || ""}`) || "");
+                cardElement.find("bodyContent").replaceWith($(`<div class="fs-2qx---">${data}</div>`).attr("title", `${(cardData[0][Object.keys(cardData[0])[0]]) || ""}`) || "");
             },
             _setOptionsCardInfo(cardElement, cardData, card) {
                 let _this = this;
@@ -2363,10 +2337,6 @@
 
                 if (card["html_editor_card"]) {
                     let cardHTML = card["html_editor_card"];
-                    // cardHTML = `
-
-                    // `;
-
 
                     let objCardHTML = $(cardHTML);
 
@@ -2443,7 +2413,7 @@
             _appendHTMLCardData(cardElement, card, shadowDomEle, objCardHTML, cardHTML) {
                 let _this = this;
 
-                if (objCardHTML.data("shadowDom") === false) {
+                if (objCardHTML.data("shadowDom") === false || objCardHTML.data("shadowdom") === false) {
                     $(shadowDomEle).append(cardHTML);
                 } else {
                     var shadowAtt = shadowDomEle.attachShadow({ mode: 'open' });
@@ -2542,7 +2512,6 @@
                 thisFld.css("background", "");
             },
             _getSetCardWidth(elem, card, defaultVal, returnValue = false) {
-                return false;
                 let _this = this;
                 let cardWidth = "";
                 //cardWidth = _this._getChartJsonProps(card, "width").toString();
@@ -2574,8 +2543,7 @@
                                 return (className.match(/(^|\s)col-\S+/g) || []).join(' ');
                             });
 
-                            /*elem.addClass(`col-lg-${cardWidth} col-md-${cardWidth} col-sm-12 col-xs-12`);*/
-                            elem.addClass(`col-lg-12 col-md-12 col-sm-12 col-xs-12`);
+                            elem.addClass(`col-lg-${cardWidth} col-md-${cardWidth} col-sm-12 col-xs-12`);
 
                             if ((heightControl = elem.find(".heightControl")) && heightControl.length > 0 && (setHeight = heightControl.data("height"))) {
                                 heightControl.css({
@@ -2675,50 +2643,10 @@
                 }
             },
             _cardsWidthPostProcessor(cardsStage) {
-
                 let _this = this;
                 if (!_this.options.enableMasonry) {
-                    if ($.axpertUI?.options?.isMobile)
-                        cardsStage.children(":not(.row)").wrapAll(`<div class="row" />`);
-                    else {
-                        cardsStage.children(":not(.row)").wrapAll(`<div class="tns tns-default ">
-                                            <div data-tns="true"
-                                                 data-tns-loop="true"
-                                                 data-tns-swipe-angle="true"
-                                                 data-tns-speed="2000"
-                                                 data-tns-autoplay="true"
-                                                 data-tns-autoplay-timeout="18000"
-                                                 data-tns-controls="true"
-                                                 data-tns-nav="true"
-                                                 data-tns-items="1"
-                                                 data-tns-center="false"
-                                                 data-tns-dots="true"
-                                                 data-tns-prev-button="#kt_team_slider_prev"
-                                                 data-tns-next-button="#kt_team_slider_next"
-                                                 data-tns-responsive="{1200: {items: 8}, 992: {items: 6}, 768: {items: 4}, 380: {items: 2}}">
+                    cardsStage.children(":not(.row)").wrapAll(`<div class="row" />`);
 
-                                            </div>                                            
-                                        </div>`);
-
-                        cardsStage.find(".tns-default").append(`
-                                            <button class="btn btn-icon btn-active-color-primary" id="kt_team_slider_prev">
-                                               <span class="material-icons material-icons-style material-icons-2">
-                                                       chevron_left
-                                                    </span>        
-                                            </button>
-
-                                            <button class="btn btn-icon btn-active-color-primary" id="kt_team_slider_next">
-                                                <span class="material-icons material-icons-style material-icons-2">
-                                                       chevron_right
-                                                    </span>        
-                                            </button>
-
-                                            <a href="#" data-ax-action="dashboardFullview" class="Dashboard-fullview">View all</a>`)
-
-                        KTApp.initTinySliders();
-                    }
-
-                    
                     cardsStage.children().toArray().forEach(row => {
                         const totalChildWidth = $(row).children().toArray().reduce((totalWidth, card) => {
                             return _this._getSetCardWidth($(card), "", "", true) + totalWidth;
@@ -2732,8 +2660,6 @@
                             _this._getSetCardWidth($(lastCard), { "width": `col-${newLastColumnWidth}` });
                         }
                     });
-
-                    
                 }
             },
             _registerPlugins() {
@@ -2752,7 +2678,6 @@
                 });
 
                 $(window).off("resize.cards").on("resize.cards", (e) => {
-                    // debugger;
                     $(".widgetWrapper.chartWrapper .highcharts-container").each((ind, elem) => {
                         try {
                             let chartObj = Highcharts.charts[$(elem).parent(".card-body").data("highchartsChart")];
@@ -2804,6 +2729,7 @@
             }
         }
 
+
         /* Searchbar - Function ================================================================================================
         *  You can manage the search bar
         *
@@ -2851,7 +2777,9 @@
                     contentType: "application/json",
                     success: function (data) {
                         gloSrchPageNo = 0;
-                        if (data.d.indexOf("*♦*") != -1) {
+                        if (data.d != null && data.d.startsWith("error:"))
+                            showAlertDialog("error", data.d.replace(/^error:/, ''));
+                        else if (data.d.indexOf("*♦*") != -1) {
                             var srchData = data.d.split("*♦*");
                             gloSrchLimit = srchData[0];
                             console.log("GlobalSearch RowCount-" + srchData[0]);
@@ -2913,10 +2841,13 @@
 
                         itemText = CheckSpCharsForXml(itemText);
                         searchType = searchType.toLowerCase();
-                        var tsLvLoad = false;
+                        var tsLvLoad = true;
                         var icon = "";
+                        
+                        icon = document.querySelector(`a[title="${itemText}"]`)?.querySelector('.menu-icon')?.querySelector('img')?.outerHTML || document.querySelector(`a[title="${itemText}"]`)?.querySelector('.menu-icon')?.textContent.trim() || "";
+
                         if (searchType == "iview" || searchType == "iviewinteractive") {
-                            icon = "view_list";
+                            icon = icon || "view_list";
                         } else if (searchType == "tstruct") {
                             if (typeof appGlobalVarsObject._CONSTANTS.search.listviewLoadSearch != "undefined" && appGlobalVarsObject._CONSTANTS.search.listviewLoadSearch.length > 0) {
                                 var listviewLoadSearch = appGlobalVarsObject._CONSTANTS.search.listviewLoadSearch;
@@ -2939,57 +2870,50 @@
                                 if (openListviewSearchConf = listviewLoadSearch.filter(list => list.structname == srcDtls[0])?.[0]) {
                                 } else if (openListviewSearchConf = listviewLoadSearch.filter(list => list.structname == "ALL Forms")?.[0]) {
                                 }
-                                if (openListviewSearchConf?.propsval == "true")
-                                    tsLvLoad = true;
+                                if (openListviewSearchConf?.propsval == "false")
+                                    tsLvLoad = false;
                             }
                             if (tsLvLoad)
-                                icon = "format_list_bulleted";
+                                icon = icon || "format_list_bulleted";
                             else
-                                icon = "assignment";
+                                icon = icon || "assignment";
                         } else if (searchType == "page" || searchType == "htmlpages" || searchType == "standardpage") {
-                            icon = "insert_drive_file";
+                            icon = icon || "insert_drive_file";
                         } else if (searchType == "help") {
-                            icon = "live_help";
+                            icon = icon || "live_help";
                         }
                         else {
                             icon = "search";
                         }
-                        var loadurl = "";
+                        var loadurl = searchLoadIframe(searchType, data.link.split('♦')[1], true);
                         if (tsLvLoad) {
-                            if (typeof isAxOldModel != "undefined" && isAxOldModel == "true") {
-                                searchType = "listview";
-                                var qstr = "";
-                                if (srcDtls[1] != "null" && srcDtls[1] != "")
-                                    qstr = GetGloSrchQueryString(srcDtls[1]);
-                                loadurl = `iview.aspx?ivname=${srcDtls[0]}&tstcaption=${(itemText || srcDtls[0]) + qstr}`;
-                            } else {
-                                loadurl = searchLoadIframe(searchType, data.link.split('♦')[1], true);
-
-                                if (loadurl.indexOf("act=load") > -1) {
-                                    loadurl = loadurl.replace("tstruct.aspx?transid=", "EntityForm.aspx?tstid=") + "&ename=" + data.label;
-                                    icon = "assignment";
-                                }
-                                else {
-                                    loadurl = loadurl.replace("tstruct.aspx?transid=", "Entity.aspx?tstid=") + "&ename=" + data.label;
+                            if (typeof axOldModelFlag != "undefined" && axOldModelFlag == "true") {
+                                if (loadurl.startsWith("tstruct.aspx?transid=")) {
                                     searchType = "listview";
+                                    var qstr = "";
+                                    if (srcDtls[1] != "null" && srcDtls[1] != "")
+                                        qstr = GetGloSrchQueryString(srcDtls[1]);
+                                    loadurl = `iview.aspx?ivname=${srcDtls[0]}&tstcaption=${srcDtls[0] + qstr}`;
+                                }
+                            } else {
+                                if (loadurl.startsWith("tstruct.aspx?transid=")) {
+                                    if (loadurl.indexOf("act=load") > -1) {
+                                        loadurl = loadurl.replace("tstruct.aspx?transid=", "EntityForm.aspx?tstid=");
+                                        icon = icon || "assignment";
+                                    }
+                                    else {
+                                        loadurl = loadurl.replace("tstruct.aspx?transid=", "Entity.aspx?tstid=");
+                                        searchType = "listview";
+                                    }
                                 }
                             }
                         }
-                        else
-                            loadurl = searchLoadIframe(searchType, data.link.split('♦')[1], true);
 
-                        if (loadurl != "") {   
-                            if (typeof isAxOldModel != "undefined" && isAxOldModel == "true") {
-                                //do nothing
-                            } else {
-                                if (loadurl.startsWith("tstruct.aspx?transid=") && loadurl.indexOf("act=load") > -1) {
-                                    loadurl = loadurl.replace("tstruct.aspx?transid=", "EntityForm.aspx?tstid=") + "&ename=" + data.label;
-                                    icon = "assignment";
-                                }
-                            }
+                        if (loadurl != "") {
 
                             if (loadurl.startsWith("help.aspx")) {
                                 loadurl = `window.open(\"${loadurl}\", \"_blank\");`;
+                                icon = icon || "assignment";
                             }
                             else {
                                 loadurl = `LoadIframe(\"${loadurl}\");`;
@@ -3006,12 +2930,38 @@
                                 loadurl = `openNewtabSite(\"${_thisPType + srcDtls[0]}\",\"${gsoldappurl}\",\"gblsearch\")`;
                             }
                         }
+                        var viewName = "";
+                        if (loadurl.indexOf('tstruct.aspx') !== -1) {
+                            viewName = loadurl.match(/(transid=[^"&]+)/)[1];
+                        }
+                        else if (loadurl.toLowerCase().indexOf('entity.aspx') !== -1 || loadurl.toLowerCase().indexOf('entityform.aspx') !== -1) {
+                            viewName = loadurl.match(/(tstid=[^"&]+)/)[1];
+                        }
+                        else if (loadurl.indexOf('iview.aspx') !== -1 || loadurl.indexOf('ivtoivload.aspx') !== -1) {
+                            viewName = loadurl.match(/(ivname=[^"&]+)/)[1];
+                        }
+                        else if (toolTip.toLowerCase() == "active list" || toolTip.toLowerCase() == "inbox") {
+                            viewName = toolTip;
+                        } else if (loadurl.toLowerCase().startsWith('opennewtabsite(')) {
+                            loadurl.replace('openNewtabSite(', '').split(',')[0].replace('"', '').replace('"', '');
+                        }
+                        else {
+                            if (loadurl.indexOf('axpage_id=') > -1)
+                                viewName = loadurl.match(/axpage_id=([^"&]+)/)[1].replace(/^HP/, "");
+                            else
+                                viewName = loadurl.match(/load=([^"&]+)/)[1];
+                        }
 
                         $(searchObj.resultsElement).find("div:first").append(`
                         <a href="#" class="d-flex text-dark text-hover-primary align-items-center mb-5" title="${toolTip}" data-ax-click="${axCspEncodeHtmlAttribute(`$.axpertUI.search.hideKTSearch();${loadurl}`)}">
                             <div class="symbol symbol-40px me-4">
                                 <span class="symbol-label bg-light">
-                                    <span class="material-icons material-icons-style material-icons-2 material-icons-primary">${icon}</span>
+                                     ${
+                                         icon.includes('img')
+
+                                           ? `<span class="material-icons-primary d-flex">${icon}</span>`
+                                           : `<span class="material-icons material-icons-style material-icons-2 material-icons-primary d-flex">${icon}</span>`
+                                      }
                                 </span>
                             </div>
                             <div class="d-flex flex-column justify-content-start fw-bold">
@@ -3051,16 +3001,15 @@
                 var $body = $('body');
                 var $overlay = $('.overlay');
                 var $navbarCollapse = $('.navbar-collapse');
-                ////Open left sidebar panel
-                //$('.bars').on('click', function () {
-                //    debugger;
-                //    if ($.axpertUI.options.cardsPage.setCards && $($.axpertUI.options.cardsPage.staging.cardsFrame.div).is(":visible")) {
-                //        setTimeout(() => {
-                //            $(window).trigger("resize.cards");
-                //        }, 0);
-                //    }
+                //Open left sidebar panel
+                $('.bars').on('click', function () {
+                    if ($.axpertUI.options.cardsPage.setCards && $($.axpertUI.options.cardsPage.staging.cardsFrame.div).is(":visible")) {
+                        setTimeout(() => {
+                            $(window).trigger("resize.cards");
+                        }, 0);
+                    }
 
-                //});
+                });
 
                 //Close collapse bar on click event
                 $('.nav [data-close="true"]').on('click', function () {
@@ -3510,6 +3459,12 @@
 
                     $(_thisStag.developerworkbench.div).find(_thisStag.developerworkbench.subTitle.div).attr("title", _thisStag.developerworkbench.subTitle.title).text(_thisStag.developerworkbench.subTitle.title);
                 }
+                if (_thisStag.axpertstudio) {
+                    $(_thisStag.axpertstudio.div).find("#AllDevOptions").attr("style", "display:" + _this.axpertstudio.display);
+
+                    $(_thisStag.axpertstudio.div).attr("title", _thisStag.axpertstudio.title.title);
+                }
+
                 if (_thisStag.configurationStudio) {
                     $(_thisStag.configurationStudio.div).attr("style", "display:" + _this.configurationStudio.display);
                     $(_thisStag.configurationStudio.div).attr("data-ax-click", _this.configurationStudio.onclick);
@@ -3518,6 +3473,7 @@
 
                     $(_thisStag.configurationStudio.div).find(_thisStag.configurationStudio.subTitle.div).attr("title", _thisStag.configurationStudio.subTitle.title).text(_thisStag.configurationStudio.subTitle.title);
                 }
+
                 if (_this.AppConfig) {
                     $(_thisStag.AppConfig.div).attr("style", "display:" + _this.AppConfig.display);
                     $(_thisStag.AppConfig.div).attr("data-ax-click", _this.AppConfig.onclick);
@@ -3630,6 +3586,114 @@
                     //$(_thisStag.showLog.div).attr("title", _thisStag.showLog.title).find("span:first").text(_thisStag.showLog.title);
                     $(_thisStag.showLog.div).find(_thisStag.showLog.title.div).attr("title", _thisStag.showLog.title.title).text(_thisStag.showLog.title.title);
                     $(_thisStag.showLog.div).find(_thisStag.showLog.subTitle.div).attr("title", _thisStag.showLog.subTitle.title).text(_thisStag.showLog.subTitle.title);
+                }
+
+                //if ($(_thisStag.CustomPages).length > 0) {
+                //    $(_thisStag.CustomPages.div).find("a").attr("title", _thisStag.CustomPages.atitle);
+                //    $(_thisStag.CustomPages.div).find(_thisStag.CustomPages.title.div).attr("title", _thisStag.CustomPages.title.title).text(_thisStag.CustomPages.title.title);
+                //    $(_thisStag.CustomPages.div).find(_thisStag.CustomPages.subTitle.div).attr("title", _thisStag.CustomPages.subTitle.title).text(_thisStag.CustomPages.subTitle.title);
+                //}
+
+                if ($(_thisStag.pluginCustomCode).length > 0) {
+                    $(_thisStag.pluginCustomCode.div).find("a").attr("title", _thisStag.pluginCustomCode.atitle);
+                    $(_thisStag.pluginCustomCode.div).find(_thisStag.pluginCustomCode.title.div).attr("title", _thisStag.pluginCustomCode.title.title).text(_thisStag.pluginCustomCode.title.title);
+                    $(_thisStag.pluginCustomCode.div).find(_thisStag.pluginCustomCode.subTitle.div).attr("title", _thisStag.pluginCustomCode.subTitle.title).text(_thisStag.pluginCustomCode.subTitle.title);
+                }
+
+                if ($(_thisStag.Iview).length > 0) {
+                    $(_thisStag.Iview.div).find("a").attr("title", _thisStag.Iview.atitle);
+                    $(_thisStag.Iview.div).find(_thisStag.Iview.title.div).attr("title", _thisStag.Iview.title.title).text(_thisStag.Iview.title.title);
+                    $(_thisStag.Iview.div).find(_thisStag.Iview.subTitle.div).attr("title", _thisStag.Iview.subTitle.title).text(_thisStag.Iview.subTitle.title);
+                }
+
+                if ($(_thisStag.Tstruct).length > 0) {
+                    $(_thisStag.Tstruct.div).find("a").attr("title", _thisStag.Tstruct.atitle);
+                    $(_thisStag.Tstruct.div).find(_thisStag.Tstruct.title.div).attr("title", _thisStag.Tstruct.title.title).text(_thisStag.Tstruct.title.title);
+                    $(_thisStag.Tstruct.div).find(_thisStag.Tstruct.subTitle.div).attr("title", _thisStag.Tstruct.subTitle.title).text(_thisStag.Tstruct.subTitle.title);
+                }
+
+                if ($(_thisStag.AxpertJobs).length > 0) {
+                    $(_thisStag.AxpertJobs.div).find("a").attr("title", _thisStag.AxpertJobs.atitle);
+                    $(_thisStag.AxpertJobs.div).find(_thisStag.AxpertJobs.title.div).attr("title", _thisStag.AxpertJobs.title.title).text(_thisStag.AxpertJobs.title.title);
+                    $(_thisStag.AxpertJobs.div).find(_thisStag.AxpertJobs.subTitle.div).attr("title", _thisStag.AxpertJobs.subTitle.title).text(_thisStag.AxpertJobs.subTitle.title);
+                }
+
+                if ($(_thisStag.DevOptions).length > 0) {
+                    $(_thisStag.DevOptions.div).find("a").attr("title", _thisStag.DevOptions.atitle);
+                    $(_thisStag.DevOptions.div).find(_thisStag.DevOptions.title.div).attr("title", _thisStag.DevOptions.title.title).text(_thisStag.DevOptions.title.title);
+                    $(_thisStag.DevOptions.div).find(_thisStag.DevOptions.subTitle.div).attr("title", _thisStag.DevOptions.subTitle.title).text(_thisStag.DevOptions.subTitle.title);
+                }
+
+                if ($(_thisStag.APIPlugins).length > 0) {
+                    $(_thisStag.APIPlugins.div).find("a").attr("title", _thisStag.APIPlugins.atitle);
+                    $(_thisStag.APIPlugins.div).find(_thisStag.APIPlugins.title.div).attr("title", _thisStag.APIPlugins.title.title).text(_thisStag.APIPlugins.title.title);
+                    $(_thisStag.APIPlugins.div).find(_thisStag.APIPlugins.subTitle.div).attr("title", _thisStag.APIPlugins.subTitle.title).text(_thisStag.APIPlugins.subTitle.title);
+                }
+
+                if ($(_thisStag.ADS).length > 0) {
+                    $(_thisStag.ADS.div).find("a").attr("title", _thisStag.ADS.atitle);
+                    $(_thisStag.ADS.div).find(_thisStag.ADS.title.div).attr("title", _thisStag.ADS.title.title).text(_thisStag.ADS.title.title);
+                    $(_thisStag.ADS.div).find(_thisStag.ADS.subTitle.div).attr("title", _thisStag.ADS.subTitle.title).text(_thisStag.ADS.subTitle.title);
+                }
+
+                if ($(_thisStag.Appvariables).length > 0) {
+                    $(_thisStag.Appvariables.div).find("a").attr("title", _thisStag.Appvariables.atitle);
+                    $(_thisStag.Appvariables.div).find(_thisStag.Appvariables.title.div).attr("title", _thisStag.Appvariables.title.title).text(_thisStag.Appvariables.title.title);
+                    $(_thisStag.Appvariables.div).find(_thisStag.Appvariables.subTitle.div).attr("title", _thisStag.Appvariables.subTitle.title).text(_thisStag.Appvariables.subTitle.title);
+                }
+
+                if ($(_thisStag.CustomDataType).length > 0) {
+                    $(_thisStag.CustomDataType.div).find("a").attr("title", _thisStag.CustomDataType.atitle);
+                    $(_thisStag.CustomDataType.div).find(_thisStag.CustomDataType.title.div).attr("title", _thisStag.CustomDataType.title.title).text(_thisStag.CustomDataType.title.title);
+                    $(_thisStag.CustomDataType.div).find(_thisStag.CustomDataType.subTitle.div).attr("title", _thisStag.CustomDataType.subTitle.title).text(_thisStag.CustomDataType.subTitle.title);
+                }
+
+                if ($(_thisStag.DevPublish).length > 0) {
+                    $(_thisStag.DevPublish.div).find("a").attr("title", _thisStag.DevPublish.atitle);
+                    $(_thisStag.DevPublish.div).find(_thisStag.DevPublish.title.div).attr("title", _thisStag.DevPublish.title.title).text(_thisStag.DevPublish.title.title);
+                    $(_thisStag.DevPublish.div).find(_thisStag.DevPublish.subTitle.div).attr("title", _thisStag.DevPublish.subTitle.title).text(_thisStag.DevPublish.subTitle.title);
+                }
+
+                if ($(_thisStag.DevLanguages).length > 0) {
+                    $(_thisStag.DevLanguages.div).find("a").attr("title", _thisStag.DevLanguages.atitle);
+                    $(_thisStag.DevLanguages.div).find(_thisStag.DevLanguages.title.div).attr("title", _thisStag.DevLanguages.title.title).text(_thisStag.DevLanguages.title.title);
+                    $(_thisStag.DevLanguages.div).find(_thisStag.DevLanguages.subTitle.div).attr("title", _thisStag.DevLanguages.subTitle.title).text(_thisStag.DevLanguages.subTitle.title);
+                }
+
+                if ($(_thisStag.TableDescriptor).length > 0) {
+                    $(_thisStag.TableDescriptor.div).find("a").attr("title", _thisStag.TableDescriptor.atitle);
+                    $(_thisStag.TableDescriptor.div).find(_thisStag.TableDescriptor.title.div).attr("title", _thisStag.TableDescriptor.title.title).text(_thisStag.TableDescriptor.title.title);
+                    $(_thisStag.TableDescriptor.div).find(_thisStag.TableDescriptor.subTitle.div).attr("title", _thisStag.TableDescriptor.subTitle.title).text(_thisStag.TableDescriptor.subTitle.title);
+                }
+
+                if ($(_thisStag.EmailDefinitions).length > 0) {
+                    $(_thisStag.EmailDefinitions.div).find("a").attr("title", _thisStag.EmailDefinitions.atitle);
+                    $(_thisStag.EmailDefinitions.div).find(_thisStag.EmailDefinitions.title.div).attr("title", _thisStag.EmailDefinitions.title.title).text(_thisStag.EmailDefinitions.title.title);
+                    $(_thisStag.EmailDefinitions.div).find(_thisStag.EmailDefinitions.subTitle.div).attr("title", _thisStag.EmailDefinitions.subTitle.title).text(_thisStag.EmailDefinitions.subTitle.title);
+                }
+
+                if ($(_thisStag.ArrangeMenu).length > 0) {
+                    $(_thisStag.ArrangeMenu.div).find("a").attr("title", _thisStag.ArrangeMenu.atitle);
+                    $(_thisStag.ArrangeMenu.div).find(_thisStag.ArrangeMenu.title.div).attr("title", _thisStag.ArrangeMenu.title.title).text(_thisStag.ArrangeMenu.title.title);
+                    $(_thisStag.ArrangeMenu.div).find(_thisStag.ArrangeMenu.subTitle.div).attr("title", _thisStag.ArrangeMenu.subTitle.title).text(_thisStag.ArrangeMenu.subTitle.title);
+                }
+
+                if ($(_thisStag.DevExplorer).length > 0) {
+                    $(_thisStag.DevExplorer.div).find("a").attr("title", _thisStag.DevExplorer.atitle);
+                    $(_thisStag.DevExplorer.div).find(_thisStag.DevExplorer.title.div).attr("title", _thisStag.DevExplorer.title.title).text(_thisStag.DevExplorer.title.title);
+                    $(_thisStag.DevExplorer.div).find(_thisStag.DevExplorer.subTitle.div).attr("title", _thisStag.DevExplorer.subTitle.title).text(_thisStag.DevExplorer.subTitle.title);
+                }
+
+                if ($(_thisStag.MemDBConsole).length > 0) {
+                    $(_thisStag.MemDBConsole.div).find("a").attr("title", _thisStag.MemDBConsole.atitle);
+                    $(_thisStag.MemDBConsole.div).find(_thisStag.MemDBConsole.title.div).attr("title", _thisStag.MemDBConsole.title.title).text(_thisStag.MemDBConsole.title.title);
+                    $(_thisStag.MemDBConsole.div).find(_thisStag.MemDBConsole.subTitle.div).attr("title", _thisStag.MemDBConsole.subTitle.title).text(_thisStag.MemDBConsole.subTitle.title);
+                }
+
+                if ($(_thisStag.QueueListing).length > 0) {
+                    $(_thisStag.QueueListing.div).find("a").attr("title", _thisStag.QueueListing.atitle);
+                    $(_thisStag.QueueListing.div).find(_thisStag.QueueListing.title.div).attr("title", _thisStag.QueueListing.title.title).text(_thisStag.QueueListing.title.title);
+                    $(_thisStag.QueueListing.div).find(_thisStag.QueueListing.subTitle.div).attr("title", _thisStag.QueueListing.subTitle.title).text(_thisStag.QueueListing.subTitle.title);
                 }
             }
         }

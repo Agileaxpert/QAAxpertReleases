@@ -604,12 +604,12 @@
         <script type="text/javascript" src="../ThirdParty/jquery-confirm-master/jquery-confirm.min.js?v=2"></script>
         <script type="text/javascript" src="../Js/jquery.multi-select.min.js"></script>
         <script type="text/javascript" src="../Js/alerts.min.js?v=33"></script>
-        <script type="text/javascript" src="../Js/helper.min.js?v=172"></script>
-        <script type="text/javascript" src="../Js/jsclient.min.js?v=116"></script>
-        <script type="text/javascript" src="../Js/common.min.js?v=149"></script>
-        <script type="text/javascript" src="../Js/AxInterface.min.js?v=13"></script>
+        <script type="text/javascript" src="../Js/helper.min.js?v=181"></script>
+        <script type="text/javascript" src="../Js/jsclient.min.js?v=119"></script>
+        <script type="text/javascript" src="../Js/common.min.js?v=167"></script>
+        <script type="text/javascript" src="../Js/AxInterface.min.js?v=24"></script>
         <script type="text/javascript" src="../Js/multiselect.min.js"></script>
-        <script type="text/javascript" src="../Js/import.min.js?v=52"></script>
+        <script type="text/javascript" src="../Js/import.min.js?v=51"></script>
         <script type="text/javascript">
             var proj = '<%=proj%>';
             var sid = '<%=sid%>';

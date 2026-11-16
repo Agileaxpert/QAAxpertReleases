@@ -47,9 +47,9 @@
     <script src="../ThirdParty/jquery-confirm-master/jquery-confirm.min.js?v=2" type="text/javascript"></script>
     <script src="../Js/noConflict.min.js?v=1" type="text/javascript"></script>
     <script src="../Js/alerts.min.js?v=33" type="text/javascript"></script>
-    <script type="text/javascript" src="../Js/login.min.js?v=95"></script>
+    <script type="text/javascript" src="../Js/login.min.js?v=121"></script>
     <script type="text/javascript" src="../Js/lang/content-<%=langType%>.js?v=64"></script>
-    <script src="../Js/common.min.js?v=149" type="text/javascript"></script>
+    <script src="../Js/common.min.js?v=167" type="text/javascript"></script>
 
     <script type="text/javascript">
         var alertsTimeout = 3000;
@@ -62,12 +62,14 @@
         var isMobile = isMobileDevice();
         var isPowerBy = '';
         var wfDefaultComm = '<%=actNameComment%>';
+        var onlyssoKey = '<%=onlyssoKey%>';
+        var saveBtnName = '<%=saveBtnName%>';
     </script>
 
     <script src="../Js/sso.min.js?v=2" type="text/javascript"></script>
     <script src="../Js/msal.min.js" type="text/javascript"></script>
     <script src="../Js/okta-auth-js.min.js" type="text/javascript"></script>
-    <script src="../Js/workflowNotification.min.js?v=8"></script>
+    <script src="../Js/workflowNotification.min.js?v=9"></script>
 </head>
 <body class="page-header-fixed login" id="main_body" runat="server" dir="<%=direction%>">
     <div class="row-fluid login-main card login-inner w-lg-500px m-auto">

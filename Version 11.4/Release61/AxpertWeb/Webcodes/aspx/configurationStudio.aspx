@@ -69,6 +69,7 @@
     <asp:PlaceHolder runat="server">
         <%:Styles.Render(direction == "ltr" ? "~/UI/axpertUI/ltrBundleCss" : "~/UI/axpertUI/rtlBundleCss") %>
     </asp:PlaceHolder>
+    <link href="../ThirdParty/jquery-confirm-master/jquery-confirm.min.css" rel="stylesheet" />
 </head>
 <body class="header-fixed header-tablet-and-mobile-fixed toolbar-enabled aside-fixed aside-default-enabled page-loading" id="dvconfigstudio" data-kt-aside-minimize="off" dir="<%=direction%>">
 
@@ -92,11 +93,11 @@
                                 </span>
                                 <div class="menu-sub menu-sub-accordion menu-active-bg">
                                     <div class="menu-item">
-                                        <a class="menu-link" onclick='callParentNew("loadFrame();","function");LoadIframeac("ivtoivload.aspx?ivname=axroles");callParentNew("closeFrame();","function");' href="javascript:void(0);">
+                                        <a class="menu-link" onclick='callParentNew("loadFrame();","function");LoadIframeac("ivtoivload.aspx?ivname=ad___url");callParentNew("closeFrame();","function");' href="javascript:void(0);">
                                             <span class="d-flex mx-2">
                                                 <i class="setting-icon material-icons">history</i>
                                             </span>
-                                            <span class="menu-title mx-2">Roles</span>
+                                            <span class="menu-title mx-2">Role Listing</span>
                                         </a>
                                     </div>
 
@@ -105,7 +106,7 @@
                                             <span class="d-flex mx-2">
                                                 <i class="setting-icon material-icons">how_to_reg</i>
                                             </span>
-                                            <span class="menu-title mx-2">Responsibilities</span>
+                                            <span class="menu-title mx-2">Responsibility Listing</span>
                                         </a>
                                     </div>
 
@@ -114,7 +115,16 @@
                                             <span class="d-flex mx-2">
                                                 <i class="setting-icon material-icons">supervisor_account</i>
                                             </span>
-                                            <span class="menu-title mx-2">Users</span>
+                                            <span class="menu-title mx-2">User Listing</span>
+                                        </a>
+                                    </div>
+
+                                    <div class="menu-item" id="userActive" runat="server" visible="false">
+                                        <a class="menu-link" onclick='callParentNew("loadFrame();","function");LoadIframeac("tstruct.aspx?transid=axurg&act=open");callParentNew("closeFrame();","function");'>
+                                            <span class="menu-icon">
+                                                <i class="setting-icon material-icons">toggle_on</i>
+                                            </span>
+                                            <span class="setting-caption menu-title">User Activation</span>
                                         </a>
                                     </div>
 
@@ -123,7 +133,7 @@
                                             <span class="d-flex mx-2">
                                                 <i class="setting-icon material-icons">account_circle</i>
                                             </span>
-                                            <span class="menu-title mx-2">Actor listing</span>
+                                            <span class="menu-title mx-2">Actor Listing</span>
                                         </a>
                                     </div>
 
@@ -132,11 +142,28 @@
                                             <span class="d-flex mx-2">
                                                 <i class="setting-icon material-icons">group</i>
                                             </span>
-                                            <span class="menu-title mx-2">User Group</span>
+                                            <span class="menu-title mx-2">Usergroup Listing</span>
                                         </a>
                                     </div>
 
+                                    <%--  <div class="menu-item">
+                                        <a class="menu-link" onclick='callParentNew("loadFrame();","function");LoadIframeac("ivtoivload.aspx?ivname=ad___ual");callParentNew("closeFrame();","function");' href="javascript:void(0);">
+                                            <span class="d-flex mx-2">
+                                                <i class="setting-icon material-icons">settings_accessibility</i>
+                                            </span>
+                                            <span class="menu-title mx-2">User Configuration</span>
+                                        </a>
+                                    </div>--%>
                                     <div class="menu-item">
+                                        <a class="menu-link" onclick='callParentNew("loadFrame();","function");LoadIframeac("ivtoivload.aspx?ivname=ad___upg");callParentNew("closeFrame();","function");' href="javascript:void(0);">
+                                            <span class="d-flex mx-2">
+                                                <i class="setting-icon material-icons">settings_accessibility</i>
+                                            </span>
+                                            <span class="menu-title mx-2">Dimension Listing</span>
+                                        </a>
+                                    </div>
+
+                                    <div class="menu-item d-none">
                                         <a class="menu-link" onclick='callParentNew("loadFrame();","function");LoadIframeac("ivtoivload.aspx?ivname=ad___ucl");callParentNew("closeFrame();","function");' href="javascript:void(0);">
                                             <span class="d-flex mx-2">
                                                 <i class="setting-icon material-icons">settings_accessibility</i>
@@ -148,7 +175,7 @@
                                 </div>
                             </div>
 
-                            <div data-kt-menu-trigger="click" class="menu-item menu-accordion">
+                            <div data-kt-menu-trigger="click" class="menu-item menu-accordion d-none">
                                 <span class="menu-link">
                                     <span class="menu-icon">
                                         <i class="setting-icon material-icons">details</i>
@@ -178,6 +205,15 @@
                             </div>
 
                             <div class="menu-item">
+                                <a class="menu-link" onclick='callParentNew("loadFrame();","function");LoadIframeac("ivtoivload.aspx?ivname=axpcards");callParentNew("closeFrame();","function");'>
+                                    <span class="menu-icon">
+                                        <i class="setting-icon material-icons">dashboard</i>
+                                    </span>
+                                    <span class="setting-caption menu-title">Cards</span>
+                                </a>
+                            </div>
+
+                            <div class="menu-item">
                                 <a class="menu-link" onclick='callParentNew("loadFrame();","function");LoadIframeac("ivtoivload.aspx?ivname=ad___rel");callParentNew("closeFrame();","function");'>
                                     <span class="menu-icon">
                                         <i class="setting-icon material-icons">assignment</i>
@@ -196,6 +232,24 @@
                                 </a>
                             </div>
 
+                            <%--  <div class="menu-item">
+                                <a class="menu-link" onclick='callParentNew("loadFrame();","function");LoadIframeac("iview.aspx?ivname=ad___nwa");callParentNew("closeFrame();","function");'>
+                                    <span class="menu-icon">
+                                        <i class="setting-icon material-icons">feed</i>
+                                    </span>
+                                    <span class="setting-caption menu-title">News and Announcements</span>
+                                </a>
+                            </div>--%>
+
+                            <div class="menu-item">
+                                <a class="menu-link" onclick='callParentNew("loadFrame();","function");LoadIframeac("iview.aspx?ivname=a___smtl");callParentNew("closeFrame();","function");'>
+                                    <span class="menu-icon">
+                                        <i class="setting-icon material-icons">view_list</i>
+                                    </span>
+                                    <span class="setting-caption menu-title">Smart View Listing</span>
+                                </a>
+                            </div>
+
                             <div class="menu-item">
                                 <a class="menu-link" onclick='callParentNew("loadFrame();","function");LoadIframeac("iview.aspx?ivname=ad__papi");callParentNew("closeFrame();","function");'>
                                     <span class="menu-icon">
@@ -205,7 +259,7 @@
                                 </a>
                             </div>
 
-                            <div class="menu-item">
+                            <div class="menu-item d-none">
                                 <a class="menu-link" onclick='callParentNew("loadFrame();","function");LoadIframeac("ivtoivload.aspx?ivname=ad___acs");callParentNew("closeFrame();","function");'>
                                     <span class="menu-icon">
                                         <i class="setting-icon material-icons">dynamic_form</i>
@@ -215,7 +269,7 @@
                                 </a>
                             </div>
 
-                            <div class="menu-item">
+                            <div class="menu-item d-none">
                                 <a class="menu-link" onclick='callParentNew("loadFrame();","function");LoadIframeac("ivtoivload.aspx?ivname=ad___cfd");callParentNew("closeFrame();","function");'>
                                     <span class="menu-icon">
                                         <i class="setting-icon material-icons">text_fields</i>
@@ -225,7 +279,7 @@
                                 </a>
                             </div>
 
-                            <div class="menu-item">
+                            <div class="menu-item d-none">
                                 <a class="menu-link" onclick='callParentNew("loadFrame();","function");LoadIframeac("ivtoivload.aspx?ivname=ad___red");callParentNew("closeFrame();","function");'>
                                     <span class="menu-icon">
                                         <i class="setting-icon material-icons">square_foot</i>
@@ -247,7 +301,7 @@
                                 </a>
                             </div>
 
-                            <div class="menu-item">
+                            <div class="menu-item d-none">
                                 <a class="menu-link" onclick='callParentNew("loadFrame();","function");LoadIframeac("ivtoivload.aspx?ivname=ad__fstp");callParentNew("closeFrame();","function");'>
                                     <span class="menu-icon">
                                         <i class="setting-icon material-icons">print</i>
@@ -256,7 +310,7 @@
                                 </a>
                             </div>
 
-                            <div class="menu-item">
+                            <div class="menu-item d-none">
                                 <a class="menu-link" onclick='callParentNew("loadFrame();","function");LoadIframeac("ivtoivload.aspx?ivname=ad___apt");callParentNew("closeFrame();","function");'>
                                     <span class="menu-icon">
                                         <i class="setting-icon material-icons">print_connect</i>
@@ -265,7 +319,7 @@
                                 </a>
                             </div>
 
-                            <div class="menu-item">
+                            <div class="menu-item d-none">
                                 <a class="menu-link" onclick='callParentNew("loadFrame();","function");LoadIframeac("ivtoivload.aspx?ivname=ad___ntn");callParentNew("closeFrame();","function");'>
                                     <span class="menu-icon">
                                         <i class="setting-icon material-icons">notifications</i>
@@ -274,14 +328,14 @@
                                 </a>
                             </div>
 
-                            <div class="menu-item">
+                            <%-- <div class="menu-item">
                                 <a class="menu-link" onclick='callParentNew("loadFrame();","function");LoadIframeac("ivtoivload.aspx?ivname=ad__qls");callParentNew("closeFrame();","function");'>
                                     <span class="menu-icon">
                                         <i class="setting-icon material-icons">queue</i>
                                     </span>
                                     <span class="setting-caption menu-title">Queue listing</span>
                                 </a>
-                            </div>
+                            </div>--%>
 
                             <div class="menu-item">
                                 <a class="menu-link" onclick='callParentNew("loadFrame();","function");LoadIframeac("ivtoivload.aspx?ivname=ad_pbcs");callParentNew("closeFrame();","function");'>
@@ -292,7 +346,7 @@
                                 </a>
                             </div>
 
-                            <div class="menu-item">
+                            <div class="menu-item d-none">
                                 <a class="menu-link" onclick='callParentNew("loadFrame();","function");LoadIframeac("ivtoivload.aspx?ivname=ad___hcg");callParentNew("closeFrame();","function");'>
                                     <span class="menu-icon">
                                         <i class="setting-icon material-icons">home</i>
@@ -316,7 +370,7 @@
                                             <span class="d-flex mx-2">
                                                 <i class="setting-icon material-icons">code</i>
                                             </span>
-                                            <span class="menu-title mx-2">Script Job</span>
+                                            <span class="menu-title mx-2">Axpert Jobs</span>
                                         </a>
                                     </div>
                                     <div class="menu-item">
@@ -324,7 +378,7 @@
                                             <span class="d-flex mx-2">
                                                 <i class="setting-icon material-icons">vertical_align_bottom</i>
                                             </span>
-                                            <span class="menu-title mx-2">Import jobs</span>
+                                            <span class="menu-title mx-2">Import Jobs</span>
                                         </a>
                                     </div>
                                     <div class="menu-item">
@@ -340,20 +394,20 @@
                                             <span class="d-flex mx-2">
                                                 <i class="setting-icon material-icons">check_circle</i>
                                             </span>
-                                            <span class="menu-title mx-2">API jobs</span>
+                                            <span class="menu-title mx-2">API Jobs</span>
                                         </a>
                                     </div>
                                 </div>
                             </div>
 
-                            <div class="menu-item">
+                            <%--   <div class="menu-item">
                                 <a class="menu-link" onclick='callParentNew("loadFrame();","function");LoadIframeac("ivtoivload.aspx?ivname=inmemdb");callParentNew("closeFrame();","function");'>
                                     <span class="menu-icon">
                                         <i class="setting-icon material-icons">playlist_add_check</i>
                                     </span>
                                     <span class="setting-caption menu-title">Mem DB Console</span>
                                 </a>
-                            </div>
+                            </div>--%>
 
                             <div class="menu-item">
                                 <a class="menu-link" onclick='callParentNew("loadFrame();","function");LoadIframeac("configuration.aspx");callParentNew("closeFrame();","function");'>
@@ -445,9 +499,10 @@
         <%:Scripts.Render("~/UI/axpertUI/bundleJs") %>
     </asp:PlaceHolder>
 
-    <script src="../Js/common.min.js?v=149" type="text/javascript"></script>
-    <script src="../Js/helper.min.js?v=172" type="text/javascript"></script>
-    <script src="../js/configurationStudio.min.js?v=9" type="text/javascript"></script>
+    <script src="../ThirdParty/jquery-confirm-master/jquery-confirm.min.js" type="text/javascript"></script>
+    <script src="../Js/common.min.js?v=167" type="text/javascript"></script>
+    <script src="../Js/helper.min.js?v=181" type="text/javascript"></script>
+    <script src="../js/configurationStudio.min.js?v=11" type="text/javascript"></script>
     <script type="text/javascript">
         $(callParentNew("appBackBtn", "class")).hide();
     </script>

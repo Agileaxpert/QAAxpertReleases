@@ -26,7 +26,11 @@ using System.Web.Script.Serialization;
 using System.Web.Configuration;
 using AxInterface;
 using System.Net.Mail;
+using Microsoft.Ajax.Utilities;
+using BotDetect;
 using System.Security.Cryptography;
+using System.Xml.Linq;
+using RabbitMQ.Client;
 using System.Security;
 
 namespace ASB
@@ -97,7 +101,7 @@ namespace ASB
         }
 
         //[WebMethod(EnableSession = true)]
-        //public string SaveDataXML(ArrayList fldArray, ArrayList fldDbRowNo, string fldValueArrayEncrypted, ArrayList fldDeletedArray, ArrayList deletedFldArrayValues, string files, string rid, string delRows, string changedRows, string key, string axRulesFlds = "", string axPegApprovalSave = "", string resTstHtmlLS = "")
+        //public string SaveDataXML(ArrayList fldArray, ArrayList fldDbRowNo, ArrayList fldValueArray, ArrayList fldDeletedArray, ArrayList deletedFldArrayValues, string files, string rid, string delRows, string changedRows, string key, string axRulesFlds = "", string axPegApprovalSave = "", string resTstHtmlLS = "", string isLoadFromDraft = "")
         //{
         [WebMethod(EnableSession = true)]
         public string SaveDataXML(string encryptedRequest)
@@ -128,6 +132,7 @@ namespace ASB
             string axRulesFlds = request.axRulesFlds;
             string axPegApprovalSave = request.axPegApprovalSave;
             string resTstHtmlLS = request.resTstHtmlLS;
+            string isLoadFromDraft = request.isLoadFromDraft;
 
             string _tstKeyChanged = "";
             if (resTstHtmlLS != "")
@@ -152,7 +157,7 @@ namespace ASB
             DateTime eTime1 = DateTime.Now;
 
             Util.Util.DeletedraftRediskeys(tstData.transid);
-            result = tstData.CallSaveDataWS(tstData, fldArray, fldDbRowNo, fldValueArray, fldDeletedArray, deletedFldArrayValues, files, rid, delRows, changedRows, axRulesFlds, axPegApprovalSave);
+            result = tstData.CallSaveDataWS(tstData, fldArray, fldDbRowNo, fldValueArray, fldDeletedArray, deletedFldArrayValues, files, rid, delRows, changedRows, axRulesFlds, axPegApprovalSave, isLoadFromDraft);
             requestProcess_logtime += result.Split('♠')[0];
             result = result.Split('♠')[1];
             DateTime sTime2 = DateTime.Now;
@@ -519,9 +524,8 @@ namespace ASB
         }
 
         //[WebMethod(EnableSession = true)]
-        //public string CallActionWS(ArrayList fldArray, ArrayList fldDbRowNo, string fldValueArrayEncrypted, ArrayList fldDeletedArray, ArrayList deletedFldArrayValues, string ArrActionLog, string visibleDcs, string s, string f, string source, string delRows, string changedRows, string key, string files = "", bool isScript = false, string axRulesFlds = "", bool axRulesScript = false, string resTstHtmlLS = "")
+        //public string CallActionWS(ArrayList fldArray, ArrayList fldDbRowNo, ArrayList fldValueArray, ArrayList fldDeletedArray, ArrayList deletedFldArrayValues, string ArrActionLog, string visibleDcs, string s, string f, string source, string delRows, string changedRows, string key, string files = "", bool isScript = false, string axRulesFlds = "", bool axRulesScript = false, string resTstHtmlLS = "", string isLoadFromDraft = "")
         //{
-     
         [WebMethod(EnableSession = true)]
         public string CallActionWS(string encryptedRequest)
         {
@@ -529,7 +533,6 @@ namespace ASB
             ObjExecTr.SetCurrentTime();
             if (HttpContext.Current.Session["project"] == null)
                 return utilObj.SESSTIMEOUT;
-
             string json = utils.DecryptRSAValue("", encryptedRequest);
             if (json == "")
                 return utilObj.SESSTIMEOUT;
@@ -555,11 +558,16 @@ namespace ASB
             string axRulesFlds = request.axRulesFlds;
             bool axRulesScript = request.axRulesScript;
             string resTstHtmlLS = request.resTstHtmlLS;
-
-            if (Util.Util.CheckCrossScriptingInString(String.Join(",", fldValueArray.ToArray())))
+            string isLoadFromDraft = request.isLoadFromDraft;
+            if (source != "tsect" && source != "ta__rp")
             {
-                return Constants.MALICIOUSNPUTDETECTED;
+                if (Util.Util.CheckCrossScriptingInString(String.Join(",", fldValueArray.ToArray())))
+                {
+                    return Constants.MALICIOUSNPUTDETECTED;
+                }
             }
+            if (source == "tsect" || source == "ta__rp")
+                source = "t";
 
             string result = string.Empty;
             string ires = string.Empty;
@@ -660,7 +668,7 @@ namespace ASB
                     Util.Util.DeletedraftRediskeys(tstData.transid);
                     logobj.CreateActionLog(ArrActionLog, sessionid, "ActionLog", "");
                     string calledFrom = ArrActionLog.StartsWith("CallAction-axpbutton_") ? "axpbutton" : "false";
-                    result = tstData.CallActionWS(tstData, fldArray, fldDbRowNo, fldValueArray, fldDeletedArray, deletedFldArrayValues, s, f, source, delRows, changedRows, calledFrom: calledFrom, files: new StringBuilder(files), isScript: isScript, axRulesFlds: axRulesFlds, axRulesScript: axRulesScript);
+                    result = tstData.CallActionWS(tstData, fldArray, fldDbRowNo, fldValueArray, fldDeletedArray, deletedFldArrayValues, s, f, source, delRows, changedRows, calledFrom: calledFrom, files: new StringBuilder(files), isScript: isScript, axRulesFlds: axRulesFlds, axRulesScript: axRulesScript, isLoadFromDraft: isLoadFromDraft);
                     requestProcess_logtime += result.Split('♠')[0];
                     result = result.Split('♠')[1];
                     tstData.JsonToArray(result, tstData.tstStrObj, "", "Action");
@@ -1038,8 +1046,8 @@ namespace ASB
 
             string temptabHTML = strObj.GetTabDcHTML(Convert.ToInt32(dcNo), tstData, isDisable);
 
-            FDW fdwObj = FDW.Instance;
-            bool isRedisConnected = fdwObj.IsConnected;
+            FDW fdwObj = new FDW();
+            bool isRedisConnected = HttpContext.Current.Session["RedisIsConnected"] != null ? bool.Parse(HttpContext.Current.Session["RedisIsConnected"].ToString()) : false;
 
             if (designMode && HttpContext.Current.Session["Axp_DesignJson"] != null && HttpContext.Current.Session["Axp_DesignJson"].ToString() != "")
                 strObj.axdesignJObject = tstData.tstStrObj.getDesignObjectFromJson(Session["Axp_DesignJson"].ToString());
@@ -1075,8 +1083,10 @@ namespace ASB
             string fdKey = Constants.REDISTSTRUCT;
             if (HttpContext.Current.Session["MobileView"] != null && HttpContext.Current.Session["MobileView"].ToString() == "True")
                 fdKey = Constants.REDISTSTRUCTMOB;
-            //FDW fdwObj = FDW.Instance;
+            string _sXML = strObj.structRes;
+            strObj.structRes = "";
             fdwObj.SaveInRedisServer(utilObj.GetRedisServerkey(fdKey, transid), strObj, Constants.REDISTSTRUCT, schemaName);
+            strObj.structRes = _sXML;
             tstData.tstStrObj = strObj;
             Session[key] = (TStructData)tstData;
 
@@ -1191,7 +1201,8 @@ namespace ASB
                 return Constants.DUPLICATESESS;
             //TStructDef tstObj = utilObj.GetTstructDefObj("GetStructure", transid);
             TStructDef tstObj = tstData.tstStrObj;
-            TStructDef.DcStruct dc = (TStructDef.DcStruct)tstObj.dcs[Convert.ToInt32(frameNo) - 1];
+            int dcIndNo = tstObj.dcsPositionIndex.IndexOf(frameNo.ToString());
+            TStructDef.DcStruct dc = (TStructDef.DcStruct)tstObj.dcs[dcIndNo];
             string fileName = "GetFormatFillGrid" + transid;
             string dcHTML = string.Empty;
             string errorLog = logobj.CreateLog("GetFormatFillGrid.", sessionid, fileName, "new");
@@ -1225,7 +1236,8 @@ namespace ASB
                 return Constants.DUPLICATESESS;
             //TStructDef tstObj = utilObj.GetTstructDefObj("GetStructure", transid);
             TStructDef tstObj = tstData.tstStrObj;
-            TStructDef.DcStruct dc = (TStructDef.DcStruct)tstObj.dcs[Convert.ToInt32(frameNo) - 1];
+            int dcIndNo = tstObj.dcsPositionIndex.IndexOf(frameNo.ToString());
+            TStructDef.DcStruct dc = (TStructDef.DcStruct)tstObj.dcs[dcIndNo];
             string fileName = "GetFormatFillGrid" + transid;
             logobj.CreateActionLog(ArrActionLog, sessionid, "ActionLog", "");
             string errorLog = logobj.CreateLog("GetFormatFillGrid.", sessionid, fileName, "new");
@@ -1306,7 +1318,12 @@ namespace ASB
                 tstData.JsonToArray(result, strObj, frameNo, "FillGridMS");
 
             strObj.IsFillGridCall = true;
-            dcHTML = tstData.tabJson.ToString() + "*♠*" + strObj.GetTabDcHTML(Convert.ToInt32(frameNo), tstData, "false");
+            if (Session["MobileView"] != null && Session["MobileView"].ToString() == "True" && Session["AxInlineGridEdit"].ToString() == "false")
+            {
+                dcHTML = result;// + "*♠*" + strObj.GetTabDcHTML(Convert.ToInt32(frameNo), tstData, "false");
+            }
+            else
+                dcHTML = tstData.tabJson.ToString() + "*♠*" + strObj.GetTabDcHTML(Convert.ToInt32(frameNo), tstData, "false");
             strObj.IsFillGridCall = false;
             DateTime eTime2 = DateTime.Now;
             if (tstData.logTimeTaken)
@@ -1360,7 +1377,12 @@ namespace ASB
             if (result != "")
                 tstData.JsonToArray(result, strObj, frameNo, "FillGridNMS");
             strObj.IsFillGridCall = true;
-            result = tstData.tabJson.ToString() + "*♠*" + strObj.GetTabDcHTML(Convert.ToInt32(frameNo), tstData, "false");
+            if (Session["MobileView"] != null && Session["MobileView"].ToString() == "True" && Session["AxInlineGridEdit"].ToString() == "false")
+            {
+                //do nothing
+            }
+            else
+                result = tstData.tabJson.ToString() + "*♠*" + strObj.GetTabDcHTML(Convert.ToInt32(frameNo), tstData, "false");
             strObj.IsFillGridCall = false;
             DateTime eTime2 = DateTime.Now;
             if (tstData.logTimeTaken)
@@ -1490,6 +1512,17 @@ namespace ASB
             if (news != string.Empty) s = news;
             string result = null;
             s = s + HttpContext.Current.Session["axApps"].ToString() + HttpContext.Current.Application["axProps"].ToString() + HttpContext.Current.Session["axGlobalVars"].ToString() + HttpContext.Current.Session["axUserVars"].ToString() + "</root>";
+            try
+            {
+                XElement root = XElement.Parse(s);
+                string _transId = (root.Attribute("transid") != null) ? root.Attribute("transid").Value : string.Empty;
+                if (HttpContext.Current.Session["TstDataValidateWFAction-" + _transId] != null && HttpContext.Current.Session["TstDataValidateWFAction-" + _transId].ToString() != string.Empty)
+                {
+                    string formval = HttpContext.Current.Session["TstDataValidateWFAction-" + _transId].ToString();
+                    s = s.Replace("<root ", "<root formval='" + formval + "' ");
+                }
+            }
+            catch (Exception) { }
             result = asbExt.CallWorkFlowActionWS("", s);
             return result;
         }
@@ -1595,7 +1628,8 @@ namespace ASB
                 return Constants.DUPLICATESESS;
             //TStructDef strObj = utilObj.GetTstructDefObj("GetAddGroupHtml", transid);
             TStructDef strObj = tstData.tstStrObj;
-            TStructDef.DcStruct dc = (TStructDef.DcStruct)strObj.dcs[Convert.ToInt32(dcNo) - 1];
+            int dcIndNo = strObj.dcsPositionIndex.IndexOf(dcNo.ToString());
+            TStructDef.DcStruct dc = (TStructDef.DcStruct)strObj.dcs[dcIndNo];
             string fgHTML = string.Empty;
             tstData.GetFieldValueXml(fldArray, fldDbRowNo, fldValueArray, fldDeletedArray, "-1", "false", "ALL", "");
             string mapCol = string.Empty;
@@ -1608,7 +1642,8 @@ namespace ASB
             else if (dc.KeyColValues.Count > 0 || dc.Sql != "")
             {
                 ArrayList groups = new ArrayList();
-                groups = strObj.GetGroups(Convert.ToInt32(dcNo), tstData);
+                //int dcIndNo = strObj.dcsPositionIndex.IndexOf(dcNo.ToString());
+                groups = strObj.GetGroups(dcIndNo, Convert.ToInt32(dcNo), tstData);
                 string colWidth = strObj.GetColumnWidth(dcNo, dc.KeyColumn);
 
                 if (dc.MapParentCol != string.Empty)
@@ -1660,7 +1695,8 @@ namespace ASB
             {
                 groups.Add(strGroups[i].ToString());
             }
-            string grpHtml = strObj.GetGroupRowHtml(dcNo, groups, lastRowNo, tstData);
+            int dcIndNo = strObj.dcsPositionIndex.IndexOf(dcNo.ToString());
+            string grpHtml = strObj.GetGroupRowHtml(dcIndNo, dcNo, groups, lastRowNo, tstData);
             if (_tstKeyChanged != "")
                 grpHtml = _tstKeyChanged + "♠*♠" + grpHtml;
             return grpHtml;
@@ -1992,6 +2028,50 @@ namespace ASB
                 result = _tstKeyChanged + "♠*♠" + result;
             return result;
         }
+
+        [WebMethod(EnableSession = true)]
+        public string SaveAsDraftNew(ArrayList fldArray, ArrayList fldDbRowNo, ArrayList fldValueArray, ArrayList fldDeletedArray, string transid, string key, string tabDCStatusStr, string resTstHtmlLS)
+        {
+            if (Util.Util.CheckCrossScriptingInString(String.Join(",", fldValueArray.ToArray())))
+            {
+                return Constants.MALICIOUSNPUTDETECTED;
+            }
+
+            GetGlobalVars();
+            string result = string.Empty;
+            string _tstKeyChanged = "";
+            if (resTstHtmlLS != "")
+            {
+                utilObj.DeleteTstIvObject(key.Split('_')[0]);
+                key = utilObj.GetReGenTstDataObj(key, resTstHtmlLS);
+                _tstKeyChanged = key;
+            }
+            TStructData tstData = (TStructData)Session[key];
+            if (tstData == null)
+                return Constants.DUPLICATESESS;
+            tstData.UpdateDataList(fldArray, fldDbRowNo, fldValueArray, fldDeletedArray);
+            tstData.TabDcStatus = tabDCStatusStr;
+            int fldIdx = tstData.tstStrObj.GetFieldIndex("axp_draft_name");
+            string custVal = string.Empty;
+            if (custVal == string.Empty)
+                custVal = tstData.tstStrObj.tstCaption;
+
+            //custVal = custVal.Replace('-', '♠');
+            try
+            {
+                Session["DraftHTML"] = Constants.DRAFT_REFRESH;
+                if (!utilObj.SaveAsDraftNew(transid, key, user, custVal))
+                    result = "error:Error while save draft, please try again.";
+            }
+            catch (Exception ex)
+            {
+                result = "error:" + ex.Message;
+            }
+            if (_tstKeyChanged != "")
+                result = _tstKeyChanged + "♠*♠" + result;
+            return result;
+        }
+
         [WebMethod(EnableSession = true)]
         public string GetDraftsFromRedis(string transid, string caption)
         {
@@ -2015,6 +2095,31 @@ namespace ASB
             }
             return drafts;
         }
+
+        [WebMethod(EnableSession = true)]
+        public string GetDraftsFromRedisNew(string transid, string caption)
+        {
+            string drafts = string.Empty;
+            string userId = string.Empty;
+            if (HttpContext.Current.Session["username"] != null)
+            {
+                userId = HttpContext.Current.Session["username"].ToString();
+                try
+                {
+                    drafts = utilObj.GetDraftsMarkUpNew(transid, userId, caption);
+                }
+                catch (Exception ex)
+                {
+                    drafts = Constants.EX_DRAFT_HTML;
+                }
+            }
+            else
+            {
+                drafts = Constants.EX_DRAFT_HTML;
+            }
+            return drafts;
+        }
+
         [WebMethod(EnableSession = true)]
         public string DeleteDraft(string draftId)
         {
@@ -2357,22 +2462,43 @@ namespace ASB
                     string Svrlic_redis = string.Empty;
                     if (Session["Svrlic_redis"] != null)
                         Svrlic_redis = Session["Svrlic_redis"].ToString();
-                    iXml = "<root axpapp='" + project + "' sessionid='" + sessionid + "' " + Svrlic_redis + " trace='" + errorLog + "'>";
-                    if (Session["axApps"] != null)
-                        iXml += Session["axApps"].ToString() + Application["axProps"].ToString();
-                    else if (project != "" && Application[project + "-axApps"] != null)
-                        iXml += Application[project + "-axApps"].ToString() + Application["axProps"].ToString();
-                    iXml += "</root>";
-                    utilObj.RemoveLoggedUserDetails(project, sessionid);
+                    //iXml = "<root axpapp='" + project + "' sessionid='" + sessionid + "' " + Svrlic_redis + " trace='" + errorLog + "'>";
+                    //if (Session["axApps"] != null)
+                    //    iXml += Session["axApps"].ToString() + Application["axProps"].ToString();
+                    //else if (project != "" && Application[project + "-axApps"] != null)
+                    //    iXml += Application[project + "-axApps"].ToString() + Application["axProps"].ToString();
+                    //iXml += "</root>";
+                    utilObj.RemoveLoggedUserDetails(project, sessionid, Session["username"].ToString());
                     utilObj.DeleteKeepAliveWebKey();
                     utilObj.SaveExecutionText();
                     utilObj.DeleteUnwantedKeys();
                     utilObj.TempAttaServerFiles();
-                    utilObj.ClearUserIviewData();
+                    //utilObj.ClearUserIviewData();
                     string result = string.Empty;
                     utilObj.delALLNotificiationKeyfromRedis();
-                    result = asbExt.CallLogoutWS("Signout", iXml);
-                    //utilObj.RemoveLoggedUserDetails(project, sessionid);
+                    //result = asbExt.CallLogoutWS("Signout", iXml);
+                    ////utilObj.RemoveLoggedUserDetails(project, sessionid);
+
+                    string _axApps = string.Empty;
+                    string _axProps = string.Empty;
+                    if (Session["axApps"] != null)
+                    {
+                        _axApps = Session["axApps"].ToString();
+                        _axProps = Application["axProps"].ToString();
+                    }
+                    else if (project != "" && Application[project + "-axApps"] != null)
+                    {
+                        _axApps = Application[project + "-axApps"].ToString();
+                        _axProps = Application["axProps"].ToString();
+                    }
+                    if (errorLog != "")
+                        errorLog = errorLog.Replace("\\", "\\\\");
+                    _axApps = _axApps.Replace(@"\", "\\\\");
+                    string _UserName = string.Empty;
+                    if (Session["username"] != null)
+                        _UserName = Session["username"].ToString();
+                    string signOutJson = "{\"logout\":{\"axpapp\":\"" + project + "\",\"username\":\"" + _UserName + "\",\"sessionid\":\"" + sessionid + "\"," + Svrlic_redis + " \"trace\":\"" + errorLog + "\"},\"axapps\":\"" + _axApps + "\",\"axprops\":\"" + _axProps + "\"}";
+                    result = ALCClient.CallALCClientLogout(_UserName, signOutJson);
                     string scriptsPath = HttpContext.Current.Application["ScriptsPath"].ToString();
                     scriptsPath = scriptsPath + "Axpert\\" + sessionid;
                     if (Directory.Exists(scriptsPath) && sessionid != "")
@@ -2478,7 +2604,6 @@ namespace ASB
             if (HttpContext.Current.Session["dbuser"] != null)
                 schemaName = HttpContext.Current.Session["dbuser"].ToString();
             Util.Util util = new Util.Util();
-
             FDR fObj = (FDR)HttpContext.Current.Session["FDR"];
             if (fObj == null)
             {
@@ -2487,7 +2612,8 @@ namespace ASB
             }
 
             JObject jObj = new JObject();
-            if (fObj.IsConnected)
+            bool isRedisConnected = HttpContext.Current.Session["RedisIsConnected"] != null ? bool.Parse(HttpContext.Current.Session["RedisIsConnected"].ToString()) : false;
+            if (isRedisConnected)
             {
                 try
                 {
@@ -2497,9 +2623,8 @@ namespace ASB
                 { }
             }
 
-            FDW objFDW = FDW.Instance;
-
-            if (objFDW.IsConnected)
+            FDW objFDW = new FDW();
+            if (isRedisConnected)
             {
                 jObj[username] = paramStr;
 
@@ -2531,8 +2656,8 @@ namespace ASB
                 fObj = new FDR();
                 HttpContext.Current.Session["FDR"] = fObj;
             }
-
-            if (fObj.IsConnected)
+            bool isRedisConnected = HttpContext.Current.Session["RedisIsConnected"] != null ? bool.Parse(HttpContext.Current.Session["RedisIsConnected"].ToString()) : false;
+            if (isRedisConnected)
             {
                 //returnString = fObj.StringFromRedis(util.GetRedisServerkey(Constants.IviewNavigationData, iviewName), schemaName);
                 JObject jObj = new JObject();
@@ -3680,18 +3805,39 @@ namespace ASB
                     if (!System.IO.Directory.Exists(dPath))
                         System.IO.Directory.CreateDirectory(dPath);
                     System.IO.File.Copy(path + internalFileName, dPath + internalFileName, true);
-                    //if(!onlygetPath && attachtype == "header")
-                    //{
-                    //    internalFileName = tid + "-" + internalFileName;
-                    //}
-                    //if (filename.Contains(".docx"))
-                    //{
-                    //    result += utilObj.ScriptsurlPath + "Axpert/" + Session["nsessionid"].ToString() + "/" + "Docs" + "/" + internalFileName + "♠";
-                    //}
-                    //else
-                    //{
-                    result += utilObj.ScriptsurlPath + "Axpert/" + Session["nsessionid"].ToString() + "/" + internalFileName + "♠";
-                    //}
+
+                    if (internalFileName != string.Empty && internalFileName.EndsWith(".zip"))
+                    {
+                        string unzipFile = string.Empty;
+                        string fileProtectPwd = string.Empty;
+                        if (HttpContext.Current.Session["axp_uploadfileprotectedpwd"] != null)
+                            fileProtectPwd = HttpContext.Current.Session["axp_uploadfileprotectedpwd"].ToString();
+                        if (fileProtectPwd != string.Empty)
+                        {
+                            string zipFilePath = Path.Combine(dPath, internalFileName);
+                            using (ZipFile zip = ZipFile.Read(zipFilePath))
+                            {
+                                zip.Password = fileProtectPwd;
+                                if (zip.Entries.Count == 1)
+                                {
+                                    foreach (ZipEntry e in zip)
+                                    {
+                                        e.Extract(dPath, ExtractExistingFileAction.OverwriteSilently);
+                                        unzipFile = e.FileName;
+                                    }
+                                }
+                                else
+                                {
+                                    unzipFile = internalFileName;
+                                }
+                            }
+                            result += utilObj.ScriptsurlPath + "Axpert/" + Session["nsessionid"].ToString() + "/" + unzipFile + "♠";
+                        }
+                        else
+                            result += utilObj.ScriptsurlPath + "Axpert/" + Session["nsessionid"].ToString() + "/" + internalFileName + "♠";
+                    }
+                    else
+                        result += utilObj.ScriptsurlPath + "Axpert/" + Session["nsessionid"].ToString() + "/" + internalFileName + "♠";
                 }
                 catch (Exception ex)
                 {
@@ -3871,7 +4017,9 @@ namespace ASB
                 //Call service
                 try
                 {
-                    inputXML = "<sqlresultset axpapp='" + proj + "' sessionid='" + Session["nsessionid"].ToString() + "' direct='true' trace='" + "true" + "' appsessionkey='" + HttpContext.Current.Session["AppSessionKey"].ToString() + "' username='" + HttpContext.Current.Session["username"].ToString() + "' >";
+                    string errorLog = string.Empty;
+                    errorLog = logobj.CreateLog("Get GetLanguage", sessionid, "GetLanguage-getchoice", "new");
+                    inputXML = "<sqlresultset axpapp='" + proj + "' sessionid='" + Session["nsessionid"].ToString() + "' direct='true' trace='" + errorLog + "' appsessionkey='" + HttpContext.Current.Session["AppSessionKey"].ToString() + "' username='" + HttpContext.Current.Session["username"].ToString() + "' >";
                     inputXML += "<sql>select distinct LANGNAME from axlangsource</sql>";
                     inputXML += HttpContext.Current.Session["axApps"].ToString() + HttpContext.Current.Application["axProps"].ToString() + HttpContext.Current.Session["axGlobalVars"].ToString() + HttpContext.Current.Session["axUserVars"].ToString() + "</sqlresultset>";
                     result = asbExt.CallGetChoiceWS("", inputXML);
@@ -4171,11 +4319,12 @@ namespace ASB
             bool update = false;
 
             FDR fObj = (FDR)HttpContext.Current.Session["FDR"];
-            FDW fdwObj = FDW.Instance;
+            FDW fdwObj = new FDW();
             string fdKey = Constants.REDISTSTRUCT;
             string fdKeyMob = Constants.REDISTSTRUCTMOB;
             string designKey = Constants.REDISTSTRUCTAXDESIGN;
             string designCustHtmlKey = Constants.REDISTSTRUCTAXCUSTHTML;
+            string fdKeyXML = Constants.REDISTSTRUCTXML;
             //string designTblKey = Constants.REDISTSTRUCTAXDESIGNTABLE;
             string schemaName = string.Empty;
             if (HttpContext.Current.Session["dbuser"] != null)
@@ -4185,10 +4334,11 @@ namespace ASB
             fdwObj.ClearRedisServerDataByKey(utilObj.GetRedisServerkey(fdKeyMob, transId), "", false, schemaName);
             saved = fdwObj.ClearRedisServerDataByKey(utilObj.GetRedisServerkey(designKey, transId), "", false, schemaName);
             fdwObj.ClearRedisServerDataByKey(utilObj.GetRedisServerkey(designCustHtmlKey, transId), "", false, schemaName);
+            fdwObj.ClearRedisServerDataByKey(utilObj.GetRedisServerkey(fdKeyXML, transId), "", false, schemaName);
             return saved;
         }
 
-        public string GetdllAutoComplete(string tstDataId, string fldName, string fldValue, ArrayList ChangedFields, ArrayList ChangedFieldDbRowNo, ArrayList ChangedFieldValues, ArrayList DeletedDCRows, string pageData, string fastdll, string fldNameAc, string refreshAC, string pickArrow, string parentFlds, string rfSave, string IsApiFld, string tblSourceParams, string isTstHtmlLs, string ddlFldSqlParams, string ddlSqlPNames)
+        public string GetdllAutoComplete(string tstDataId, string fldName, string fldValue, ArrayList ChangedFields, ArrayList ChangedFieldDbRowNo, ArrayList ChangedFieldValues, ArrayList DeletedDCRows, string pageData, string fastdll, string fldNameAc, string refreshAC, string pickArrow, string parentFlds, string rfSave, string IsApiFld, string tblSourceParams, string isTstHtmlLs, string ddlFldSqlParams, string ddlSqlPNames, string isDupTab)
         {
             HttpContext.Current.Session["LastUpdatedSess"] = DateTime.Now.ToString();
             string strJson = string.Empty;
@@ -4213,7 +4363,8 @@ namespace ASB
 
             strRequest += ObjExecTr.KernelProcessTime(startkst, "After CheckCrossScriptingInString called ", "", "");
             startkst = DateTime.Now;
-
+            if (isDupTab != "" && isDupTab.StartsWith("true-"))
+                HttpContext.Current.Session["isDupTab"] = isDupTab;
             string _tstKeyChanged = "";
             if (isTstHtmlLs != "")
             {
@@ -4247,9 +4398,9 @@ namespace ASB
                 //pageNo,pagesize, frameno, activerow, parinfo subinfo, includedcs
                 string[] pgData = pageData.Split('~');
                 string activeRow = pgData[3];
-                int fetchRCount = 1000;
-                if (Session["PickListFetchSize"] != null && Session["PickListFetchSize"].ToString() != "")
-                    fetchRCount = int.Parse(Session["PickListFetchSize"].ToString());
+                int fetchRCount = 0;
+                //if (Session["PickListFetchSize"] != null && Session["PickListFetchSize"].ToString() != "")
+                //    fetchRCount = int.Parse(Session["PickListFetchSize"].ToString());
                 int pgNumber = int.Parse(pgData[0]);
                 if (fastdll == "True")
                     fldValue = ""; //Making value empty if the field is normal select 
@@ -4348,126 +4499,62 @@ namespace ASB
                     }
                     else if (fastdll == "True" && rfSave == "True" && refreshAC == "False")//Fetching data from session for combobox+refreshonsave filed.
                     {
-                        //string strRequest = ObjExecTr.RequestProcessTime("Request");
                         strRequest += ObjExecTr.KernelProcessTime(startkst, "Server side process before data ", "", "");
                         DateTime kst = DateTime.Now;
-                        string sessCacheKey = transid + "-" + fldName + "-" + parentFlds;
-                        if (Session[sessCacheKey] != null)
+                        string fldkey = utilObj.GetRedisServerFieldkey(tstData.transid, Constants.FIELDNAME, fldName, 0);
+                        string dllData = fObj.HashGetKey(fldkey, parentFlds);
+                        logobj.CreateLog("Data from Redis.-" + dllData, sessionid, "autocomplete-" + fldName, "");
+                        if (dllData != string.Empty && refreshAC == "False" && pickArrow == "False")
                         {
-                            result = Session[sessCacheKey].ToString();
+                            result = dllData;
                             isCache = true;
                             if (_tstKeyChanged != "")
                                 result = _tstKeyChanged + "♣*♣" + result;
-                            result = result + "♠" + strRequest + ObjExecTr.KernelProcessTime(kst, "GetSearchResult-fromSession", "", result);
+                            result = result + "♠" + strRequest + ObjExecTr.KernelProcessTime(kst, "GetSearchResult-rfSave", "", result);
                             return result;
                         }
                     }
-                    else if (fastdll == "False" && fldValue == "")//Fetching data from session for picklist field and input vaue is empty(that means user clicked on ENTER key, ARROW key or field arrow icon).
+                    else if (fastdll == "False" && fldValue == "" && refreshAC == "False")//Fetching data from session for picklist field and input vaue is empty(that means user clicked on ENTER key, ARROW key or field arrow icon).
                     {
-                        //string strRequest = ObjExecTr.RequestProcessTime("Request");
                         strRequest += ObjExecTr.KernelProcessTime(startkst, "Server side process before data ", "", "");
                         DateTime kst = DateTime.Now;
-                        string sessCacheKey = transid + "-" + fldName + "-" + parentFlds + "-empty";
-                        if (Session[sessCacheKey] != null)
+                        string fldkey = string.Empty;
+                        fldkey = utilObj.GetRedisServerFieldkey(tstData.transid, Constants.FIELDNAME, fldName, 0);
+                        string dllData = fObj.HashGetKey(fldkey, parentFlds);
+                        logobj.CreateLog("Data from Redis.-" + dllData, sessionid, "autocomplete-" + fldName, "");
+                        if (dllData != string.Empty && refreshAC == "False" && pickArrow == "False")
                         {
-                            result = Session[sessCacheKey].ToString();
-                            var pickData = JsonConvert.DeserializeObject<pickdatalist>(result.ToString());
-                            var rcount = pickData.pickdata[0].rcount;
-                            var fname = pickData.pickdata[1].fname;
-                            var dfname = pickData.pickdata[2].dfname;
-                            var data = pickData.pickdata[3].data;
-                            int rows = 50;
-                            int totalRecords = int.Parse(rcount) < fetchRCount ? int.Parse(rcount) : fetchRCount;
-                            int totalPages = totalRecords / rows;
-                            int perPage = pgNumber > totalPages ? totalRecords % rows : rows;
-                            string json = new JavaScriptSerializer().Serialize(data.GetRange(50 * (pgNumber - 1), perPage));
-                            result = "{\"pickdata\":[{\"rcount\":\"" + rcount + "\"},{\"fname\":\"" + fname + "\"},{\"dfname\":\"" + dfname + "\"},{\"data\":" + json + "}]}";
+                            result = dllData;
                             isCache = true;
                             if (_tstKeyChanged != "")
                                 result = _tstKeyChanged + "♣*♣" + result;
-                            result = result + "♠" + strRequest + ObjExecTr.KernelProcessTime(kst, "GetSearchResult-fromSession", "", result);
+                            result = result + "♠" + strRequest + ObjExecTr.KernelProcessTime(kst, "GetSearchResult-picklist", "", result);
                             return result;
                         }
                     }
-                    else if (fastdll == "False" && fldValue.Length < 2)//Fetching data from session for Picklist field if the input is 1 or 2 character. that means filterig empty picklist session values if the same session is empty user will get this message "Please enter minimum of 2 character to search".
+                    else if (fastdll == "False" && fldValue.Length < 2 && refreshAC == "False")//Fetching data from session for Picklist field if the input is 1 or 2 character. that means filterig empty picklist session values if the same session is empty user will get this message "Please enter minimum of 2 character to search".
                     {
                         result = "{\"pickdata\":[{\"rcount\":\"0\"},{\"fname\":\"" + fldName + "\"},{\"data\":[{\"i\":\"Please enter minimum of 2 characters to search\",\"v\":\"\",\"d\":\"\"}]}]}";
                         if (_tstKeyChanged != "")
                             result = _tstKeyChanged + "♣*♣" + result;
                         return result;
                     }
-                    else if (fastdll == "False" && fldValue.Length >= 2)//Fetching data from session for Picklist field and input values is >=2 characters, if not match the pattern of input will delete the existing session key and will create new session key with matched data.
+                    else if (fastdll == "False" && fldValue.Length >= 2 && refreshAC == "False")//Fetching data from session for Picklist field and input values is >=2 characters, if not match the pattern of input will delete the existing session key and will create new session key with matched data.
                     {
-                        //string strRequest = ObjExecTr.RequestProcessTime("Request");
                         strRequest += ObjExecTr.KernelProcessTime(startkst, "Server side process before data ", "", "");
                         DateTime kst = DateTime.Now;
-                        string SessPickKey = transid + "-" + fldName + "-" + parentFlds + "-♦";
-                        if (Session[SessPickKey] != null)
+                        string fldkey = string.Empty;
+                        fldkey = utilObj.GetRedisServerFieldkey(tstData.transid, Constants.FIELDNAME, fldName, 0);
+                        string dllData = fObj.HashGetKey(fldkey, parentFlds);
+                        logobj.CreateLog("Data from Redis.-" + dllData, sessionid, "autocomplete-" + fldName, "");
+                        if (dllData != string.Empty && refreshAC == "False" && pickArrow == "False")
                         {
-
-                            bool isPickCache = false, issvChanged = false;
-                            string SCacheKey = transid + "-" + fldName + "-" + parentFlds + "-♦" + fldValue;
-                            string SessPickKeyValue = Session[SessPickKey].ToString();
-                            if (SessPickKeyValue == SCacheKey)
-                                isPickCache = true;
-                            else if (fldValue.Contains(SessPickKeyValue.Split('♦')[1]))//(fldValue.StartsWith(SessPickKeyValue.Split('♦')[1]))
-                            {
-                                issvChanged = true;
-                                isPickCache = true;
-                            }
-                            else
-                            {
-                                Session.Remove(SessPickKeyValue);
-                                Session.Remove(SessPickKey);
-                            }
-                            if (isPickCache)
-                            {
-                                result = Session[SessPickKeyValue].ToString();
-                                var pickData = JsonConvert.DeserializeObject<pickdatalist>(result.ToString());
-                                var tolrcount = long.Parse(pickData.pickdata[0].rcount);
-                                var fname = pickData.pickdata[1].fname;
-                                var dfname = pickData.pickdata[2].dfname;
-                                var data = pickData.pickdata[3].data;
-                                string spcfldValue = string.Empty;
-                                if (issvChanged == true)
-                                {
-                                    spcfldValue = fldValue.Replace(SessPickKeyValue, "");
-                                    var splFldVals = spcfldValue.Split('%');
-                                    for (int j = 0; j < splFldVals.Length; j++)
-                                    {
-                                        var splFldVal = splFldVals[j].Split('_');
-                                        for (int k = 0; k < splFldVal.Length; k++)
-                                        {
-                                            data = data.AsEnumerable().Where(x => x.i.ToLower().Contains(splFldVal[k].ToLower())).ToList();
-                                        }
-                                    }
-                                }
-                                int rcount = data.Count();
-                                if (tolrcount == fetchRCount && rcount == 0 && issvChanged == true)
-                                {
-                                    Session.Remove(SessPickKeyValue);
-                                    Session.Remove(SessPickKey);
-                                }
-                                else if (tolrcount == fetchRCount && issvChanged == true && (spcfldValue.Contains("%") || spcfldValue.Contains("_")))
-                                {
-                                    Session.Remove(SessPickKeyValue);
-                                    Session.Remove(SessPickKey);
-                                }
-                                else
-                                {
-                                    int rows = 50;
-                                    int totalRecords = rcount < fetchRCount ? rcount : fetchRCount;
-                                    int totalPages = totalRecords / rows;
-                                    int perPage = pgNumber > totalPages ? totalRecords % rows : rows;
-                                    string json = new JavaScriptSerializer().Serialize(data.GetRange(50 * (pgNumber - 1), perPage));
-                                    result = "{\"pickdata\":[{\"rcount\":\"" + rcount + "\"},{\"fname\":\"" + fname + "\"},{\"dfname\":\"" + dfname + "\"},{\"data\":" + json + "}]}";
-                                    isCache = true;
-                                    if (_tstKeyChanged != "")
-                                        result = _tstKeyChanged + "♣*♣" + result;
-                                    result = result + "♠" + strRequest + ObjExecTr.KernelProcessTime(kst, "GetSearchResult-fromSession", "", result);
-                                    return result;
-                                }
-                            }
+                            result = dllData;
+                            isCache = true;
+                            if (_tstKeyChanged != "")
+                                result = _tstKeyChanged + "♣*♣" + result;
+                            result = result + "♠" + strRequest + ObjExecTr.KernelProcessTime(kst, "GetSearchResult-picklistvalue", "", result);
+                            return result;
                         }
                     }
                 }
@@ -4495,7 +4582,7 @@ namespace ASB
                                 activePRow = activePRow.Split('~').First();
                         }
                     }
-                    string spfldValue = utilObj.CheckSpecialChars(fldValue);
+                    string spfldValue = "";// utilObj.CheckSpecialChars(fldValue);
                     string iXml = string.Empty;
                     string aucSearchPattern = "contains";
                     if (HttpContext.Current.Session["AxpautoCompPatt"] != null && HttpContext.Current.Session["AxpautoCompPatt"].ToString() != "")
@@ -4542,69 +4629,36 @@ namespace ASB
                     {
                         if (IsApiFld != "true")
                         {
+                            string schemaName = string.Empty;
+                            if (HttpContext.Current.Session["dbuser"] != null)
+                                schemaName = HttpContext.Current.Session["dbuser"].ToString();
+                            FDW fdwObj = new FDW();
                             if (fastdll == "True" && rfSave != "True" && isCache == false && result != "" && pickArrow == "False")//Storing combobox values in redis with parent field key pair.
                             {
-                                string schemaName = string.Empty;
-                                if (HttpContext.Current.Session["dbuser"] != null)
-                                    schemaName = HttpContext.Current.Session["dbuser"].ToString();
-
-                                FDW fdwObj = FDW.Instance;
                                 string fldkey = utilObj.GetRedisServerFieldkey(tstData.transid, Constants.FIELDNAME, fldName, 0);
                                 fdwObj.HashSetKey(fldkey, parentFlds, result);
                             }
                             else if (fastdll == "True" && rfSave == "True" && isCache == false && result != "" && pickArrow == "False")//Saving combobox+refreshonsave field values in session with parent field key pair.
                             {
-                                string sessCacheKey = transid + "-" + fldName + "-" + parentFlds;
-                                Session[sessCacheKey] = result;
-                                utilObj.AddKeyOnRefreshSave(sessCacheKey);
+                                string fldkey = utilObj.GetRedisServerFieldkey(tstData.transid, Constants.FIELDNAME, fldName, 0);
+                                fdwObj.HashSetKey(fldkey, parentFlds, result);
                             }
                             else if (fastdll == "False" && fldValue == "" && isCache == false && result != "" && pickArrow == "False")//Saving picklist field values in session with parent field key pair if the input value is empty.
                             {
-                                string sessCacheKey = transid + "-" + fldName + "-" + parentFlds + "-empty";
-                                Session[sessCacheKey] = result;
-                                if (rfSave == "True")
-                                    utilObj.AddKeyOnRefreshSave(sessCacheKey);
-                                var pickData = JsonConvert.DeserializeObject<pickdatalist>(result.ToString());
-                                var rcount = pickData.pickdata[0].rcount;
-                                var fname = pickData.pickdata[1].fname;
-                                var dfname = pickData.pickdata[2].dfname;
-                                var data = pickData.pickdata[3].data;
-                                int rows = 50;
-                                int totalRecords = int.Parse(rcount) < fetchRCount ? int.Parse(rcount) : fetchRCount;
-                                int totalPages = totalRecords / rows;
-                                int perPage = pgNumber > totalPages ? totalRecords % rows : rows;
-                                string json = new JavaScriptSerializer().Serialize(data.GetRange(50 * (pgNumber - 1), perPage));
-                                result = "{\"pickdata\":[{\"rcount\":\"" + rcount + "\"},{\"fname\":\"" + fname + "\"},{\"dfname\":\"" + dfname + "\"},{\"data\":" + json + "}]}";
+                                string fldkey = utilObj.GetRedisServerFieldkey(tstData.transid, Constants.FIELDNAME, fldName, 0);
+                                fdwObj.HashSetKey(fldkey, parentFlds, result);
                             }
                             else if (fastdll == "False" && fldValue != "" && isCache == false && result != "" && pickArrow == "False")//Saving picklist field values in session with parent field key pair if the input value lenght is greater than or equal to(>=) 3 characters.
                             {
-                                string SessCacheKey = transid + "-" + fldName + "-" + parentFlds + "-♦" + fldValue;
-                                string SessPickKey = transid + "-" + fldName + "-" + parentFlds + "-♦";
-                                Session[SessCacheKey] = result;
-                                Session[SessPickKey] = SessCacheKey;
-                                if (rfSave == "True")
-                                {
-                                    utilObj.AddKeyOnRefreshSave(SessCacheKey);
-                                    utilObj.AddKeyOnRefreshSave(SessPickKey);
-                                }
-                                var pickData = JsonConvert.DeserializeObject<pickdatalist>(result.ToString());
-                                var rcount = pickData.pickdata[0].rcount;
-                                var fname = pickData.pickdata[1].fname;
-                                var dfname = pickData.pickdata[2].dfname;
-                                var data = pickData.pickdata[3].data;
-                                int rows = 50;
-                                int totalRecords = int.Parse(rcount) < fetchRCount ? int.Parse(rcount) : fetchRCount;
-                                int totalPages = totalRecords / rows;
-                                int perPage = pgNumber > totalPages ? totalRecords % rows : rows;
-                                string json = new JavaScriptSerializer().Serialize(data.GetRange(50 * (pgNumber - 1), perPage));
-                                result = "{\"pickdata\":[{\"rcount\":\"" + rcount + "\"},{\"fname\":\"" + fname + "\"},{\"dfname\":\"" + dfname + "\"},{\"data\":" + json + "}]}";
+                                string fldkey = utilObj.GetRedisServerFieldkey(tstData.transid, Constants.FIELDNAME, fldName, 0);
+                                fdwObj.HashSetKey(fldkey, parentFlds, result);
                             }
 
                             if (parentFldNames != string.Empty)
                             {
-                                FDW fdwObj = FDW.Instance;
+                                FDW _fdwObj = new FDW();
                                 string fldkey = utilObj.GetRedisServerFieldkey(tstData.transid, Constants.FIELDPARAMNAMES, fldName, 0);
-                                fdwObj.HashSetKey(fldkey, fldName, parentFldNames);
+                                _fdwObj.HashSetKey(fldkey, fldName, parentFldNames);
                             }
 
                         }
@@ -4825,7 +4879,7 @@ namespace ASB
                     _apiData = asbExt.ExecuteSQL("", sqlInput, "JSON");
                     if (_apiData != string.Empty)
                     {
-                        FDW fdwObj = FDW.Instance;
+                        FDW fdwObj = new FDW();
                         fdwObj.SaveInRedisServer(utilObj.GetRedisServerkey(Constants.REDISTSTFLDFROMAPI, _transid, _fieldName + "-" + _apiname), _apiData, Constants.REDISTSTFLDFROMAPI, schemaName);
                     }
                 }
@@ -5049,9 +5103,10 @@ namespace ASB
             Dictionary<int, string> lvRecordListing = new Dictionary<int, string>();
             lvRecordListing = utils.GetlvRecordList(transId);
             string returnQuery = string.Empty;
+            int recordKey = 0;
             try
             {
-                int recordKey = Convert.ToInt32(Session["lvRecordKey"]);
+                recordKey = Convert.ToInt32(Session["lvRecordKey"]);
 
                 KeyValuePair<int, string> recordkeyValuePair = new KeyValuePair<int, string>();
 
@@ -5069,9 +5124,31 @@ namespace ASB
                 }
             }
             catch (Exception ex) { }
-            if (_tstKeyChanged != "")
-                returnQuery = _tstKeyChanged + "♠*♠" + returnQuery;
-            return returnQuery;
+
+            if (string.IsNullOrEmpty(returnQuery))
+                return "";
+
+            if (returnQuery.ToLower().IndexOf("tstruct.aspx") > -1)
+            {
+                if (_tstKeyChanged != "")
+                    returnQuery = _tstKeyChanged + "♠*♠" + returnQuery;
+                return returnQuery;
+            }
+            else
+            {
+                string pageType = "";
+                if (recordKey == 1)
+                    pageType = "first";
+                else if (recordKey == lvRecordListing.Count)
+                    pageType = "last";
+                else
+                    pageType = "middle";
+
+                if (_tstKeyChanged != "")
+                    return _tstKeyChanged + "♠*♠" + "tstruct.aspx?transid=" + transId + "&recordid=" + returnQuery + "&hltype=load&torecid=false&recPos=" + returnQuery.ToString() + "&curPage=1&pageType=" + pageType + "&openerIV=" + transId + "&isIV=false&isDupTab=false";
+                else
+                    return "tstruct.aspx?transid=" + transId + "&recordid=" + returnQuery + "&hltype=load&torecid=false&recPos=" + recordKey.ToString() + "&curPage=1&pageType=" + pageType + "&openerIV=" + transId + "&isIV=false&isDupTab=false";
+            }
 
         }
         [System.Web.Services.WebMethod(EnableSession = true)]
@@ -5091,9 +5168,11 @@ namespace ASB
             Dictionary<int, string> lvRecordListing = new Dictionary<int, string>();
             lvRecordListing = utils.GetlvRecordList(transId);
             string returnQuery = string.Empty;
+            int recordKey = 0;
             try
             {
-                int recordKey = Convert.ToInt32(Session["lvRecordKey"]);
+
+                recordKey = Convert.ToInt32(Session["lvRecordKey"]);
 
                 KeyValuePair<int, string> recordkeyValuePair = new KeyValuePair<int, string>();
 
@@ -5111,11 +5190,34 @@ namespace ASB
                 }
             }
             catch (Exception ex) { }
-            if (_tstKeyChanged != "")
-                returnQuery = _tstKeyChanged + "♠*♠" + returnQuery;
-            return returnQuery;
+
+            if (string.IsNullOrEmpty(returnQuery))
+                return "";
+
+            if (returnQuery.ToLower().IndexOf("tstruct.aspx") > -1)
+            {
+                if (_tstKeyChanged != "")
+                    returnQuery = _tstKeyChanged + "♠*♠" + returnQuery;
+                return returnQuery;
+            }
+            else
+            {
+                string pageType = "";
+                if (recordKey == 1)
+                    pageType = "first";
+                else if (recordKey == lvRecordListing.Count)
+                    pageType = "last";
+                else
+                    pageType = "middle";
+
+                if (_tstKeyChanged != "")
+                    return _tstKeyChanged + "♠*♠" + "tstruct.aspx?transid=" + transId + "&recordid=" + returnQuery + "&hltype=load&torecid=false&recPos=" + returnQuery.ToString() + "&curPage=1&pageType=" + pageType + "&openerIV=" + transId + "&isIV=false&isDupTab=false";
+                else
+                    return "tstruct.aspx?transid=" + transId + "&recordid=" + returnQuery + "&hltype=load&torecid=false&recPos=" + recordKey.ToString() + "&curPage=1&pageType=" + pageType + "&openerIV=" + transId + "&isIV=false&isDupTab=false";
+            }
 
         }
+
         public string GetListViewRecordsDictionary(string transId, string type, int pageNo)
         {
             string _xmlString = "<?xml version=\"1.0\" encoding=\"utf-8\" ?>";
@@ -5391,7 +5493,7 @@ namespace ASB
             }
             return string.Empty;
         }
-        
+
         [WebMethod(EnableSession = true)]
         public object AddSessionPair(string jsonData)
         {
@@ -5480,30 +5582,28 @@ namespace ASB
         [WebMethod(EnableSession = true)]
         public object GetSession(string key)
         {
-            if (key == "nsessionid" && HttpContext.Current.Session["nsessionid"] != null)
-                return HttpContext.Current.Session["nsessionid"];
-            else if (key == "nsessionid")
+            var session = HttpContext.Current.Session;
+
+            if (session != null && key == "nsessionid" && session["nsessionid"] != null)
+                return session["nsessionid"];
+            else if (session != null && key == "nsessionid")
                 return "Session does not exist";
-            else if (key.ToLower() == "privateKey-ecnrypt")
+            else if (session != null && key.ToLower() == "privateKey-ecnrypt")
                 return "Session does not exist";
 
-            if (System.Web.HttpContext.Current.Session[key] != null && key == "appsessionkey")
+
+            if (session != null && key == "appsessionkey" && session[key] != null)
             {
-                string appsessKey = string.Empty;
-                if (HttpContext.Current.Session["lictype"] != null && HttpContext.Current.Session["lictype"].ToString() == "limited")
-                    appsessKey = "l~";
-                else
-                    appsessKey = "u~";
-                return appsessKey + System.Web.HttpContext.Current.Session[key];
+                string appsessKey = (session["lictype"] != null && session["lictype"].ToString() == "limited") ? "l~" : "u~";
+                return appsessKey + session[key];
             }
-            else if (System.Web.HttpContext.Current.Session[key] != null)
+            else if (session != null && session[key] != null)
             {
-                return System.Web.HttpContext.Current.Session[key];
+                return session[key];
             }
             else
                 return "Session does not exist";
         }
-
         [WebMethod(EnableSession = true)]
         public object GetSessionNew(string jsonData)
         {
@@ -5604,6 +5704,29 @@ namespace ASB
         [WebMethod(EnableSession = true)]
         public string CallRestWS(string jsonData, string webServiceName)
         {
+            string paramsNode = "";
+            string[] resSplit = jsonData.Split(new[] { "*$*" }, StringSplitOptions.None);
+
+            jsonData = resSplit[0];
+
+            if (resSplit.Length > 1)
+            {
+                paramsNode = resSplit[1];
+            }
+            string _adafFieldsList = string.Empty;
+            if (webServiceName.StartsWith("ValidateExpression#"))
+            {
+                _adafFieldsList = webServiceName.Split('#')[1];
+                webServiceName = webServiceName.Split('#')[0];
+            }
+
+            string errlog = logobj.CreateLog("", HttpContext.Current.Session["nsessionid"].ToString(), webServiceName, "");
+            if (Session["AxTrace"] != null && Session["AxTrace"].ToString() == "true")
+            {
+                string scriptsPath = HttpContext.Current.Application["ScriptsPath"].ToString();
+                jsonData = jsonData.Replace("\"trace\":\"\"", "\"trace\":\"" + errlog.Replace("\\", "\\\\") + "\"");
+                jsonData = jsonData.Replace("\"scriptpath\":\"\"", "\"scriptpath\":\"" + scriptsPath.Replace("\\", "\\\\") + "\"");
+            }
             string response = string.Empty;
             string DATA = string.Empty;
             string URL = GetArmScriptURL() + "ASBDefineRest.dll/datasnap/rest/TASBDefineRest/" + webServiceName + "";
@@ -5620,14 +5743,31 @@ namespace ASB
                 DATA = jsonData + ",\"appsessionkey\":\" " + appsesskey + " \" " + ",\"globalvars\":{" + globalvars + "},\"uservars\":{" + uservars + "},\"axapps\":{" + axapps + "}}}";//appsessionkey
             }
             else
-                DATA = jsonData;
-            request.ContentLength = DATA.Length;
-            StreamWriter requestWriter = new StreamWriter(request.GetRequestStream(), System.Text.Encoding.ASCII);
-            requestWriter.Write(DATA);
-            requestWriter.Close();
-
+            {
+                //DATA = jsonData;
+                string appsesskey = Session["AppSessionKey"].ToString();
+                string axprops = HttpContext.Current.Application["axProps"].ToString();
+                axprops = xmltojson(axprops);
+                string axapps = xmltojson(Session["AxApps"].ToString());
+                string globalvar = xmltojson(Session["axGlobalVars"].ToString());
+                string axappsNode = Session["project"].ToString();
+                jsonData = jsonData.Substring(0, jsonData.Length - 4);
+                if (_adafFieldsList == string.Empty)
+                    DATA = jsonData + ",\"appsessionkey\":\"" + appsesskey + "\"},\"" + axappsNode + "\":{" + axapps + "},\"axprops\":{" + axprops + "},\"globalvars\":{" + globalvar + "}" + (paramsNode != string.Empty ? "," + paramsNode + "" : "") + "}]}";
+                else
+                {
+                    string[] _userJson = _adafFieldsList.Split(',');
+                    string _userVarResult = "{\n" + string.Join(",\n", _userJson.Select(x => string.Format("  \"{0}\": \"\"", x))) + "\n}";
+                    DATA = jsonData + ",\"appsessionkey\":\"" + appsesskey + "\"},\"" + axappsNode + "\":{" + axapps + "},\"axprops\":{" + axprops + "},\"globalvars\":{" + globalvar + "},\"uservars\":" + _userVarResult + "" + (paramsNode != string.Empty ? "," + paramsNode + "" : "") + "}]}";
+                }
+            }
             try
             {
+                DATA = utilObj.ServiceInputSpecialChars(DATA);
+                request.ContentLength = DATA.Length;
+                StreamWriter requestWriter = new StreamWriter(request.GetRequestStream(), System.Text.Encoding.ASCII);
+                requestWriter.Write(DATA);
+                requestWriter.Close();
                 WebResponse webResponse = request.GetResponse();
                 Stream webStream = webResponse.GetResponseStream();
                 StreamReader responseReader = new StreamReader(webStream);
@@ -5673,7 +5813,7 @@ namespace ASB
 
             if ((lockDetails.Length == 4 && lockDetails[2] == sessID) || forceUnlock)
             {
-                FDW fdwObj = FDW.Instance;
+                FDW fdwObj = new FDW();
                 fdwObj.Initialize(schemaName);
                 fdwObj.ClearRedisServerDataByKey(Constants.CONFIG_LOCK_KEY, Constants.CONFIG_LOCK_KEY, false, schemaName);
             }
@@ -5718,7 +5858,7 @@ namespace ASB
                 string fdKeyMenuData = Constants.REDISMENUDATA;
                 string schemaName = HttpContext.Current.Session["dbuser"].ToString();
                 FDR fObj = (FDR)HttpContext.Current.Session["FDR"];
-                FDW fdwObj = FDW.Instance;
+                FDW fdwObj = new FDW();
                 fdwObj.SaveInRedisServer(utilObj.GetRedisServerkey(fdKeyMenuData, "Menu"), result1, Constants.REDISMENUDATA, schemaName);
 
                 result1 = result1.Replace(@"\", ";bkslh");
@@ -5785,7 +5925,7 @@ namespace ASB
             string locKey = Constants.AXHYBRIDINFO;
             Util.Util util;
             util = new Util.Util();
-            FDW fdwObj = FDW.Instance;
+            FDW fdwObj = new FDW();
             fdwObj.SaveInRedisServer(util.GetRedisServerkey(locKey, strGUID), result, Constants.AXHYBRIDINFO, "♠");
             //var existingvalues = fObj.StringFromRedis(util.GetRedisServerkey(locKey, strGUID), "♠");
         }
@@ -5826,7 +5966,7 @@ namespace ASB
                 redisValues = fObj.StringFromRedis(util.GetRedisServerkey(key, id, user), schemaName).ToString();
                 if (key == Constants.AXHYBRIDWEIGHTSCALEINFO && redisValues != "")
                 {
-                    FDW fdwObj = FDW.Instance;
+                    FDW fdwObj = new FDW();
                     fdwObj.ClearRedisServerDataByKey(util.GetRedisServerkey(key, id, user), "", false, schemaName);
                 }
             }
@@ -5858,7 +5998,7 @@ namespace ASB
             string notifiKey = Constants.AXHYBRIDNOTIFIINFO;
             Util.Util util;
             util = new Util.Util();
-            FDW fdwObj = FDW.Instance;
+            FDW fdwObj = new FDW();
             fdwObj.SaveInRedisServer(util.GetRedisServerkey(notifiKey, strGUID), result, Constants.AXHYBRIDNOTIFIINFO, "♠");
             //logobj.CreateLog("SetHybridNotifiInfo-" + notification_info + " --strGUID--" + strGUID + "--result--" + result, sessionid, "SetHybridNotifiInfo", "new", "true");
         }
@@ -5930,7 +6070,7 @@ namespace ASB
                 string flArray = utilObj.GetRedisServerFieldkey(transid, Constants.FORMLOADARRAY, "", 0);
                 string strflKeys = fObj.StringFromRedis(flArray);
                 var keyList = strflKeys.Split('¿').ToList();
-                FDW fdwObj = FDW.Instance;
+                FDW fdwObj = new FDW();
                 fdwObj.Initialize(schemaName);
                 if (int.Parse(sKey[0]) != keyList.Count() - 1)
                 {
@@ -6058,7 +6198,7 @@ namespace ASB
                     if (HttpContext.Current.Session["dbuser"] != null)
                         schemaName = HttpContext.Current.Session["dbuser"].ToString();
 
-                    FDW fdwObj = FDW.Instance;
+                    FDW fdwObj = new FDW();
                     string fldkey = utilObj.GetRedisServerFieldkey(tstData.transid, Constants.FIELDNAME, fldName, 0);
                     fdwObj.HashSetKey(fldkey, parentFlds, result);
                 }
@@ -6156,7 +6296,7 @@ namespace ASB
 
                     Session[key] = objIview;
 
-                    FDW fdwObj = FDW.Instance;
+                    FDW fdwObj = new FDW();
                     //string fdKey = Constants.RedisIviewObj;
                     string fdSettingsKey = Constants.RedisIviewSettings;
                     if (objIview.purposeString != "")
@@ -6232,8 +6372,44 @@ namespace ASB
                         PrefixFilename = filePath.Substring(filePath.LastIndexOf("\\") + 1).Replace("*", "");
                         filePath = axpFilePath;
                     }
-                    CopyFiles(filePath, scrPath, PrefixFilename + fileName, fileName);
-                    copied = "true";
+                    string unzipFileName = CopyFiles(filePath, scrPath, PrefixFilename + fileName, fileName, "true");
+                    if (unzipFileName != string.Empty)
+                    {
+                        copied = "true:" + unzipFileName;
+                    }
+                    else
+                        copied = "true";
+                }
+                else if (fileName != string.Empty && fileName.EndsWith(".zip"))
+                {
+                    string unzipFile = string.Empty;
+                    string fileProtectPwd = string.Empty;
+                    if (HttpContext.Current.Session["axp_uploadfileprotectedpwd"] != null)
+                        fileProtectPwd = HttpContext.Current.Session["axp_uploadfileprotectedpwd"].ToString();
+                    if (fileProtectPwd != string.Empty)
+                    {
+                        string zipFilePath = Path.Combine(scrPath, fileName);
+                        using (ZipFile zip = ZipFile.Read(zipFilePath))
+                        {
+                            zip.Password = fileProtectPwd;
+                            if (zip.Entries.Count == 1)
+                            {
+                                foreach (ZipEntry e in zip)
+                                {
+                                    e.Extract(scrPath, ExtractExistingFileAction.OverwriteSilently);
+                                    unzipFile = e.FileName;
+                                }
+                            }
+                            else
+                            {
+                                unzipFile = fileName;
+                            }
+                        }
+                    }
+                    if (unzipFile != string.Empty)
+                    {
+                        copied = "true:" + unzipFile;
+                    }
                 }
             }
             catch (Exception) { }
@@ -6518,8 +6694,9 @@ namespace ASB
             return result;
         }
 
-        protected void CopyFiles(string sourcePath, string destPath, string srcFileName, string desFileName)
+        protected string CopyFiles(string sourcePath, string destPath, string srcFileName, string desFileName, string fromaxpfileclick = "")
         {
+            string destFileName = string.Empty;
             string authenticationStatus = string.Empty;
             if (utils.GetAuthentication(ref authenticationStatus))
             {
@@ -6581,8 +6758,42 @@ namespace ASB
                         output.Dispose();
                         input.Dispose();
                     }
+
+                    if (fromaxpfileclick == "true")
+                    {
+                        string fileProtectPwd = string.Empty;
+                        if (HttpContext.Current.Session["axp_uploadfileprotectedpwd"] != null)
+                            fileProtectPwd = HttpContext.Current.Session["axp_uploadfileprotectedpwd"].ToString();
+                        if (fileProtectPwd != string.Empty && desFileName.EndsWith(".zip"))
+                        {
+                            bool isZipSingle = false;
+                            string zipFilePath = Path.Combine(destPath, desFileName);
+                            using (ZipFile zip = ZipFile.Read(zipFilePath))
+                            {
+                                zip.Password = fileProtectPwd;
+                                if (zip.Entries.Count == 1)
+                                {
+                                    isZipSingle = true;
+                                    foreach (ZipEntry e in zip)
+                                    {
+                                        e.Extract(destPath, ExtractExistingFileAction.OverwriteSilently);
+                                        destFileName = e.FileName;
+                                    }
+                                }
+                                else
+                                {
+                                    destFileName = desFileName;
+                                }
+                            }
+                            if (isZipSingle && File.Exists(zipFilePath))
+                            {
+                                File.Delete(zipFilePath);
+                            }
+                        }
+                    }
                 }
             }
+            return destFileName;
         }
 
         protected void GetGlobalAttachPath()
@@ -6633,16 +6844,19 @@ namespace ASB
             }
             HttpContext.Current.Session["grdAttPath"] = grdAttPath;
         }
-
-        public string saveArrangeMenuData(string menuXml)
+        public string saveArrangeMenuData(string menuXml, string changedNodes, string actionSequence, string changedVisibility)
         {
             string result = string.Empty;
-            string errLog = logobj.CreateLog("ArrangeMenu- callRearrangeMenuWS.", sessionid, "ArrangeMenu-" + project, "new");
             if (HttpContext.Current.Session["project"] == null)
                 return utils.SESSTIMEOUT;
             string proj = HttpContext.Current.Session["project"].ToString();
-            string InputXml = "<ArrangeMenu axpapp=\"" + proj + "\" trace=\"" + errLog + "\" sessionid=\"" + sessionid + "\" appsessionkey='" + HttpContext.Current.Session["AppSessionKey"].ToString() + "' username='" + HttpContext.Current.Session["username"].ToString() + "'>";
-            InputXml += menuXml + "</ArrangeMenu>";
+            string sessionid = HttpContext.Current.Session["nsessionid"].ToString();
+            string errLog = logobj.CreateLog("ArrangeMenu- callRearrangeMenuWS.", sessionid, "ArrangeMenu-" + proj, "new");
+            string InputXml = "<root scriptpath='" + HttpContext.Current.Application["ScriptsPath"].ToString() + "' axpapp=\"" + proj + "\"  trace=\"" + errLog + "\" sessionid=\"" + sessionid + "\" appsessionkey='" + HttpContext.Current.Session["AppSessionKey"].ToString() + "' username='" + HttpContext.Current.Session["username"].ToString() + "' changedNodes=\"" + changedNodes + "\" actionsequence=\"" + actionSequence + "\" changedVisibility=\"" + changedVisibility + "\" >";
+            InputXml += menuXml;
+            InputXml += HttpContext.Current.Session["axApps"].ToString() + HttpContext.Current.Application["axProps"].ToString();
+            InputXml += HttpContext.Current.Session["axGlobalVars"].ToString() + HttpContext.Current.Session["axUserVars"].ToString();
+            InputXml += "</root>";
             result = asbExt.callRearrangeMenuWS(InputXml);
             string errMsg = utils.ParseXmlErrorNode(result);
             if (errMsg != string.Empty)
@@ -6725,7 +6939,7 @@ namespace ASB
 
                 string webAddr = "";
                 if (Session["ARM_URL"] != null && Session["ARM_URL"].ToString() != "")
-                    webAddr = Session["ARM_URL"].ToString() + "/api/v1/SendFCMNotification";
+                    webAddr = Session["ARM_URL"].ToString() + "/ARM_APIs/api/v1/SendFCMNotification";
                 else if (Session["AxFCMSendMsgURL"] != null && Session["AxFCMSendMsgURL"].ToString() != "")
                     webAddr = Session["AxFCMSendMsgURL"].ToString();
 
@@ -6881,13 +7095,25 @@ namespace ASB
                 }
             }
             catch (Exception ex) { }
-
-            HttpContext.Current.Session["axGlobalVars"] = "<globalvars>" + childNode.InnerXml + axGridAttachPath + axAttachmentpath + "</globalvars>";
+            bool axp_timezone = false;
+            string virtualdownloadpath = utilObj.VirtualFilePathUpdate();
+            //string glbVarsFromIni = utilObj.GetGblVarsFromIni();
+            //HttpContext.Current.Session["axGlobalVars"] = "<globalvars>" + childNode.InnerXml + axGridAttachPath + axAttachmentpath + virtualdownloadpath + glbVarsFromIni + "</globalvars>";
+            string glbVarsFromIni = utilObj.GetGblVarsFromIni("<globalvars>" + childNode.InnerXml + "</globalvars>");
+            HttpContext.Current.Session["axGlobalVars"] = "<globalvars>" + glbVarsFromIni + axGridAttachPath + axAttachmentpath + virtualdownloadpath + "</globalvars>";
             string defProject = string.Empty;
             if (HttpContext.Current.Session["project"] != null)
                 defProject = HttpContext.Current.Session["project"].ToString();
             foreach (XmlNode xmlNode in childNode.ChildNodes)
             {
+                if (xmlNode.Name.ToLower() == "axp_timezone" && xmlNode.InnerText != "")
+                {
+                    axp_timezone = true;
+                    if (childNode.SelectSingleNode("timediff") != null)
+                    {
+                        childNode.SelectSingleNode("timediff").InnerText = "";
+                    }
+                }
                 if (xmlNode.Name.ToLower() == "axp_lockonread" && (xmlNode.InnerText.ToLower() == "t" || xmlNode.InnerText.ToLower() == "true"))
                     HttpContext.Current.Session["axp_isLockOnRead"] = "true";
                 globalVariables.Add(xmlNode.Name + "=" + xmlNode.InnerText);
@@ -6909,6 +7135,12 @@ namespace ASB
                     HttpContext.Current.Session["AxpAttachmentPathGbl"] = xmlNode.InnerText;
             }
 
+            if (axp_timezone)
+            {
+                string _glbVarsFromIni = utilObj.GetGblVarsFromIni("<globalvars>" + childNode.InnerXml + "</globalvars>");
+                HttpContext.Current.Session["axGlobalVars"] = "<globalvars>" + _glbVarsFromIni + axGridAttachPath + axAttachmentpath + virtualdownloadpath + "</globalvars>";
+            }
+
             if (globalVariables.Count > 0)
             {
                 CreateParamaterArray(globalVariables);
@@ -6922,11 +7154,18 @@ namespace ASB
             string value = string.Empty;
             int paramCnt = 0;
 
-            for (int i = 0; i < globalVariables.Count; i++)
+            //for (int i = 0; i < globalVariables.Count; i++)
+            //{
+            int i = 0;
+            foreach (string item in globalVariables)
             {
-                string[] strVar = globalVariables[i].ToString().Split('=');
+                string[] strVar = item.ToString().Split('=');
                 value = utils.CheckSpecialChars(strVar[1].ToString());
-                paramlist.Append("Parameters[" + i + "] = " + "\"" + strVar[0] + "~" + value + "\";  ");
+                if (!Constants.globalVarPathVaribles.Contains(strVar[0].ToLower()))
+                {
+                    paramlist.Append("Parameters[" + i + "] = " + "\"" + strVar[0] + "~" + value + "\";  ");
+                    i++;
+                }
                 if (strVar[0].ToString() == "project" && value.Contains(','))
                     HttpContext.Current.Session[strVar[0].ToString()] = value.Split(',')[1];
                 else
@@ -6943,7 +7182,7 @@ namespace ASB
                 if (dtCulture.ToLower() == "en" || dtCulture.ToLower() == "en-us")
                     dtCulture = "en-us";
             }
-            paramCnt = globalVariables.Count;
+            paramCnt = i;
             paramlist.Append("Parameters[" + paramCnt + "] = " + "\"username~" + HttpContext.Current.Session["user"].ToString() + "\";  ");
             paramlist.Append("Parameters[" + (paramCnt + 1) + "] = " + "\"Culture~" + dtCulture + "\";  ");
 
@@ -7354,7 +7593,7 @@ namespace ASB
                 }
 
                 if (Session["ARM_URL"] != null && Session["ARM_URL"].ToString() != "")
-                    webAddr = Session["ARM_URL"].ToString() + "/api/v1/SendFCMNotification";
+                    webAddr = Session["ARM_URL"].ToString() + "/ARM_APIs/api/v1/SendFCMNotification";
                 else if (Session["AxFCMSendMsgURL"] != null && Session["AxFCMSendMsgURL"].ToString() != "")
                     webAddr = Session["AxFCMSendMsgURL"].ToString();
 
@@ -7413,7 +7652,7 @@ namespace ASB
                 }
                 string weightScaleKey = Constants.AXHYBRIDWEIGHTSCALEINFO;
 
-                FDW fdwObj = FDW.Instance;
+                FDW fdwObj = new FDW();
                 fdwObj.SaveInRedisServer(util.GetRedisServerkey(weightScaleKey, strGUID), result, Constants.AXHYBRIDWEIGHTSCALEINFO, "♠");
                 logObj.CreateLog("SetHybridWeightScaleInfo-" + weightScaleInfo + " --strGUID--" + strGUID + "--result--" + result, Session.SessionID, "SetHybridWeightScaleInfo", "new", "true");
             }
@@ -7465,7 +7704,7 @@ namespace ASB
                     return "Redis error";
                 }
                 if (Session["ARM_URL"] != null && Session["ARM_URL"].ToString() != "")
-                    webAddr = Session["ARM_URL"].ToString() + "/api/v1/SendFCMNotification";
+                    webAddr = Session["ARM_URL"].ToString() + "/ARM_APIs/api/v1/SendFCMNotification";
                 else if (Session["AxFCMSendMsgURL"] != null && Session["AxFCMSendMsgURL"].ToString() != "")
                     webAddr = Session["AxFCMSendMsgURL"].ToString();
 
@@ -7705,8 +7944,8 @@ namespace ASB
                 }
             }
 
-            FDW fdwObj = FDW.Instance;
-            bool isRedisConnected = fdwObj.IsConnected;
+            FDW fdwObj = new FDW();
+            bool isRedisConnected = HttpContext.Current.Session["RedisIsConnected"] != null ? bool.Parse(HttpContext.Current.Session["RedisIsConnected"].ToString()) : false;
 
             if (isRedisConnected)
             {
@@ -8046,6 +8285,13 @@ namespace ASB
             if (HttpContext.Current.Session["ARM_URL"] != null && HttpContext.Current.Session["ARMPushToQueue_API"] != null)
                 URL = HttpContext.Current.Session["ARM_URL"].ToString() + HttpContext.Current.Session["ARMPushToQueue_API"].ToString();
 
+            bool isRMQExist = false;
+            string rmqstatus = CheckRabbitMqStatus("CachedSaveQueue");
+            if (rmqstatus == "OK")
+                isRMQExist = true;
+            else if (rmqstatus != "Queue does not exist or queue name incorrect")
+                return "RMQError:" + rmqstatus;
+
             HttpWebRequest request = (HttpWebRequest)WebRequest.Create(URL);
             request.Method = "POST";
             request.ContentType = "application/json";
@@ -8064,6 +8310,7 @@ namespace ASB
             TStructData tstData = (TStructData)Session[tstDataId];
             if (tstData == null)
                 return Constants.DUPLICATESESS;
+            string _tstructcap = tstData.tstStrObj.tstCaption;
             string deledtedRowsJson = string.Empty;
             if (deledtedRows != "")
             {
@@ -8082,12 +8329,20 @@ namespace ASB
             string axapps = xmltojson(Session["axApps"].ToString());
             jsonData = jsonData.Remove(jsonData.Length - 2);
             string pwd = utilObj.MD5Hash(Session["pwd"].ToString());
-            DATA = "{\"_parameters\":[{\"savedata\":{\"cachedsave\":\"true\",\"axpapp\":\"" + HttpContext.Current.Session["project"].ToString() + "\",\"appsessionkey\":\"" + appsesskey + "\" " + ",\"transid\":\"" + transId + "\",\"s\":\"" + Session.SessionID + "\",\"username\":\"" + Session["username"].ToString() + "\",\"password\":\"" + pwd + "\",\"afiles\":\"" + hfiles + "\",\"changedrows\":{" + changedDcs + "},\"trace\":\"" + HttpContext.Current.Session["AxTrace"].ToString() + "\",\"recordid\":\"" + recordId + "\"," + deledtedRows + "";
-            DATA += jsonData + "}],\"globalvars\":{" + globalvars + "},\"uservars\":{" + uservars + "},\"axapps\":{" + axapps + "}";
-            DATA += "}}]}";
-            //request.ContentLength = DATA.Length;
+            string axprops = HttpContext.Current.Application["axProps"].ToString();
+            axprops = xmltojson(axprops);
+            string axappsNode = HttpContext.Current.Session["project"].ToString();
+            //DATA = "{\"_parameters\":[{\"savedata\":{\"cachedsave\":\"true\",\"axpapp\":\"" + HttpContext.Current.Session["project"].ToString() + "\",\"appsessionkey\":\"" + appsesskey + "\" " + ",\"transid\":\"" + transId + "\",\"tstructcap\":\"" + _tstructcap + "\",\"s\":\"" + Session.SessionID + "\",\"username\":\"" + Session["username"].ToString() + "\",\"password\":\"" + pwd + "\",\"afiles\":\"" + hfiles + "\",\"changedrows\":{" + changedDcs + "},\"trace\":\"" + HttpContext.Current.Session["AxTrace"].ToString() + "\",\"recordid\":\"" + recordId + "\"," + deledtedRows + "";
+            DATA = "{\"_parameters\":[{\"savedata\":{\"cachedsave\":\"true\",\"axpapp\":\"" + HttpContext.Current.Session["project"].ToString() + "\",\"appsessionkey\":\"" + appsesskey + "\" " + ",\"transid\":\"" + transId + "\",\"tstructcap\":\"" + _tstructcap + "\",\"s\":\"" + Session.SessionID + "\",\"username\":\"" + Session["username"].ToString() + "\",\"password\":\"\",\"afiles\":\"" + hfiles + "\",\"changedrows\":{" + changedDcs + "},\"trace\":\"" + HttpContext.Current.Session["AxTrace"].ToString() + "\",\"recordid\":\"" + recordId + "\"," + deledtedRows + "";
+            DATA += jsonData + "}]},\"" + axappsNode + "\":{" + axapps + "},\"axprops\":{" + axprops + "},\"globalvars\":{" + globalvars + "},\"uservars\":{" + uservars + "}";
+            DATA += "}]}";
 
-            var saveDetails = "{\"queuename\":\"RapidSaveQueue\",\"queuedata\":" + JsonConvert.SerializeObject(DATA) + "}";
+            if (tstData.tstStrObj.FEncryptFlag.Count > 0)
+            {
+                DATA = CachedSaveFldDataEncrypt(DATA, tstData.tstStrObj.FEncryptFlag);
+            }
+
+            var saveDetails = "{\"queuename\":\"CachedSaveQueue\",\"queuedata\":" + JsonConvert.SerializeObject(DATA) + "}";
             request.ContentLength = saveDetails.Length;
 
             StreamWriter requestWriter = new StreamWriter(request.GetRequestStream(), System.Text.Encoding.ASCII);
@@ -8103,6 +8358,12 @@ namespace ASB
                 response = responseReader.ReadToEnd();
                 Console.Out.WriteLine(response);
                 responseReader.Close();
+                if (!isRMQExist)
+                {
+                    string _rmqstatus = CheckRabbitMqStatus("ARMExportQueue");
+                    if (_rmqstatus != "OK")
+                        return "RMQError:" + _rmqstatus;
+                }
                 try
                 {
                     if (response != "" && response.IndexOf("\"success\":true") > -1)
@@ -8129,7 +8390,7 @@ namespace ASB
         }
 
         [WebMethod(EnableSession = true)]
-        public string ExportARMPushToQueue(string iviewName, string iviewParams, string ivParamCaption, string isListView, string IVIRCaption, string dtFormat)
+        public string ExportARMPushToQueue(string iviewName, string iviewParams, string ivParamCaption, string isListView, string IVIRCaption, string dtFormat, string _smartViewSettings, string _exportType)
         {
             string response = string.Empty;
             if (HttpContext.Current.Session["project"] == null || Session["nsessionid"] == null)
@@ -8138,6 +8399,8 @@ namespace ASB
             string URL = String.Empty;
             string ArmScriptURL = String.Empty;
             string axConfigFilePath = String.Empty;
+            string AxConfigFileMapUser = string.Empty;
+            string AxConfigFileMapPwd = string.Empty;
             if (HttpContext.Current.Session["ARM_URL"] != null && HttpContext.Current.Session["ARMPushToQueue_API"] != null)
                 URL = HttpContext.Current.Session["ARM_URL"].ToString() + HttpContext.Current.Session["ARMPushToQueue_API"].ToString();
             if (HttpContext.Current.Session["ARM_Scripts_URL"] != null)
@@ -8146,11 +8409,23 @@ namespace ASB
             if (URL == string.Empty || ArmScriptURL == string.Empty)
                 return "error:ARM Connection defined";
 
+            bool isRMQExist = false;
+            string rmqstatus = CheckRabbitMqStatus("ARMExportQueue");
+            if (rmqstatus == "OK")
+                isRMQExist = true;
+            else if (rmqstatus != "Queue does not exist or queue name incorrect")
+                return "RMQError:" + rmqstatus;
+
             if (HttpContext.Current.Session["AxConfigFileUploadPath"] != null)
             {
                 axConfigFilePath = HttpContext.Current.Session["AxConfigFileUploadPath"].ToString();
                 axConfigFilePath = axConfigFilePath.Replace(@"\", "\\\\");
             }
+
+            if (HttpContext.Current.Session["AxConfigFileMapUser"] != null)
+                AxConfigFileMapUser = HttpContext.Current.Session["AxConfigFileMapUser"].ToString();
+            if (HttpContext.Current.Session["AxConfigFileMapPwd"] != null)
+                AxConfigFileMapPwd = HttpContext.Current.Session["AxConfigFileMapPwd"].ToString();
 
             HttpWebRequest request = (HttpWebRequest)WebRequest.Create(URL);
             request.Method = "POST";
@@ -8207,7 +8482,7 @@ namespace ASB
             globalVars = globalVars.Replace(@"\", "\\\\");
             string _axapps = HttpContext.Current.Session["axApps"].ToString();
             _axapps = _axapps.Replace(@"\", "\\\\");
-            DATA = "{\"getreport\":{\"trace\":\"" + HttpContext.Current.Session["AxTrace"].ToString() + "\"," + purpose + "\"metadata\":\"true\",\"fetchhidcol\":\"false\",\"_dateformat\":\"" + dtFormat + "\",\"ivcaption\":\"" + IVIRCaption + "\",\"sqlpagination\":\"false\",\"params\":" + iviewParamsJson + ",\"ivParamCaption\":" + iviewParamsJsonCap + ",\"project\":\"" + HttpContext.Current.Session["project"].ToString() + "\",\"name\":\"" + iviewName + "\",\"token\":\"d152232e23ff6523b8104196ff1b6015\",\"seed\":\"211269\",\"userauthkey\":\"" + Session["username"].ToString() + "\",\"s\":\"" + Session.SessionID + "\",\"username\":\"" + Session["username"].ToString() + "\",\"arm_url\":\"" + HttpContext.Current.Session["ARM_URL"].ToString() + "\",\"ARMScriptURL\":\"" + ArmScriptURL + "\",\"axConfigFilePath\":\"" + axConfigFilePath + "\"},\"axprops\":\"" + HttpContext.Current.Application["axProps"].ToString() + "\",\"axapps\":\"" + _axapps + "\",\"globalvars\":\"" + globalVars + "\",\"uservars\":\"" + HttpContext.Current.Session["axUserVars"].ToString() + "\"}";
+            DATA = "{\"getreport\":{\"trace\":\"" + HttpContext.Current.Session["AxTrace"].ToString() + "\"," + purpose + "\"metadata\":\"true\",\"exportType\":\"" + _exportType + "\",\"fetchhidcol\":\"false\",\"_dateformat\":\"" + dtFormat + "\",\"smartViewSettings\":\"" + _smartViewSettings + "\",\"ivcaption\":\"" + IVIRCaption + "\",\"sqlpagination\":\"false\",\"params\":" + iviewParamsJson + ",\"ivParamCaption\":" + iviewParamsJsonCap + ",\"project\":\"" + HttpContext.Current.Session["project"].ToString() + "\",\"name\":\"" + iviewName + "\",\"token\":\"d152232e23ff6523b8104196ff1b6015\",\"seed\":\"211269\",\"userauthkey\":\"" + Session["username"].ToString() + "\",\"s\":\"" + Session.SessionID + "\",\"username\":\"" + Session["username"].ToString() + "\",\"arm_url\":\"" + HttpContext.Current.Session["ARM_URL"].ToString() + "\",\"ARMScriptURL\":\"" + ArmScriptURL + "\",\"axConfigFilePath\":\"" + axConfigFilePath + "\",\"axConfigFileMapUser\":\"" + AxConfigFileMapUser + "\",\"axConfigFileMapPwd\":\"" + AxConfigFileMapPwd + "\"},\"axprops\":\"" + HttpContext.Current.Application["axProps"].ToString() + "\",\"axapps\":\"" + _axapps + "\",\"globalvars\":\"" + globalVars + "\",\"uservars\":\"" + HttpContext.Current.Session["axUserVars"].ToString() + "\"}";
             var saveDetails = "{\"queuename\":\"ARMExportQueue\",\"queuedata\":" + JsonConvert.SerializeObject(DATA) + ",\"timespandelay\":\"0\"}";
             request.ContentLength = saveDetails.Length;
 
@@ -8223,7 +8498,16 @@ namespace ASB
                 response = responseReader.ReadToEnd();
                 Console.Out.WriteLine(response);
                 responseReader.Close();
-                return response;
+                if (!isRMQExist)
+                {
+                    string _rmqstatus = CheckRabbitMqStatus("ARMExportQueue");
+                    if (_rmqstatus != "OK")
+                        return "RMQError:" + _rmqstatus;
+                    else
+                        return response;
+                }
+                else
+                    return response;
             }
             catch (Exception e)
             {
@@ -8246,7 +8530,7 @@ namespace ASB
             string ArmScriptURL = string.Empty;
             string axConfigFilePath = string.Empty;
             string armurl = HttpContext.Current.Session["ARM_URL"].ToString();
-            string apiURL = HttpContext.Current.Session["ARM_URL"].ToString() + "/api/v1/GetEntityListPageLoadData";
+            string apiURL = HttpContext.Current.Session["ARM_URL"].ToString() + "/AxList/api/v1/GetEntityListPageLoadData";
 
 
             if (HttpContext.Current.Session["ARM_URL"] != null && HttpContext.Current.Session["ARMPushToQueue_API"] != null)
@@ -8265,6 +8549,13 @@ namespace ASB
 
             if (HttpContext.Current.Session["ARM_Token"] == null || HttpContext.Current.Session["ARM_Token"].ToString() == "")
                 return "Error: ARM Token is not defined";
+
+            bool isRMQExist = false;
+            string rmqstatus = CheckRabbitMqStatus("ARMExportQueue");
+            if (rmqstatus == "OK")
+                isRMQExist = true;
+            else if (rmqstatus != "Queue does not exist or queue name incorrect")
+                return "RMQError:" + rmqstatus;
 
             AnalyticsUtils _aUtils = new AnalyticsUtils();
             string armSessionId = _aUtils.ARMSessionId;
@@ -8320,7 +8611,16 @@ namespace ASB
                 response = responseReader.ReadToEnd();
                 Console.Out.WriteLine(response);
                 responseReader.Close();
-                return response;
+                if (!isRMQExist)
+                {
+                    string _rmqstatus = CheckRabbitMqStatus("ARMExportQueue");
+                    if (_rmqstatus != "OK")
+                        return "RMQError:" + _rmqstatus;
+                    else
+                        return response;
+                }
+                else
+                    return response;
             }
             catch (Exception ex)
             {
@@ -8550,6 +8850,37 @@ namespace ASB
             return result;
         }
 
+        private string GetUserPasswordForPEG()
+        {
+            if (HttpContext.Current.Session["mailapproval"] != null && HttpContext.Current.Session["mailapproval"].ToString() == "true")
+            {
+                string sessionId = HttpContext.Current.Session["nsessionid"].ToString();
+                string result = "";
+                string sqlQuery = "select password from axusers where username = @user";
+                sqlQuery = sqlQuery.Replace("@user", "'" + HttpContext.Current.Session["username"].ToString() + "'");
+                string inputXML = string.Empty;
+                inputXML = "<sqlresultset axpapp='" + HttpContext.Current.Session["project"].ToString() + "' sessionid='" + sessionId + "' trace='' direct='true' appsessionkey='" + HttpContext.Current.Session["AppSessionKey"].ToString() + "' username='" + HttpContext.Current.Session["username"].ToString() + "'><sql>" + sqlQuery + "</sql>";
+                inputXML += HttpContext.Current.Session["axApps"].ToString() + HttpContext.Current.Application["axProps"].ToString() + HttpContext.Current.Session["axGlobalVars"].ToString() + HttpContext.Current.Session["axUserVars"].ToString() + "</sqlresultset>";
+                ASBExt.WebServiceExt objWebServiceExt = new ASBExt.WebServiceExt();
+                result = objWebServiceExt.CallGetChoiceWebService(transid, inputXML);
+                if (result != "")
+                {
+                    XmlDocument xmlDoc = new XmlDocument();
+                    xmlDoc.LoadXml(result);
+                    XmlNodeList xmlNodes = default(XmlNodeList);
+                    xmlNodes = xmlDoc.SelectNodes("//sqlresultset/response/row/password");
+                    result = xmlNodes[0].InnerXml;
+                    return result;
+                }
+                else
+                    return "";
+            }
+            else
+            {
+                return utilObj.MD5Hash(Session["pwd"].ToString());
+            }
+        }
+
         [WebMethod(EnableSession = true)]
         public string AmdApproveWS(string jsonData, string comments, string reasons, string isAmendment, string AxTstIsPEG)
         {
@@ -8563,10 +8894,20 @@ namespace ASB
                 HttpWebRequest request = (HttpWebRequest)WebRequest.Create(URL);
                 request.Method = "POST";
                 request.ContentType = "application/json";
-                string pwd = utilObj.MD5Hash(Session["pwd"].ToString());
+                string pwd = GetUserPasswordForPEG();
                 string[] _amdData = jsonData.Split('♦');
-                string globalvars = xmltojson(Session["axGlobalVars"].ToString());
-                string uservars = xmltojson(Session["axUserVars"].ToString());
+                //string globalvars = xmltojson(Session["axGlobalVars"].ToString());
+                //string uservars = xmltojson(Session["axUserVars"].ToString());
+                string globalvars = Session["axGlobalVars"].ToString();
+                globalvars = globalvars.Replace(@"\", "\\\\");
+                string uservars = Session["axUserVars"].ToString();
+                //axprops = xmltojson(axprops);
+                //string axapps = xmltojson(Session["AxApps"].ToString());
+                string axprops = HttpContext.Current.Application["axProps"].ToString();
+                string axapps = HttpContext.Current.Session["axApps"].ToString();
+                axapps = axapps.Replace(@"\", "\\\\");
+
+                string axappsProj = HttpContext.Current.Session["project"].ToString();
                 if (isAmendment == "true")
                 {
                     AxTstIsPEG = AxTstIsPEG == "" ? "false" : AxTstIsPEG;
@@ -8574,7 +8915,8 @@ namespace ASB
                      ""axapprove"": {
                      ""axpapp"":""" + HttpContext.Current.Session["project"].ToString() + @""", 
 		             ""username"": """ + HttpContext.Current.Session["username"].ToString() + @""",
-		             ""password"": """ + pwd + @""",
+		             ""password"": """",
+                     ""s"":""" + HttpContext.Current.Session["nsessionid"].ToString() + @""",
 		             ""seed"": """",
 		             ""trace"": """ + HttpContext.Current.Session["AxTrace"] + @""",
 		             ""transid"": """ + _amdData[5] + @""",
@@ -8591,8 +8933,10 @@ namespace ASB
 		             ""statusreason"" : """ + reasons + @""",
                      ""userdata"": { }
                 },
-	                 ""globalvars"": { " + globalvars + @"},
-                     ""uservars"": { " + uservars + @"}
+                     """ + axappsProj + @""":""" + axapps + @""",
+                     ""axprops"":""" + axprops + @""",
+	                 ""globalvars"": """ + globalvars + @""",
+                     ""uservars"": """ + uservars + @"""
             }";
                 }
                 else
@@ -8601,7 +8945,8 @@ namespace ASB
                      ""axapprove"": {
                      ""axpapp"":""" + HttpContext.Current.Session["project"].ToString() + @""", 
 		             ""username"": """ + HttpContext.Current.Session["username"].ToString() + @""",
-		             ""password"": """ + pwd + @""",
+		             ""password"": """",
+                     ""s"":""" + HttpContext.Current.Session["nsessionid"].ToString() + @""",
 		             ""seed"": """",
 		             ""trace"": """ + HttpContext.Current.Session["AxTrace"] + @""",
 		             ""transid"": """ + _amdData[5] + @""",
@@ -8616,8 +8961,10 @@ namespace ASB
 		              ""statusreason"" : """ + reasons + @""",
 		             ""userdata"": {}
 	                 },
-	                 ""globalvars"": {" + globalvars + @"},
-                     ""uservars"": {" + uservars + @"}
+                     """ + axappsProj + @""":""" + axapps + @""",
+                     ""axprops"":""" + axprops + @""",
+	                 ""globalvars"": """ + globalvars + @""",
+                     ""uservars"": """ + uservars + @"""
                      }";
                 }
                 request.ContentLength = DATA.Length;
@@ -8659,17 +9006,28 @@ namespace ASB
                 HttpWebRequest request = (HttpWebRequest)WebRequest.Create(URL);
                 request.Method = "POST";
                 request.ContentType = "application/json";
-                string pwd = utilObj.MD5Hash(Session["pwd"].ToString());
+                string pwd = GetUserPasswordForPEG();
                 string[] _amdData = jsonData.Split('♦');
-                string globalvars = xmltojson(Session["axGlobalVars"].ToString());
-                string uservars = xmltojson(Session["axUserVars"].ToString());
+                //string globalvars = xmltojson(Session["axGlobalVars"].ToString());
+                //string uservars = xmltojson(Session["axUserVars"].ToString());
+                string globalvars = Session["axGlobalVars"].ToString();
+                globalvars = globalvars.Replace(@"\", "\\\\");
+                string uservars = Session["axUserVars"].ToString();
+                //string axprops = HttpContext.Current.Application["axProps"].ToString();
+                //axprops = xmltojson(axprops);
+                //string axapps = xmltojson(Session["AxApps"].ToString());
+                string axprops = HttpContext.Current.Application["axProps"].ToString();
+                string axapps = HttpContext.Current.Session["axApps"].ToString();
+                axapps = axapps.Replace(@"\", "\\\\");
+                string axappsProj = HttpContext.Current.Session["project"].ToString();
                 if (isAmendment == "true")
                 {
                     DATA = @"{
                      ""axreturn"": {
                      ""axpapp"":""" + HttpContext.Current.Session["project"].ToString() + @""", 
 		             ""username"": """ + HttpContext.Current.Session["username"].ToString() + @""",
-		             ""password"": """ + pwd + @""",
+		             ""password"": """",
+                     ""s"":""" + HttpContext.Current.Session["nsessionid"].ToString() + @""",
 		             ""seed"": """",
 		             ""trace"": """ + HttpContext.Current.Session["AxTrace"] + @""",
 		             ""transid"": """ + _amdData[5] + @""",
@@ -8685,8 +9043,10 @@ namespace ASB
 		             ""statusreason"" : """ + reasons + @""",
 		             ""userdata"": {}
 	                 },
-	                 ""globalvars"": {" + globalvars + @"},
-                     ""uservars"": {" + uservars + @"}
+                     """ + axappsProj + @""":""" + axapps + @""",
+                     ""axprops"":""" + axprops + @""",
+	                ""globalvars"": """ + globalvars + @""",
+                     ""uservars"": """ + uservars + @"""
                      }";
                 }
                 else
@@ -8695,7 +9055,8 @@ namespace ASB
                      ""axreturn"": {
                      ""axpapp"":""" + HttpContext.Current.Session["project"].ToString() + @""", 
 		             ""username"": """ + HttpContext.Current.Session["username"].ToString() + @""",
-		             ""password"": """ + pwd + @""",
+		             ""password"": """",
+                     ""s"":""" + HttpContext.Current.Session["nsessionid"].ToString() + @""",
 		             ""seed"": """",
 		             ""trace"": """ + HttpContext.Current.Session["AxTrace"] + @""",
 		             ""transid"": """ + _amdData[5] + @""",
@@ -8711,8 +9072,10 @@ namespace ASB
                      ""returnto"": """ + retLevel + @""",
 		             ""userdata"": {}
 	                 },
-	                 ""globalvars"": {" + globalvars + @"},
-                     ""uservars"": {" + uservars + @"}
+                    """ + axappsProj + @""":""" + axapps + @""",
+                     ""axprops"":""" + axprops + @""",
+	                ""globalvars"": """ + globalvars + @""",
+                     ""uservars"": """ + uservars + @"""
                      }";
                 }
                 request.ContentLength = DATA.Length;
@@ -8754,17 +9117,28 @@ namespace ASB
                 HttpWebRequest request = (HttpWebRequest)WebRequest.Create(URL);
                 request.Method = "POST";
                 request.ContentType = "application/json";
-                string pwd = utilObj.MD5Hash(Session["pwd"].ToString());
+                string pwd = GetUserPasswordForPEG();
                 string[] _amdData = jsonData.Split('♦');
-                string globalvars = xmltojson(Session["axGlobalVars"].ToString());
-                string uservars = xmltojson(Session["axUserVars"].ToString());
+                //string globalvars = xmltojson(Session["axGlobalVars"].ToString());
+                //string uservars = xmltojson(Session["axUserVars"].ToString());
+                string globalvars = Session["axGlobalVars"].ToString();
+                globalvars = globalvars.Replace(@"\", "\\\\");
+                string uservars = Session["axUserVars"].ToString();
+                //string axprops = HttpContext.Current.Application["axProps"].ToString();
+                //axprops = xmltojson(axprops);
+                //string axapps = xmltojson(Session["AxApps"].ToString());
+                string axprops = HttpContext.Current.Application["axProps"].ToString();
+                string axapps = HttpContext.Current.Session["axApps"].ToString();
+                axapps = axapps.Replace(@"\", "\\\\");
+                string axappsProj = HttpContext.Current.Session["project"].ToString();
                 if (isAmendment == "true")
                 {
                     DATA = @"{
                      ""axreject"": {
                      ""axpapp"":""" + HttpContext.Current.Session["project"].ToString() + @""", 
 		             ""username"": """ + HttpContext.Current.Session["username"].ToString() + @""",
-		             ""password"": """ + pwd + @""",
+		             ""password"": """",
+                     ""s"":""" + HttpContext.Current.Session["nsessionid"].ToString() + @""",
 		             ""seed"": """",
 		             ""trace"": """ + HttpContext.Current.Session["AxTrace"] + @""",
 		             ""transid"": """ + _amdData[5] + @""",
@@ -8780,8 +9154,10 @@ namespace ASB
 		             ""statusreason"" : """ + reasons + @""",
 		             ""userdata"": {}
 	                 },
-	                 ""globalvars"": {" + globalvars + @"},
-                     ""uservars"": {" + uservars + @"}
+                   """ + axappsProj + @""":""" + axapps + @""",
+                     ""axprops"":""" + axprops + @""",
+	                 ""globalvars"": """ + globalvars + @""",
+                     ""uservars"": """ + uservars + @"""
                      }";
                 }
                 else
@@ -8790,7 +9166,8 @@ namespace ASB
                      ""axreject"": {
                      ""axpapp"":""" + HttpContext.Current.Session["project"].ToString() + @""", 
 		             ""username"": """ + HttpContext.Current.Session["username"].ToString() + @""",
-		             ""password"": """ + pwd + @""",
+		             ""password"": """",
+                     ""s"":""" + HttpContext.Current.Session["nsessionid"].ToString() + @""",
 		             ""seed"": """",
 		             ""trace"": """ + HttpContext.Current.Session["AxTrace"] + @""",
 		             ""transid"": """ + _amdData[5] + @""",
@@ -8805,8 +9182,10 @@ namespace ASB
 		             ""statusreason"" : """ + reasons + @""",
 		             ""userdata"": {}
 	                 },
-	                 ""globalvars"": {" + globalvars + @"},
-                     ""uservars"": {" + uservars + @"}
+                  """ + axappsProj + @""":""" + axapps + @""",
+                     ""axprops"":""" + axprops + @""",
+	                ""globalvars"": """ + globalvars + @""",
+                     ""uservars"": """ + uservars + @"""
                      }";
                 }
                 request.ContentLength = DATA.Length;
@@ -8848,17 +9227,28 @@ namespace ASB
                 HttpWebRequest request = (HttpWebRequest)WebRequest.Create(URL);
                 request.Method = "POST";
                 request.ContentType = "application/json";
-                string pwd = utilObj.MD5Hash(Session["pwd"].ToString());
+                string pwd = GetUserPasswordForPEG();
                 string[] _amdData = jsonData.Split('♦');
-                string globalvars = xmltojson(Session["axGlobalVars"].ToString());
-                string uservars = xmltojson(Session["axUserVars"].ToString());
+                //string globalvars = xmltojson(Session["axGlobalVars"].ToString());
+                //string uservars = xmltojson(Session["axUserVars"].ToString());
+                string globalvars = Session["axGlobalVars"].ToString();
+                globalvars = globalvars.Replace(@"\", "\\\\");
+                string uservars = Session["axUserVars"].ToString();
+                //string axprops = HttpContext.Current.Application["axProps"].ToString();
+                //axprops = xmltojson(axprops);
+                //string axapps = xmltojson(Session["AxApps"].ToString());
+                string axprops = HttpContext.Current.Application["axProps"].ToString();
+                string axapps = HttpContext.Current.Session["axApps"].ToString();
+                axapps = axapps.Replace(@"\", "\\\\");
+                string axappsProj = HttpContext.Current.Session["project"].ToString();
                 if (isAmendment == "true")
                 {
                     DATA = @"{
                      ""axwithdraw"": {
                      ""axpapp"":""" + HttpContext.Current.Session["project"].ToString() + @""", 
 		             ""username"": """ + HttpContext.Current.Session["username"].ToString() + @""",
-		             ""password"": """ + pwd + @""",
+		             ""password"": """",
+                     ""s"":""" + HttpContext.Current.Session["nsessionid"].ToString() + @""",
 		             ""seed"": """",
 		             ""trace"": """ + HttpContext.Current.Session["AxTrace"] + @""",
 		             ""transid"": """ + _amdData[5] + @""",
@@ -8874,8 +9264,10 @@ namespace ASB
 		             ""statusreason"" : """ + reasons + @""",
 		             ""userdata"": {}
 	                 },
-	                 ""globalvars"": {" + globalvars + @"},
-                     ""uservars"": {" + uservars + @"}
+                   """ + axappsProj + @""":""" + axapps + @""",
+                     ""axprops"":""" + axprops + @""",
+	                 ""globalvars"": """ + globalvars + @""",
+                     ""uservars"": """ + uservars + @"""
                      }";
                 }
                 else
@@ -8884,7 +9276,8 @@ namespace ASB
                      ""axwithdraw"": {
                      ""axpapp"":""" + HttpContext.Current.Session["project"].ToString() + @""", 
 		             ""username"": """ + HttpContext.Current.Session["username"].ToString() + @""",
-		             ""password"": """ + pwd + @""",
+		             ""password"": """",
+                     ""s"":""" + HttpContext.Current.Session["nsessionid"].ToString() + @""",
 		             ""seed"": """",
 		             ""trace"": """ + HttpContext.Current.Session["AxTrace"] + @""",
 		             ""transid"": """ + _amdData[5] + @""",
@@ -8899,8 +9292,10 @@ namespace ASB
 		             ""statusreason"" : """ + reasons + @""",
 		             ""userdata"": {}
 	                 },
-	                 ""globalvars"": {" + globalvars + @"},
-                     ""uservars"": {" + uservars + @"}
+                    """ + axappsProj + @""":""" + axapps + @""",
+                     ""axprops"":""" + axprops + @""",
+	                 ""globalvars"": """ + globalvars + @""",
+                     ""uservars"": """ + uservars + @"""
                      }";
                 }
                 request.ContentLength = DATA.Length;
@@ -8942,16 +9337,26 @@ namespace ASB
                 HttpWebRequest request = (HttpWebRequest)WebRequest.Create(URL);
                 request.Method = "POST";
                 request.ContentType = "application/json";
-                string pwd = utilObj.MD5Hash(Session["pwd"].ToString());
+                string pwd = GetUserPasswordForPEG();
                 string[] _amdData = jsonData.Split('♦');
-                string globalvars = xmltojson(Session["axGlobalVars"].ToString());
-                string uservars = xmltojson(Session["axUserVars"].ToString());
-
+                //string globalvars = xmltojson(Session["axGlobalVars"].ToString());
+                //string uservars = xmltojson(Session["axUserVars"].ToString());
+                string globalvars = Session["axGlobalVars"].ToString();
+                globalvars = globalvars.Replace(@"\", "\\\\");
+                string uservars = Session["axUserVars"].ToString();
+                //string axprops = HttpContext.Current.Application["axProps"].ToString();
+                //axprops = xmltojson(axprops);
+                //string axapps = xmltojson(Session["AxApps"].ToString());
+                string axprops = HttpContext.Current.Application["axProps"].ToString();
+                string axapps = HttpContext.Current.Session["axApps"].ToString();
+                axapps = axapps.Replace(@"\", "\\\\");
+                string axappsProj = HttpContext.Current.Session["project"].ToString();
                 DATA = @"{
                      ""axcheck"": {
                      ""axpapp"":""" + HttpContext.Current.Session["project"].ToString() + @""", 
 		             ""username"": """ + HttpContext.Current.Session["username"].ToString() + @""",
-		             ""password"": """ + pwd + @""",
+		             ""password"": """",
+                     ""s"":""" + HttpContext.Current.Session["nsessionid"].ToString() + @""",
 		             ""seed"": """",
 		             ""trace"": """ + HttpContext.Current.Session["AxTrace"] + @""",
 		             ""transid"": """ + _amdData[5] + @""",
@@ -8966,8 +9371,10 @@ namespace ASB
 		              ""statusreason"" : """ + reasons + @""",
 		             ""userdata"": {}
 	                 },
-	                 ""globalvars"": {" + globalvars + @"},
-                     ""uservars"": {" + uservars + @"}
+                     """ + axappsProj + @""":""" + axapps + @""",
+                     ""axprops"":""" + axprops + @""",
+	                 ""globalvars"": """ + globalvars + @""",
+                     ""uservars"": """ + uservars + @"""
                      }";
 
                 request.ContentLength = DATA.Length;
@@ -9009,17 +9416,28 @@ namespace ASB
                 HttpWebRequest request = (HttpWebRequest)WebRequest.Create(URL);
                 request.Method = "POST";
                 request.ContentType = "application/json";
-                string pwd = utilObj.MD5Hash(Session["pwd"].ToString());
+                string pwd = GetUserPasswordForPEG();
                 string[] _amdData = jsonData.Split('♦');
-                string globalvars = xmltojson(Session["axGlobalVars"].ToString());
-                string uservars = xmltojson(Session["axUserVars"].ToString());
+                //string globalvars = xmltojson(Session["axGlobalVars"].ToString());
+                //string uservars = xmltojson(Session["axUserVars"].ToString());
+                string globalvars = Session["axGlobalVars"].ToString();
+                globalvars = globalvars.Replace(@"\", "\\\\");
+                string uservars = Session["axUserVars"].ToString();
+                //string axprops = HttpContext.Current.Application["axProps"].ToString();
+                //axprops = xmltojson(axprops);
+                //string axapps = xmltojson(Session["AxApps"].ToString());
+                string axprops = HttpContext.Current.Application["axProps"].ToString();
+                string axapps = HttpContext.Current.Session["axApps"].ToString();
+                axapps = axapps.Replace(@"\", "\\\\");
+                string axappsProj = HttpContext.Current.Session["project"].ToString();
                 if (isAmendment == "true")
                 {
                     DATA = @"{
                      ""axrecall"": {
                      ""axpapp"":""" + HttpContext.Current.Session["project"].ToString() + @""", 
 		             ""username"": """ + HttpContext.Current.Session["username"].ToString() + @""",
-		             ""password"": """ + pwd + @""",
+		             ""password"": """",
+                     ""s"":""" + HttpContext.Current.Session["nsessionid"].ToString() + @""",
 		             ""seed"": """",
 		             ""trace"": """ + HttpContext.Current.Session["AxTrace"] + @""",
 		             ""transid"": """ + _amdData[5] + @""",
@@ -9035,8 +9453,10 @@ namespace ASB
 		             ""statusreason"" : """ + reasons + @""",
 		             ""userdata"": {}
 	                 },
-	                 ""globalvars"": {" + globalvars + @"},
-                     ""uservars"": {" + uservars + @"}
+                   """ + axappsProj + @""":""" + axapps + @""",
+                     ""axprops"":""" + axprops + @""",
+	                 ""globalvars"": """ + globalvars + @""",
+                     ""uservars"": """ + uservars + @"""
                      }";
                 }
                 else
@@ -9045,7 +9465,8 @@ namespace ASB
                      ""axrecall"": {
                      ""axpapp"":""" + HttpContext.Current.Session["project"].ToString() + @""", 
 		             ""username"": """ + HttpContext.Current.Session["username"].ToString() + @""",
-		             ""password"": """ + pwd + @""",
+		             ""password"": """",
+                     ""s"":""" + HttpContext.Current.Session["nsessionid"].ToString() + @""",
 		             ""seed"": """",
 		             ""trace"": """ + HttpContext.Current.Session["AxTrace"] + @""",
 		             ""transid"": """ + _amdData[5] + @""",
@@ -9060,8 +9481,10 @@ namespace ASB
 		             ""statusreason"" : """ + reasons + @""",
 		             ""userdata"": {}
 	                 },
-	                 ""globalvars"": {" + globalvars + @"},
-                     ""uservars"": {" + uservars + @"}
+                    """ + axappsProj + @""":""" + axapps + @""",
+                     ""axprops"":""" + axprops + @""",
+	                 ""globalvars"": """ + globalvars + @""",
+                     ""uservars"": """ + uservars + @"""
                      }";
                 }
                 request.ContentLength = DATA.Length;
@@ -9214,7 +9637,7 @@ namespace ASB
                         DATA = DATA.Replace("\"trace\":", "\"sqlcols\":\"t\",\"trace\":");
                     }
 
-                    FDW fdwObj = FDW.Instance;
+                    FDW fdwObj = new FDW();
                     FDR fdrObj = (FDR)HttpContext.Current.Session["FDR"];
                     string RsKey = string.Empty;
                     if (sqlCols != "" && sqlCols == "t")
@@ -9334,7 +9757,7 @@ namespace ASB
                 if (HttpContext.Current.Session["username"] != null)
                 {
                     string userName = HttpContext.Current.Session["username"].ToString();
-                    FDW fdwObj = FDW.Instance;
+                    FDW fdwObj = new FDW();
                     fdwObj.WriteKeyAutoExpire(utilObj.GetRedisServerkey(Constants.AXNOTIFYHISTORY, userName), _AxNotifyHistory, 24 * 60);
                 }
             }
@@ -9550,11 +9973,11 @@ namespace ASB
                 return utilObj.SESSTIMEOUT;
             string DATA = string.Empty;
             string URL = String.Empty;
-            if (HttpContext.Current.Session["ARM_URL"] != null)
-                URL = HttpContext.Current.Session["ARM_URL"].ToString() + "/api/v1/SendSignalR";
+            if (HttpContext.Current.Session["ARM_Notification_URL"] != null)
+                URL = HttpContext.Current.Session["ARM_Notification_URL"].ToString() + "/api/v1/SendSignalR";
 
             if (URL == string.Empty)
-                return "error:ARM Connection not defined";
+                return "error:ARM Notification URL not defined";
             HttpWebRequest request = (HttpWebRequest)WebRequest.Create(URL);
             request.Method = "POST";
             request.ContentType = "application/json";
@@ -9640,6 +10063,1287 @@ namespace ASB
             return dcHTML;
         }
 
+        public bool IsValidEmail(string email)
+        {
+            if (string.IsNullOrWhiteSpace(email))
+                return false;
+
+            string pattern = @"^[^@\s]+@[^@\s]+\.[^@\s]+$";
+            return Regex.IsMatch(email, pattern, RegexOptions.IgnoreCase);
+        }
+        [WebMethod(EnableSession = true)]
+        public string UserActivation(string _Username, string _UserType, string _IsActive)
+        {
+            if (HttpContext.Current.Session["project"] == null)
+                return utilObj.SESSTIMEOUT;
+            string res = string.Empty;
+            try
+            {
+                _IsActive = "T";
+                string schemaName = HttpContext.Current.Session["dbuserALC"].ToString();
+                bool isAxiUser = false;
+                string isAxiUrl = string.Empty;
+                string _UserEmail = string.Empty;
+                //string _AxiToken = "";
+                //LogFile.Log _logObj = new LogFile.Log();
+                //_logObj.CreateLog("User Activate details:_Username:" + _Username + " _UserType:" + _UserType + " _IsActive:" + _IsActive + " schemaName:" + schemaName, HttpContext.Current.Session.SessionID, "UserActivate", "");
+                if (Session["AxiProjectLogin"] != null && Session["AxiProjectLogin"].ToString() == "true")
+                {
+                    string jsoncontents = utilObj.ReadFromFile(HttpContext.Current.Server.MapPath("~/axiglobalconfig.json"));
+                    if (jsoncontents != string.Empty)
+                    {
+                        JObject _jsonAxi = JObject.Parse(jsoncontents);
+                        if (_jsonAxi["AxiGlobal"] != null && _jsonAxi["AxiGlobal"].ToString() == "true" && _jsonAxi["AxiClientAPI"] != null && _jsonAxi["AxiClientAPI"].ToString() != "")
+                        {
+                            _UserEmail = _Username;
+                            if (!IsValidEmail(_UserEmail))
+                            {
+                                DBContext obj = new DBContext();
+                                _UserEmail = obj.GetUserEmailInfo(_Username);
+                            }
+                            if (string.IsNullOrEmpty(_UserEmail))
+                            {
+                                res = "Error: Activating user does not have emailid, please update and activate again.";
+                                return res;
+                            }
+                            string URL = _jsonAxi["AxiClientAPI"].ToString();// "http://localhost/AxiClientAPI/api/AxiClient/AxiUserDeActivate";
+                            //string tokenUrl = URL.TrimEnd('/') + "/api/AxiClient/AxiGenerateToken";
+                            //var tokenRequest = (HttpWebRequest)WebRequest.Create(tokenUrl);
+                            //tokenRequest.Method = "POST";
+                            //tokenRequest.ContentType = "application/json";
+                            //string tokenBody = "{\"email\":\"" + _UserEmail + "\"}";
+                            //using (StreamWriter writer = new StreamWriter(tokenRequest.GetRequestStream()))
+                            //    writer.Write(tokenBody);
+                            //using (WebResponse response = tokenRequest.GetResponse())
+                            //using (StreamReader reader = new StreamReader(response.GetResponseStream()))
+                            //{
+                            //    string tokenResponse = reader.ReadToEnd();
+                            //    dynamic obj = Newtonsoft.Json.JsonConvert.DeserializeObject(tokenResponse);
+                            //    _AxiToken = obj.Token;
+                            //}
+
+
+                            string appUrl = HttpContext.Current.Request.Url.Scheme + "://" + HttpContext.Current.Request.Url.Authority + "/";
+                            URL = URL.TrimEnd('/') + "/api/AxiClient/AxiUserActivate";
+                            isAxiUrl = _jsonAxi["AxiClientAPI"].ToString();
+                            string uDetails = "{\"userName\":\"" + _Username + "\",\"Email\":\"" + _UserEmail + "\",\"schemaName\":\"" + schemaName + "\",\"AppDomain\":\"" + appUrl + "\"}";
+                            HttpWebRequest request = (HttpWebRequest)WebRequest.Create(URL);
+                            request.Method = "POST";
+                            request.ContentType = "application/json";
+                            //request.Headers["Authorization"] = "Bearer " + _AxiToken;
+                            using (StreamWriter writer = new StreamWriter(request.GetRequestStream()))
+                            {
+                                writer.Write(uDetails);
+                            }
+                            using (WebResponse webResponse = request.GetResponse())
+                            using (StreamReader reader = new StreamReader(webResponse.GetResponseStream()))
+                            {
+                                res = reader.ReadToEnd();
+                                if (res.Contains("\"Message\":\"Error:"))
+                                    res = "Error:" + res;
+                                else
+                                    isAxiUser = true;
+                            }
+                        }
+                        else
+                            res = "Error: AxiGlobalConfig is not proper, Please check and try again.";
+                    }
+                    else
+                        res = ALCClient.CallALCClient("Activate", _Username, _UserType, _IsActive, schemaName);
+                }
+                else
+                    res = ALCClient.CallALCClient("Activate", _Username, _UserType, _IsActive, schemaName);
+
+                if (!res.StartsWith("Error:") && !res.Contains("The operation has timed out"))
+                {
+                    var outerObject = JsonConvert.DeserializeObject<Dictionary<string, string>>(res);
+                    string authKey = outerObject["AuthKey"];
+                    string userKey = outerObject["UserKey"];
+                    DBContext obj = new DBContext();
+                    string _res = obj.UpdateALCUserInfo(_Username, _IsActive, authKey, userKey, "activate");
+                    if (_res == "0" || _res.StartsWith("Error:"))
+                        res = _res;
+                    else
+                    {
+                        res = "User activated successfully";
+                        if (isAxiUser)
+                        {
+                            try
+                            {
+                                string URL = isAxiUrl;
+                                URL = URL.TrimEnd('/') + "/api/AxiClient/AxiUserActiveUpdate";
+                                string uDetails = "{\"userName\":\"" + _Username + "\",\"Email\":\"" + _UserEmail + "\",\"schemaName\":\"" + schemaName + "\"}";
+                                HttpWebRequest request = (HttpWebRequest)WebRequest.Create(URL);
+                                request.Method = "POST";
+                                request.ContentType = "application/json";
+                                //request.Headers["Authorization"] = "Bearer " + _AxiToken;
+                                using (StreamWriter writer = new StreamWriter(request.GetRequestStream()))
+                                {
+                                    writer.Write(uDetails);
+                                }
+                                using (WebResponse webResponse = request.GetResponse())
+                                using (StreamReader reader = new StreamReader(webResponse.GetResponseStream()))
+                                {
+                                    reader.ReadToEnd();
+                                }
+                            }
+                            catch (Exception ex)
+                            {
+                                obj.UpdateALCUserInfo(_Username, "F", "", "", "activate");
+                                res = "Error: Error while activating user, please try again";
+                            }
+                        }
+                    }
+                }
+                else
+                {
+                    LogFile.Log logObj = new LogFile.Log();
+                    logObj.CreateLog("User Activation -Error - " + res, HttpContext.Current.Session.SessionID, "UserActivation", "");
+                    if (res.Contains("{\"Message\":"))
+                    {
+                        res = res.Replace("Error: 400 - Bad Request,  Error response body: ", "");
+                        JObject jsonObject = JObject.Parse(res);
+                        res = jsonObject["Message"].ToString();
+                    }
+                    else if (res.StartsWith("Error:") && res.Contains("\"Message\":\"Error:"))
+                    {
+                        res = res.Replace("Error: 400 - Bad Request,  Error response body: ", "");
+                        res = res.Replace("Error:{", "{");
+                        JObject jsonObject = JObject.Parse(res);
+                        res = jsonObject["Message"].ToString();
+                    }
+                    else
+                        res = "Error: Error while activating user, please try again";
+                }
+            }
+            catch (Exception ex)
+            {
+                LogFile.Log logObj = new LogFile.Log();
+                logObj.CreateLog("User Activation -Error:" + res + " in try - " + ex.Message, HttpContext.Current.Session.SessionID, "UserActivation", "");
+                res = "Error: Error while activating user, please try again";
+            }
+            return res;
+        }
+
+        [WebMethod(EnableSession = true)]
+        public string UserDeactivate(string _Username, string _UserType, string _IsActive)
+        {
+            if (HttpContext.Current.Session["project"] == null)
+                return utilObj.SESSTIMEOUT;
+            string res = string.Empty;
+            try
+            {
+                if (_IsActive.ToLower() == "t")
+                {
+                    _IsActive = "F";
+                    string schemaName = HttpContext.Current.Session["dbuserALC"].ToString();
+
+                    //LogFile.Log _logObj = new LogFile.Log();
+                    //_logObj.CreateLog("User Deactivate details:_Username:" + _Username + " _UserType:" + _UserType + " _IsActive:" + _IsActive + " schemaName:" + schemaName, HttpContext.Current.Session.SessionID, "UserDeactivate", "");
+                    if (Session["AxiProjectLogin"] != null && Session["AxiProjectLogin"].ToString() == "true")
+                    {
+                        string jsoncontents = utilObj.ReadFromFile(HttpContext.Current.Server.MapPath("~/axiglobalconfig.json"));
+                        if (jsoncontents != string.Empty)
+                        {
+                            JObject _jsonAxi = JObject.Parse(jsoncontents);
+                            if (_jsonAxi["AxiGlobal"] != null && _jsonAxi["AxiGlobal"].ToString() == "true" && _jsonAxi["AxiClientAPI"] != null && _jsonAxi["AxiClientAPI"].ToString() != "")
+                            {
+                                string appUrl = HttpContext.Current.Request.Url.Scheme + "://" + HttpContext.Current.Request.Url.Authority + "/";
+                                string URL = _jsonAxi["AxiClientAPI"].ToString();
+                                URL = URL.TrimEnd('/') + "/api/AxiClient/AxiUserDeActivate";
+                                string uDetails = "{\"userName\":\"" + _Username + "\",\"schemaName\":\"" + schemaName + "\",\"AppDomain\":\"" + appUrl + "\"}";
+                                HttpWebRequest request = (HttpWebRequest)WebRequest.Create(URL);
+                                request.Method = "POST";
+                                request.ContentType = "application/json";
+                                using (StreamWriter writer = new StreamWriter(request.GetRequestStream()))
+                                {
+                                    writer.Write(uDetails);
+                                }
+                                using (WebResponse webResponse = request.GetResponse())
+                                using (StreamReader reader = new StreamReader(webResponse.GetResponseStream()))
+                                {
+                                    res = reader.ReadToEnd();
+                                    if (res.Contains("\"Message\":\"Error:"))
+                                        res = "Error:" + res;
+                                }
+                            }
+                            else
+                                res = "Error: AxiGlobalConfig is not proper, Please check and try again.";
+                        }
+                        else
+                            res = ALCClient.CallALCClient("Deactivate", _Username, _UserType, _IsActive, schemaName);
+
+                    }
+                    else
+                        res = ALCClient.CallALCClient("Deactivate", _Username, _UserType, _IsActive, schemaName);
+                    if (!res.StartsWith("Error:") && !res.Contains("The operation has timed out"))
+                    {
+                        var outerObject = JsonConvert.DeserializeObject<Dictionary<string, string>>(res);
+                        string authKey = "";
+                        string userKey = "";
+                        DBContext obj = new DBContext();
+                        string _res = obj.UpdateALCUserInfo(_Username, _IsActive, authKey, userKey, "deactivate");
+                        if (_res == "0" || _res.StartsWith("Error:"))
+                            res = _res;
+                        else
+                            res = "User deactivated successfully";
+                    }
+                    else
+                    {
+                        LogFile.Log logObj = new LogFile.Log();
+                        logObj.CreateLog("User Deactivate -Error - " + res, HttpContext.Current.Session.SessionID, "UserDeactivate", "");
+                        if (res.Contains("{\"Message\":"))
+                        {
+                            res = res.Replace("Error: 400 - Bad Request,  Error response body: ", "");
+                            JObject jsonObject = JObject.Parse(res);
+                            res = jsonObject["Message"].ToString();
+                        }
+                        else if (res.StartsWith("Error:") && res.Contains("\"Message\":\"Error:"))
+                        {
+                            res = res.Replace("Error: 400 - Bad Request,  Error response body: ", "");
+                            res = res.Replace("Error:{", "{");
+                            JObject jsonObject = JObject.Parse(res);
+                            res = jsonObject["Message"].ToString();
+                        }
+                        else
+                            res = "Error: Error while deactivating user, please try again";
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                LogFile.Log logObj = new LogFile.Log();
+                logObj.CreateLog("User Deactivate -Error:" + res + " in try - " + ex.Message, HttpContext.Current.Session.SessionID, "UserDeactivate", "");
+                res = "Error: Error while deactivating user, please try again";
+            }
+            return res;
+        }
+
+        [WebMethod(EnableSession = true)]
+        public string UserUpdate(string _Username, string _UserType, string _IsActive, string _prevUserType, string _isValidityOver)
+        {
+            if (HttpContext.Current.Session["project"] == null)
+                return utilObj.SESSTIMEOUT;
+            string res = string.Empty;
+            try
+            {
+                string schemaName = HttpContext.Current.Session["dbuserALC"].ToString();
+                //LogFile.Log _logObj = new LogFile.Log();
+                //_logObj.CreateLog("User Update details:_Username:" + _Username + " _UserType:" + _UserType + " _IsActive:" + _IsActive + " _prevUserType:" + _prevUserType + " _isValidityOver:" + _isValidityOver + " schemaName:" + schemaName, HttpContext.Current.Session.SessionID, "UserUpdate", "");
+                res = ALCClient.CallALCClientUpdate("Update", _Username, _UserType, _IsActive, _prevUserType, _isValidityOver, schemaName);
+                if (!res.StartsWith("Error:") && !res.Contains("The operation has timed out"))
+                {
+                    var outerObject = JsonConvert.DeserializeObject<Dictionary<string, string>>(res);
+                    string authKey = outerObject["AuthKey"];
+                    string userKey = outerObject["UserKey"];
+                    DBContext obj = new DBContext();
+                    string _res = obj.UpdateALCUserInfo(_Username, _IsActive, authKey, userKey, "update");
+                    if (_res == "0" || _res.StartsWith("Error:"))
+                        res = _res;
+                    else
+                        res = "User updated successfully";
+                }
+                else
+                {
+                    LogFile.Log logObj = new LogFile.Log();
+                    logObj.CreateLog("User Update -Error - " + res, HttpContext.Current.Session.SessionID, "UserUpdate", "");
+                    if (res.Contains("{\"Message\":"))
+                    {
+                        res = res.Replace("Error: 400 - Bad Request,  Error response body: ", "");
+                        JObject jsonObject = JObject.Parse(res);
+                        res = jsonObject["Message"].ToString();
+                    }
+                    else
+                        res = "Error: Error while updating user, please try again";
+                }
+            }
+            catch (Exception ex)
+            {
+                LogFile.Log logObj = new LogFile.Log();
+                logObj.CreateLog("User Update -Error:" + res + " in try - " + ex.Message, HttpContext.Current.Session.SessionID, "UserUpdate", "");
+                res = "Error: Error while updating user, please try again";
+            }
+            return res;
+        }
+
+        [WebMethod(EnableSession = true)]
+        public string GetUserKeyInfo(string _Username, string _userKey, string _authkey)
+        {
+            if (HttpContext.Current.Session["project"] == null)
+                return utilObj.SESSTIMEOUT;
+            string res = string.Empty;
+            try
+            {
+                res = ALCClient.CallALCClientInfo(_Username, _userKey, _authkey);
+                if (res.StartsWith("error:"))
+                {
+                    LogFile.Log logObj = new LogFile.Log();
+                    logObj.CreateLog("User Update -Error - " + res, HttpContext.Current.Session.SessionID, "GetUserKeyInfo", "");
+                }
+            }
+            catch (Exception ex)
+            {
+                LogFile.Log logObj = new LogFile.Log();
+                logObj.CreateLog("User Update -Error:" + res + " in try - " + ex.Message, HttpContext.Current.Session.SessionID, "GetUserKeyInfo", "");
+            }
+            return res;
+        }
+
+        [WebMethod(EnableSession = true)]
+        public ArrayList ListTemplates(string fileType)
+        {
+            try
+            {
+                string templateRepository = HttpRuntime.AppDomainAppPath + "AxpTemplates\\";
+                DirectoryInfo di = new DirectoryInfo(templateRepository);
+                FileInfo[] templateFiles = di.GetFiles("*.html");
+                ArrayList allFiles = new ArrayList();
+                for (int i = 0; i < templateFiles.Length; i++)
+                {
+                    FileInfo objFile = (FileInfo)templateFiles[i];
+                    allFiles.Add(objFile.Name);
+                }
+                return allFiles;
+            }
+            catch (Exception ex)
+            { }
+            return null;
+        }
+
+        [WebMethod(EnableSession = true)]
+        public string tstAddFieldReactWS(string _fieldXML)
+        {
+            string results = string.Empty;
+            try
+            {
+                string ttransid = string.Empty;
+                var emptyJSON = "{\"name\":\"\",\"oldName\":\"\",\"caption\":\"\",\"oldCaption\":\"\",\"fieldType\":\"\",\"customDataType\":\"NA\",\"dataType\":\"\",\"dclabel\":\"\",\"dcName\":\"\",\"dcNo\":\"\",\"dcCaption\":\"\",\"width\":1,\"saveValue\":\"true\",\"decimal\":0,\"dbDecimal\":0,\"MOE\":\"Accept\",\"acceptChoice\":\"sql\",\"defSrcField\":\"\",\"defSrcFieldDDN\":\"\",\"defTable\":\"\",\"expression\":\"\",\"source\":\"\",\"defList\":\"\",\"DSForm\":\"\",\"DSFormCaption\":\"\",\"DSFormDDN\":\"\",\"DSField\":\"\",\"DSFieldCaption\":\"\",\"DSFieldDDN\":\"\",\"DSTable\":\"\",\"SqlText\":\"\",\"srcField\":\"\",\"srcTable\":\"\",\"srcForm\":\"\",\"srcFormDDN\":\"\",\"dataSource\":\"\",\"dataSourceDDN\":\"\",\"masterForm\":\"\",\"masterFormCaption\":\"\",\"masterFormDDN\":\"\",\"masterField\":\"\",\"masterFieldCaption\":\"\",\"masterFieldDDN\":\"\",\"fillMaster\":\"\",\"fillMasterCaption\":\"\",\"fillMasterDDN\":\"\",\"masterSqlText\":\"\",\"fillSource\":\"\",\"fillSourceDDN\":\"\",\"suggestive\":\"false\",\"refreshOnSave\":\"false\",\"saveNomralized\":\"false\",\"autoSelect\":\"true\",\"comboBox\":\"false\",\"apiNameSql\":\"\",\"apiNameSqlDDN\":\"\",\"apiNameMO\":\"\",\"apiNameMODDN\":\"\",\"apiURL\":\"\",\"apiReqStr\":\"\",\"apiRespType\":\"\",\"apiRespFormat\":\"\",\"mapFieldApi\":\"\",\"fillFrmApiSrc\":\"\",\"fillFrmApiSrcCap\":\"\",\"fillFrmApiSrcDDN\":\"\",\"intelligence\":\"false\",\"defSeqTable\":[],\"sequence\":\"\",\"validateExp\":\"\",\"allowEmpty\":\"true\",\"allowDuplicate\":\"true\",\"onlyPositive\":\"false\",\"clientValidation\":\"false\",\"hidden\":\"false\",\"readOnly\":\"false\",\"applyComma\":\"false\",\"setCarry\":\"false\",\"tabstop\":\"true\",\"fieldDataEncrypt\":\"false\",\"hideInSearch\":\"false\",\"PWAlphaNum\":\"false\",\"masking\":\"No Mask\",\"maskChar\":\"X\",\"maskRoles\":\"\",\"lastCharMask\":0,\"firstCharMask\":0,\"pattern\":\"\",\"displayDetails\":\"\",\"separator\":\"\",\"pwdChar\":\"\",\"pwdLength\":0,\"pwdExpiry\":0,\"radiotype\":\"\",\"applyRule\":\"false\",\"encrypted\":\"false\",\"runtimeFld\":\"false\",\"runtimecriteria\":\"false\",\"purpose\":\"\",\"ptableid\":\"\",\"firstcolvalue\":\"\",\"tablename\":\"\"}";
+                XmlDocument xmlDoc = new XmlDocument();
+                xmlDoc.LoadXml(_fieldXML);
+                XmlNode stIdNode = xmlDoc.SelectSingleNode("//root/varlist/row/isparam");
+                if (stIdNode != null && stIdNode.InnerText == "T")
+                {
+                    try
+                    {
+                        JObject jsonObject = JObject.Parse(emptyJSON);
+                        XmlNodeList rowNodes = xmlDoc.SelectNodes("//root/varlist/row");
+                        if (rowNodes != null)
+                        {
+                            foreach (XmlNode rowNode in rowNodes)
+                            {
+                                foreach (XmlNode childNode in rowNode.ChildNodes)
+                                {
+                                    string fieldName = childNode.Name;
+                                    string fieldValue = childNode.InnerText;
+                                    if (fieldName == "ttransid")
+                                        ttransid = fieldValue;
+                                    if (fieldName == "vpname")
+                                        jsonObject["name"] = fieldValue;
+                                    if (fieldName == "oldpcaption")
+                                        jsonObject["oldCaption"] = fieldValue;
+                                    if (fieldName == "pcaption")
+                                        jsonObject["caption"] = fieldValue;
+                                    if (fieldName == "pdatatype")
+                                        jsonObject["dataType"] = fieldValue;
+                                    if (fieldName == "modeofentry")
+                                        jsonObject["MOE"] = fieldValue;
+                                    if (fieldName == "modeofentry")
+                                    {
+                                        jsonObject["MOE"] = fieldValue;
+                                        if (fieldValue.ToLower() == "select")
+                                            jsonObject["source"] = "select from sql";
+                                    }
+                                    if (fieldName == "customdatatype")
+                                        jsonObject["fieldType"] = fieldValue;
+                                    if (fieldName == "display")
+                                        jsonObject["hidden"] = fieldValue == "F" ? "false" : "true";
+                                    if (fieldName == "readonly")
+                                        jsonObject["readOnly"] = fieldValue == "F" ? "false" : "true";
+                                    if (fieldName == "datawidth")
+                                        jsonObject["width"] = fieldValue;
+                                    if (fieldName == "SQL_editor_psql")
+                                    {
+                                        string _SqlText = fieldValue;
+                                        if (_SqlText != string.Empty)
+                                        {
+                                            _SqlText = Regex.Replace(_SqlText, @"(\s+|<br\s*/?>)", " ", RegexOptions.IgnoreCase);
+                                        }
+                                        jsonObject["SqlText"] = _SqlText;
+                                    }
+                                    if (fieldName == "dcselect")
+                                    {
+                                        jsonObject["dclabel"] = fieldValue;
+                                        string _DcName = fieldValue.Split('(')[1].Split(')')[0];
+                                        string _dcNumber = _DcName.Replace("dc", "");
+                                        jsonObject["dcName"] = _DcName;
+                                        jsonObject["dcNo"] = _dcNumber;
+                                        jsonObject["dcCaption"] = _DcName;
+                                    }
+
+                                    if (fieldName == "masterdl")
+                                        jsonObject["fillMaster"] = fieldValue;
+                                    if (fieldName == "v_sql")
+                                    {
+                                        string _v_sqlText = fieldValue;
+                                        if (_v_sqlText != string.Empty)
+                                        {
+                                            _v_sqlText = Regex.Replace(_v_sqlText, @"(\s+|<br\s*/?>)", " ", RegexOptions.IgnoreCase);
+                                        }
+                                        jsonObject["masterSqlText"] = _v_sqlText;
+                                    }
+                                    if (fieldName == "source")
+                                        jsonObject["fillSource"] = fieldValue;
+                                }
+                            }
+                        }
+                        results = JsonConvert.SerializeObject(jsonObject, Newtonsoft.Json.Formatting.Indented).Replace("\r\n ", "").Replace("\r\n", "");
+                        string globalvars = Session["axGlobalVars"].ToString();
+                        string uservars = Session["axUserVars"].ToString();
+                        string axapps = Session["axApps"].ToString();
+                        string axprops = HttpContext.Current.Application["axProps"].ToString();
+                        globalvars = globalvars.Replace(@"\", "\\\\");
+                        string errorLog = string.Empty;
+                        errorLog = logobj.CreateLog("Calling addTstfieldtoXml:", sessionid, "addTstfieldtoXml-" + transid, "new");
+                        bool isTrace = false;
+                        if (errorLog != "")
+                            isTrace = true;
+                        var _jsonObject = new
+                        {
+                            userName = HttpContext.Current.Session["user"].ToString(),
+                            projName = HttpContext.Current.Session["project"].ToString(),
+                            trace = isTrace,
+                            structName = ttransid,
+                            sessionid = HttpContext.Current.Session["nsessionid"].ToString(),
+                            axApps = axapps,
+                            axProps = axprops,
+                            axGlobalvars = globalvars,
+                            axUservars = uservars,
+                            fldPropsJSON = results
+                        };
+
+                        string inputJson = JsonConvert.SerializeObject(_jsonObject, Newtonsoft.Json.Formatting.None);
+
+                        string axpertstudioReact = string.Empty;
+                        if (Session["axpertstudioReact"] != null)
+                            axpertstudioReact = Session["axpertstudioReact"].ToString();
+
+                        string api = axpertstudioReact + "General/addTstfieldtoXml";
+                        HttpWebRequest request = (HttpWebRequest)WebRequest.Create(api);
+                        request.Method = "POST";
+                        request.ContentType = "application/JSON";
+                        request.Headers["isruntime"] = "true";
+                        request.ContentLength = inputJson.Length;
+                        StreamWriter requestWriter = new StreamWriter(request.GetRequestStream(), System.Text.Encoding.ASCII);
+                        requestWriter.Write(inputJson);
+                        requestWriter.Close();
+
+                        WebResponse webResponse = request.GetResponse();
+                        Stream webStream = webResponse.GetResponseStream();
+                        StreamReader responseReader = new StreamReader(webStream);
+                        results = responseReader.ReadToEnd();
+                        Console.Out.WriteLine(results);
+                        responseReader.Close();
+                        utilObj.DeleteCachedDataKeys("tstruct", "axglo");
+                    }
+                    catch (Exception ex)
+                    {
+                        LogFile.Log logObj = new LogFile.Log();
+                        logObj.CreateLog("Tstruct AddFieldReactWS -Error - " + ex.Message, HttpContext.Current.Session.SessionID, "AddFieldReactWS", "");
+                    }
+                }
+                else
+                    results = "";
+            }
+            catch (Exception ex)
+            {
+                LogFile.Log logObj = new LogFile.Log();
+                logObj.CreateLog("Tstruct AddFieldReactWS -Error - " + ex.Message, HttpContext.Current.Session.SessionID, "AddFieldReactWS2", "");
+            }
+            return results;
+        }
+
+        [WebMethod(EnableSession = true)]
+        public string AddFormRuntimeWS(string additionalInfo)
+        {
+            string res = string.Empty;
+            try
+            {
+                if (additionalInfo != "" && additionalInfo != null)
+                {
+                    string[] _addInfo = additionalInfo.Split('~');
+                    string _defaultJSON = "{\"name\":\"" + _addInfo[1] + "\",\"caption\":\"" + _addInfo[2] + "\",\"schema\":\"\",\"menuaccess\":true,\"pform\":\"yes\",\"saveCtrlFld\":\"\",\"saveCtrlFldCaption\":\"\",\"saveCtrlFldsDDN\":\"\",\"dltCtrlFld\": \"\",\"dltCtrlFldCaption\":\"\",\"dltCtrlFldsDDN\":\"\",\"tracking\":false,\"trackby\":\"\",\"trackusrs\": \"\",\"trackUsrsDDN\":[],\"trackfldOption\":\"\",\"trackFlds\":\"\",\"trackFldCaps\":\"\",\"trackFldsDDN\":[],\"allowconfig\":false,\"enablecache\":false,\"enablewf\":false,\"allowattch\":false,\"enableListVW\":true,\"purpose\":\"\"}";
+                    string _runtimeInfo = string.Empty;
+                    string _formType = _addInfo[3] == "1" ? "simple" : (_addInfo[3] == "2" ? "header-details" : "header-details-footer");
+                    if (Session["isRuntimeFormKeys"] != null && Session["isRuntimeFormKeys"].ToString() != "")
+                        _runtimeInfo = "{\"formtype\":\"" + _formType + "\"}";
+                    else
+                    {
+                        string globalvars = Session["axGlobalVars"].ToString();
+                        string uservars = Session["axUserVars"].ToString();
+                        string axapps = Session["axApps"].ToString();
+                        string axprops = HttpContext.Current.Application["axProps"].ToString();
+                        globalvars = globalvars.Replace(@"\", "\\\\");
+                        _runtimeInfo = "{\"formtype\":\"" + _formType + "\",\"axapps\":\"" + axapps + "\",\"axprops\":\"" + axprops + "\",\"axglobalvars\":\"" + globalvars + "\",\"axuservars\":\"" + uservars + "\"}";
+                    }
+
+                    string errorLog = string.Empty;
+                    errorLog = logobj.CreateLog("Calling addFormRuntime:", sessionid, "addFormRuntime-" + _addInfo[1], "new");
+                    bool isTrace = false;
+                    if (errorLog != "")
+                        isTrace = true;
+                    var _jsonObject = new
+                    {
+                        mode = "new",
+                        projName = HttpContext.Current.Session["project"].ToString(),
+                        userName = HttpContext.Current.Session["user"].ToString(),
+                        sessionID = HttpContext.Current.Session["nsessionid"].ToString(),
+                        trace = isTrace,
+                        structName = _addInfo[1],
+                        structCaption = _addInfo[2],
+                        structType = "tstruct",
+                        isComp = false,
+                        compJSON = "{}",
+                        propvalJSON = _defaultJSON,
+                        runtimeInfo = _runtimeInfo
+
+                    };
+                    string inputJson = JsonConvert.SerializeObject(_jsonObject, Newtonsoft.Json.Formatting.None);
+                    Session["isRuntimeFormKeys"] = "true";
+
+                    string axpertstudioReact = string.Empty;
+                    if (Session["axpertstudioReact"] != null)
+                        axpertstudioReact = Session["axpertstudioReact"].ToString();
+
+                    string api = axpertstudioReact + "SaveFormDataRuntime";
+                    HttpWebRequest request = (HttpWebRequest)WebRequest.Create(api);
+                    request.Method = "POST";
+                    request.ContentType = "application/JSON";
+                    request.Headers["isruntime"] = "true";
+                    request.ContentLength = inputJson.Length;
+                    StreamWriter requestWriter = new StreamWriter(request.GetRequestStream(), System.Text.Encoding.ASCII);
+                    requestWriter.Write(inputJson);
+                    requestWriter.Close();
+
+                    WebResponse webResponse = request.GetResponse();
+                    Stream webStream = webResponse.GetResponseStream();
+                    StreamReader responseReader = new StreamReader(webStream);
+                    res = responseReader.ReadToEnd();
+                    responseReader.Close();
+                }
+            }
+            catch (Exception ex)
+            {
+                res = string.Empty;
+            }
+            return res;
+        }
+
+        [WebMethod(EnableSession = true)]
+        public string AddFieldRuntimeWS(string transid, string formCap, string fieldJson, string fldMode, string newform, string formInfo)
+        {
+            string res = string.Empty;
+            try
+            {
+                if (newform != "" && newform == "T")
+                {
+                    string _addform = AddFormRuntimeWS(formInfo);
+                    JObject obj = JObject.Parse(_addform);
+                    if (obj["success"].ToString() == "False")
+                    {
+                        res = "addform:" + _addform;
+                        return res;
+                    }
+                }
+                string _runtimeInfo = string.Empty;
+                if (Session["isRuntimeFormKeys"] != null && Session["isRuntimeFormKeys"].ToString() != "")
+                    _runtimeInfo = "{}";
+                else
+                {
+                    string globalvars = Session["axGlobalVars"].ToString();
+                    string uservars = Session["axUserVars"].ToString();
+                    string axapps = Session["axApps"].ToString();
+                    string axprops = HttpContext.Current.Application["axProps"].ToString();
+                    globalvars = globalvars.Replace(@"\", "\\\\");
+                    _runtimeInfo = "{\"axapps\":\"" + axapps + "\",\"axprops\":\"" + axprops + "\",\"axglobalvars\":\"" + globalvars + "\",\"axuservars\":\"" + uservars + "\"}";
+                }
+
+                string errorLog = string.Empty;
+                errorLog = logobj.CreateLog("Calling AddFieldRuntimeWS:", sessionid, "AddFieldRuntimeWS-" + transid, "new");
+                bool isTrace = false;
+                if (errorLog != "")
+                    isTrace = true;
+                var _jsonObject = new
+                {
+                    mode = fldMode,
+                    projName = HttpContext.Current.Session["project"].ToString(),
+                    userName = HttpContext.Current.Session["user"].ToString(),
+                    sessionID = HttpContext.Current.Session["nsessionid"].ToString(),
+                    trace = isTrace,
+                    structName = transid,
+                    structCaption = formCap,
+                    structType = "tstruct",
+                    isComp = true,
+                    compJSON = "{}",
+                    propvalJSON = fieldJson,
+                    runtimeInfo = _runtimeInfo
+
+                };
+                string inputJson = JsonConvert.SerializeObject(_jsonObject, Newtonsoft.Json.Formatting.None);
+                Session["isRuntimeFormKeys"] = "true";
+
+                string axpertstudioReact = string.Empty;
+                if (Session["axpertstudioReact"] != null)
+                    axpertstudioReact = Session["axpertstudioReact"].ToString();
+
+                string api = axpertstudioReact + "SaveFormDataRuntime";
+                HttpWebRequest request = (HttpWebRequest)WebRequest.Create(api);
+                request.Method = "POST";
+                request.ContentType = "application/JSON";
+                request.Headers["isruntime"] = "true";
+                request.ContentLength = inputJson.Length;
+                StreamWriter requestWriter = new StreamWriter(request.GetRequestStream(), System.Text.Encoding.ASCII);
+                requestWriter.Write(inputJson);
+                requestWriter.Close();
+
+                WebResponse webResponse = request.GetResponse();
+                Stream webStream = webResponse.GetResponseStream();
+                StreamReader responseReader = new StreamReader(webStream);
+                res = responseReader.ReadToEnd();
+                responseReader.Close();
+            }
+            catch (Exception ex)
+            {
+                res = string.Empty;
+            }
+            return res;
+        }
+
+        [WebMethod(EnableSession = true)]
+        public string DeleteFieldRuntimeWS(string transid, string fieldname, string dcname)
+        {
+            string res = string.Empty;
+            try
+            {
+                string _runtimeInfo = string.Empty;
+                if (Session["isRuntimeFormKeys"] != null && Session["isRuntimeFormKeys"].ToString() != "")
+                    _runtimeInfo = "{}";
+                else
+                {
+                    string globalvars = Session["axGlobalVars"].ToString();
+                    string uservars = Session["axUserVars"].ToString();
+                    string axapps = Session["axApps"].ToString();
+                    string axprops = HttpContext.Current.Application["axProps"].ToString();
+                    globalvars = globalvars.Replace(@"\", "\\\\");
+                    _runtimeInfo = "{\"axapps\":\"" + axapps + "\",\"axprops\":\"" + axprops + "\",\"axglobalvars\":\"" + globalvars + "\",\"axuservars\":\"" + uservars + "\"}";
+                }
+
+                string errorLog = string.Empty;
+                errorLog = logobj.CreateLog("Calling DeleteFieldRuntimeWS:", sessionid, "DeleteFieldRuntimeWS-" + transid, "new");
+                bool isTrace = false;
+                if (errorLog != "")
+                    isTrace = true;
+                isTrace = true;
+                var _jsonObject = new
+                {
+                    projName = HttpContext.Current.Session["project"].ToString(),
+                    userName = HttpContext.Current.Session["user"].ToString(),
+                    sessionID = HttpContext.Current.Session["nsessionid"].ToString(),
+                    trace = isTrace,
+                    structName = transid,
+                    StructType = "tstruct",
+                    CompName = fieldname,
+                    CompType = "field",
+                    ParentName = dcname,
+                    runtimeInfo = _runtimeInfo
+                };
+                string inputJson = JsonConvert.SerializeObject(_jsonObject, Newtonsoft.Json.Formatting.None);
+                Session["isRuntimeFormKeys"] = "true";
+
+                string axpertstudioReact = string.Empty;
+                if (Session["axpertstudioReact"] != null)
+                    axpertstudioReact = Session["axpertstudioReact"].ToString();
+
+                string api = axpertstudioReact + "DeleteDataRunTime";
+                HttpWebRequest request = (HttpWebRequest)WebRequest.Create(api);
+                request.Method = "POST";
+                request.ContentType = "application/JSON";
+                request.Headers["isruntime"] = "true";
+                request.ContentLength = inputJson.Length;
+                StreamWriter requestWriter = new StreamWriter(request.GetRequestStream(), System.Text.Encoding.ASCII);
+                requestWriter.Write(inputJson);
+                requestWriter.Close();
+
+                WebResponse webResponse = request.GetResponse();
+                Stream webStream = webResponse.GetResponseStream();
+                StreamReader responseReader = new StreamReader(webStream);
+                res = responseReader.ReadToEnd();
+                responseReader.Close();
+            }
+            catch (Exception ex)
+            {
+                res = string.Empty;
+            }
+            return res;
+        }
+
+        [WebMethod(EnableSession = true)]
+        public string tstDeleteFieldReactWS(string _fieldXML)
+        {
+            string results = string.Empty;
+            try
+            {
+                string ttransid = string.Empty;
+                string dFieldName = string.Empty;
+                XmlDocument xmlDoc = new XmlDocument();
+                xmlDoc.LoadXml(_fieldXML);
+                XmlNode stIdNode = xmlDoc.SelectSingleNode("//root/varlist/row/isparam");
+                if (stIdNode != null && stIdNode.InnerText == "T")
+                {
+                    try
+                    {
+                        XmlNode ttransidNode = xmlDoc.SelectSingleNode("//root/varlist/row/ttransid");
+                        if (ttransidNode != null)
+                            ttransid = ttransidNode.InnerText;
+                        XmlNode vpnameNode = xmlDoc.SelectSingleNode("//root/varlist/row/vpname");
+                        if (vpnameNode != null)
+                            dFieldName = vpnameNode.InnerText;
+                        string globalvars = Session["axGlobalVars"].ToString();
+                        string uservars = Session["axUserVars"].ToString();
+                        string axapps = Session["axApps"].ToString();
+                        string axprops = HttpContext.Current.Application["axProps"].ToString();
+                        globalvars = globalvars.Replace(@"\", "\\\\");
+                        string errorLog = string.Empty;
+                        errorLog = logobj.CreateLog("Calling tstDeleteFieldReactWS:", sessionid, "tstDeleteFieldReactWS-" + ttransid, "new");
+                        bool isTrace = !string.IsNullOrEmpty(errorLog);
+                        var _jsonObject = new
+                        {
+                            userName = HttpContext.Current.Session["user"].ToString(),
+                            projName = HttpContext.Current.Session["project"].ToString(),
+                            trace = isTrace,
+                            structName = ttransid,
+                            fldName = dFieldName,
+                            sessionid = HttpContext.Current.Session["nsessionid"].ToString(),
+                            axApps = axapps,
+                            axProps = axprops,
+                            axGlobalvars = globalvars,
+                            axUservars = uservars
+                        };
+                        var serializerSettings = new JsonSerializerSettings
+                        {
+                            Formatting = Newtonsoft.Json.Formatting.None,
+                            ContractResolver = new Newtonsoft.Json.Serialization.DefaultContractResolver
+                            {
+                                NamingStrategy = new Newtonsoft.Json.Serialization.CamelCaseNamingStrategy()
+                            }
+                        };
+                        string inputJson = JsonConvert.SerializeObject(_jsonObject, serializerSettings);
+                        string axpertstudioReact = string.Empty;
+                        if (Session["axpertstudioReact"] != null)
+                            axpertstudioReact = Session["axpertstudioReact"].ToString();
+
+                        string api = axpertstudioReact + "General/deleteTstfield";
+                        HttpWebRequest request = (HttpWebRequest)WebRequest.Create(api);
+                        request.Method = "POST";
+                        request.ContentType = "application/JSON";
+                        request.Headers["isruntime"] = "true";
+                        request.ContentLength = inputJson.Length;
+                        StreamWriter requestWriter = new StreamWriter(request.GetRequestStream(), System.Text.Encoding.ASCII);
+                        requestWriter.Write(inputJson);
+                        requestWriter.Close();
+
+                        WebResponse webResponse = request.GetResponse();
+                        Stream webStream = webResponse.GetResponseStream();
+                        StreamReader responseReader = new StreamReader(webStream);
+                        results = responseReader.ReadToEnd();
+                        Console.Out.WriteLine(results);
+                        responseReader.Close();
+
+                        utilObj.DeleteCachedDataKeys("tstruct", "axglo");
+                    }
+                    catch (Exception ex)
+                    {
+                        LogFile.Log logObj = new LogFile.Log();
+                        logObj.CreateLog("Tstruct tstDeleteFieldReactWS -Error - " + ex.Message, HttpContext.Current.Session.SessionID, "tstDeleteFieldReactWS", "");
+                    }
+                }
+                else
+                    results = "";
+            }
+            catch (Exception ex)
+            {
+                LogFile.Log logObj = new LogFile.Log();
+                logObj.CreateLog("Tstruct tstDeleteFieldReactWS -Error - " + ex.Message, HttpContext.Current.Session.SessionID, "tstDeleteFieldReactWS2", "");
+            }
+            return results;
+        }
+
+        [WebMethod(EnableSession = true)]
+        public string openDevStudioRedis(string ptype)
+        {
+            string res = string.Empty;
+            try
+            {
+                DevFDW devfdwObj = new DevFDW();// DevFDW.DevInstance;
+                bool added = devfdwObj.writeSessionHash(ptype);
+                if (added)
+                    res = "done";
+            }
+            catch (Exception ex) { }
+            return res;
+        }
+        [WebMethod(EnableSession = true)]
+        public string isDevStudioOpenedRedis(string ptype)
+        {
+            string res = "defSiteNoteOpend";
+            try
+            {
+                DevFDW devfdwObj = new DevFDW();
+                res = devfdwObj.HashGetKey(ptype);
+                if (res != null && res != "")
+                    res = "defSiteOpend";
+                else
+                    res = "defSiteNoteOpend";
+            }
+            catch (Exception ex)
+            {
+                res = "defSiteNoteOpend";
+            }
+            return res;
+        }
+
+        [WebMethod(EnableSession = true)]
+        public string getSQLHintObj()
+        {
+
+            DBquery DBQobj = new DBquery();
+            WebServiceExt asbEx = new WebServiceExt();
+            string query = string.Empty;
+            string result = string.Empty;
+            try
+            {
+                query = DBQobj.getSQLqueryString("", "getTblClmnHint");
+                result = asbEx.ExecuteSQL("", query, "JSON");
+                string errrMsg = utils.ParseJSonErrorNode(result);
+                if (errrMsg == string.Empty)
+                    return result;
+                else
+                    return string.Empty;
+
+            }
+            catch (Exception ex)
+            {
+                LogFile.Log logobj = new LogFile.Log();
+                logobj.CreateLog("Exception in getSQLHintObj - util.cs -" + ex.Message, HttpContext.Current.Session["nsessionid"].ToString(), "getSQLHintObj", "new");
+                return string.Empty;
+            }
+        }
+
+        [WebMethod(EnableSession = true)]
+        public string GetPreviewInfo(string pName)
+        {
+            string axpertWebUrl = string.Empty;
+            try
+            {
+                JObject adDetails = new JObject();
+
+                adDetails["project"] = HttpContext.Current.Session["project"].ToString();
+                adDetails["username"] = HttpContext.Current.Session["user"].ToString();
+                adDetails["lang"] = HttpContext.Current.Session["language"].ToString();
+                adDetails["roles"] = HttpContext.Current.Session["userroles"].ToString();
+                adDetails["hguid"] = HttpContext.Current.Session["hybridGUID"].ToString();
+                adDetails["pName"] = pName;
+
+                var appurl = Convert.ToString(System.Web.HttpContext.Current.Request.Url);
+                Uri uri = new Uri(appurl);
+                string baseUrl = string.Format("{0}://{1}", uri.Scheme, uri.Authority);
+                string[] pathSegments = uri.AbsolutePath.Split(new[] { '/' }, StringSplitOptions.RemoveEmptyEntries);
+                if (pathSegments.Length > 0)
+                {
+                    baseUrl = string.Format("{0}/{1}", baseUrl, pathSegments[0]);
+                }
+                axpertWebUrl = baseUrl;
+                axpertWebUrl += "/aspx/AxMainAuth.aspx?encAuth=" + utils.encrtptDecryptAES(adDetails.ToString(Newtonsoft.Json.Formatting.None));
+            }
+            catch (Exception ex)
+            {
+                axpertWebUrl = string.Empty;
+            }
+            return axpertWebUrl;
+        }
+
+        [WebMethod(EnableSession = true)]
+        public string GetCardsWithData(bool isHomePage, bool refreshData)
+        {
+            string result = String.Empty;
+            try
+            {
+                AnalyticsUtils _aUtils = new AnalyticsUtils();
+                string apiUrl = _aUtils.ARM_URL + "/AxList/api/v1/GetCardsWithData";
+
+                var inputJson = new
+                {
+                    ARMSessionId = _aUtils.ARMSessionId,
+                    AxSessionId = HttpContext.Current.Session.SessionID,
+                    Trace = Convert.ToBoolean(HttpContext.Current.Session["AxTrace"].ToString() ?? "false"),
+                    AppName = HttpContext.Current.Session["project"].ToString(),
+                    Roles = HttpContext.Current.Session["AxRole"].ToString(),
+                    UserName = HttpContext.Current.Session["username"].ToString(),
+                    SchemaName = HttpContext.Current.Session["dbuser"].ToString(),
+                    Language = HttpContext.Current.Session["language"].ToString(),
+                    HomePageCards = isHomePage,
+                    RefreshData = refreshData
+                    //,GlobalParams = _aUtils.GetGlobalParams()
+                };
+
+                var cardsData = _aUtils.CallWebAPI(apiUrl, "POST", "application/json", JsonConvert.SerializeObject(inputJson));
+
+                if (cardsData != "")
+                {
+                    try
+                    {
+                        var cardDataJson = JObject.Parse(cardsData)["result"];
+                        if (cardDataJson["data"] != null && !string.IsNullOrEmpty(cardDataJson["data"].ToString()))
+                        {
+                            cardsData = cardDataJson["data"].ToString();
+                        }
+                        else if (cardDataJson["statuscode"] != null && cardDataJson["statuscode"].ToString() == "500")
+                        {
+                            LogFile.Log logobj = new LogFile.Log();
+                            logobj.CreateLog("Error in GetCardsWithData: " + cardsData, HttpContext.Current.Session["nsessionid"].ToString(), "GetCardsWithData", "new", "true");
+                            cardsData = "";
+                        }
+                        else if (cardDataJson["success"] != null && cardDataJson["success"].ToString().ToLower() == "false")
+                        {
+                            LogFile.Log logobj = new LogFile.Log();
+                            logobj.CreateLog("Error in GetCardsWithData: " + cardsData, HttpContext.Current.Session["nsessionid"].ToString(), "GetCardsWithData", "new", "true");
+
+                            if (cardDataJson["message"] != null)
+                            {
+                                cardsData = cardDataJson["message"].ToString();
+                            }
+                            else
+                                cardsData = "";
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        LogFile.Log logobj = new LogFile.Log();
+                        logobj.CreateLog("Error in GetCardsWithData: " + cardsData + " Exception:" + ex.Message, HttpContext.Current.Session["nsessionid"].ToString(), "GetCardsWithData", "new", "true");
+                        cardsData = "";
+                    }
+                }
+                return cardsData;
+            }
+            catch (Exception ex)
+            {
+                LogFile.Log logobj = new LogFile.Log();
+                logobj.CreateLog("Error in GetCardsWithData: Exception:" + ex.Message, HttpContext.Current.Session["nsessionid"].ToString(), "GetCardsWithData", "new", "true");
+                return "";
+            }
+        }
+
+        [WebMethod(EnableSession = true)]
+        public string GetDataFromExternalAPI(string ApiUrl, string ApiMethodType, string ApiRespType)
+        {
+            string result = string.Empty;
+            ApiMethodType = ApiMethodType.ToUpper();
+            string DATA = string.Empty;
+            HttpWebRequest request = (HttpWebRequest)WebRequest.Create(ApiUrl);
+            request.Method = ApiMethodType;
+            request.ContentType = "application/" + ApiRespType;
+
+            try
+            {
+                WebResponse webResponse = request.GetResponse();
+                Stream webStream = webResponse.GetResponseStream();
+                StreamReader responseReader = new StreamReader(webStream);
+                result = responseReader.ReadToEnd();
+                Console.Out.WriteLine(result);
+                responseReader.Close();
+            }
+            catch (Exception e)
+            {
+                result = e.Message;
+            }
+            return result;
+        }
+
+
+        [WebMethod(EnableSession = true)]
+        public string AxpStrDataEncrypt(string value)
+        {
+            if (HttpContext.Current.Session["project"] == null)
+                return utilObj.SESSTIMEOUT;
+            string res = string.Empty;
+            try
+            {
+                res = AXPEncryptData.CallEncryptData(value);
+            }
+            catch (Exception ex)
+            { }
+            return res;
+        }
+
+        [WebMethod(EnableSession = true)]
+        public string AxpStrDataDeEncrypt(string value)
+        {
+            if (HttpContext.Current.Session["project"] == null)
+                return utilObj.SESSTIMEOUT;
+            string res = string.Empty;
+            try
+            {
+                res = AXPEncryptData.CallDecryptData(value);
+            }
+            catch (Exception ex)
+            { }
+            return res;
+        }
+
+        [WebMethod(EnableSession = true)]
+        public string AxpFieldDataEncrypt(string inputJson)
+        {
+            if (HttpContext.Current.Session["project"] == null)
+                return utilObj.SESSTIMEOUT;
+            string res = string.Empty;
+            try
+            {
+                res = AXPEncryptData.CallEncryptDataJson(inputJson);
+            }
+            catch (Exception ex)
+            { }
+            return res;
+        }
+
+        [WebMethod(EnableSession = true)]
+        public string AxpFieldDataDecrypt(string inputJson, ArrayList encryptFldList, string isFromIview = "false")
+        {
+            if (HttpContext.Current.Session["project"] == null)
+                return utilObj.SESSTIMEOUT;
+            string res = string.Empty;
+            try
+            {
+                inputJson = inputJson.Replace(@"\", "\\\\");
+                string[] parts = inputJson.Split(new[] { "*$*" }, StringSplitOptions.RemoveEmptyEntries);
+                string jsonData = parts.FirstOrDefault(p =>
+                {
+                    try
+                    {
+                        JObject obj = JObject.Parse(p);
+                        return obj["data"] != null;
+                    }
+                    catch
+                    {
+                        return false;
+                    }
+                });
+                if (string.IsNullOrEmpty(jsonData))
+                    return inputJson;
+                if (isFromIview == "false")
+                {
+                    JObject jsonObject = JObject.Parse(jsonData);
+                    JArray dataArray = (JArray)jsonObject["data"];
+                    var filteredItems = dataArray
+                        .Where(item => encryptFldList.Contains((string)item["n"]))
+                        .ToList();
+                    string resultJson = JsonConvert.SerializeObject(filteredItems, Newtonsoft.Json.Formatting.Indented);
+
+                    string decryptedJson = AXPEncryptData.CallDecryptDataJson(resultJson);
+
+                    JArray decryptedArray = JArray.Parse(decryptedJson);
+                    foreach (JObject decryptedItem in decryptedArray)
+                    {
+                        string fieldName = (string)decryptedItem["n"];
+                        string rowNumber = (string)decryptedItem["r"];
+                        JObject fullItem = dataArray
+                            .FirstOrDefault(d => (string)d["n"] == fieldName && (string)d["r"] == rowNumber) as JObject;
+                        if (fullItem != null)
+                        {
+                            fullItem["v"] = decryptedItem["v"];
+                        }
+                    }
+                    res = inputJson.Replace(jsonData, jsonObject.ToString(Newtonsoft.Json.Formatting.None));
+                }
+                else
+                {
+                    JObject jsonObject = JObject.Parse(jsonData);
+                    JArray rowArray = (JArray)jsonObject["data"]["row"];
+                    JArray itemsToDecrypt = new JArray();
+                    foreach (JObject row in rowArray)
+                    {
+                        string rowno = (string)row["rowno"];
+                        foreach (string fld in encryptFldList)
+                        {
+                            if (row[fld] != null)
+                            {
+                                JObject obj = new JObject();
+                                obj.Add("n", fld);
+                                obj.Add("r", rowno);
+                                obj.Add("v", row[fld]);
+                                itemsToDecrypt.Add(obj);
+                            }
+                        }
+                    }
+                    string encryptedJson = JsonConvert.SerializeObject(itemsToDecrypt);
+                    string decryptedJson = AXPEncryptData.CallDecryptDataJson(encryptedJson);
+                    JArray decryptedArray = JArray.Parse(decryptedJson);
+                    foreach (JObject decryptedItem in decryptedArray)
+                    {
+                        string fieldName = (string)decryptedItem["n"];
+                        string rowNumber = (string)decryptedItem["r"];
+                        string decryptedValue = (string)decryptedItem["v"];
+                        JObject matchingRow = rowArray
+                            .FirstOrDefault(r => (string)r["rowno"] == rowNumber) as JObject;
+                        if (matchingRow != null)
+                        {
+                            matchingRow[fieldName] = decryptedValue;
+                        }
+                    }
+                    res = jsonObject.ToString(Newtonsoft.Json.Formatting.None);
+                }
+
+                res = res.Replace(@"\\", @"\");
+            }
+            catch (Exception ex)
+            { }
+            return res;
+        }
+
+        [WebMethod(EnableSession = true)]
+        public string CachedSaveFldDataEncrypt(string inputJson, ArrayList encryptFldList)
+        {
+            if (HttpContext.Current.Session["project"] == null)
+                return utilObj.SESSTIMEOUT;
+            string res = string.Empty;
+            try
+            {
+                JObject jsonObject = JObject.Parse(inputJson);
+                JArray parameters = (JArray)jsonObject["_parameters"];
+                JObject savedata = (JObject)parameters[0]["savedata"];
+                JArray recdata = (JArray)savedata["recdata"];
+                List<JObject> extractedFields = new List<JObject>();
+                foreach (JObject record in recdata)
+                {
+                    foreach (JProperty property in record.Properties())
+                    {
+                        JArray rows = (JArray)property.Value;
+                        foreach (JObject row in rows)
+                        {
+                            string rowNumber = (string)row["rowno"];
+                            JObject columns = (JObject)row["columns"];
+
+                            foreach (object fieldObj in encryptFldList)
+                            {
+                                string field = fieldObj.ToString();
+                                if (columns.Property(field) != null)
+                                {
+                                    extractedFields.Add(new JObject { { "axp_recid", property.Name.Replace("axp_recid", "") }, { "n", field }, { "r", rowNumber }, { "v", columns[field] } });
+                                }
+                            }
+                        }
+                    }
+                }
+                string resultJson = JsonConvert.SerializeObject(extractedFields, Newtonsoft.Json.Formatting.Indented);
+                string _decRes = AXPEncryptData.CallEncryptDataJson(resultJson);
+                JArray decryptedArray = JArray.Parse(_decRes);
+                foreach (JObject decryptedItem in decryptedArray)
+                {
+                    string recid = "axp_recid" + (string)decryptedItem["axp_recid"];
+                    string fieldName = (string)decryptedItem["n"];
+                    string rowNumber = (string)decryptedItem["r"];
+                    string encryptedValue = (string)decryptedItem["v"];
+                    foreach (JObject record in recdata)
+                    {
+                        if (record.Property(recid) != null)
+                        {
+                            JArray rowArray = (JArray)record[recid];
+                            foreach (JObject row in rowArray)
+                            {
+                                if ((string)row["rowno"] == rowNumber)
+                                {
+                                    JObject columns = (JObject)row["columns"];
+                                    if (columns.Property(fieldName) != null)
+                                    {
+                                        columns[fieldName] = columns[fieldName].ToString() + "*$*" + encryptedValue;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+                res = jsonObject.ToString(Newtonsoft.Json.Formatting.Indented);
+            }
+            catch (Exception ex)
+            { }
+            return res;
+        }
+
+        [WebMethod(EnableSession = true)]
+        public string CheckFormIsLocked(string ptype, string structName, string formComponentsFlag)
+        {
+            string res = "notlocked";
+            try
+            {
+                if (formComponentsFlag != "")
+                {
+                    string[] _formComps = formComponentsFlag.Split('~');
+                    DeleteLockedKey(_formComps[0], _formComps[1]);
+                }
+                DevFDW devfdwObj = new DevFDW();
+                res = devfdwObj.HashGetKeyLocked(ptype, structName);
+                if (res == null || res == "")
+                    res = "notlocked";
+                else
+                    res = res.Split('♠')[0];
+            }
+            catch (Exception ex)
+            {
+                res = "notlocked";
+            }
+            return res;
+        }
+
+        [WebMethod(EnableSession = true)]
+        public bool DeleteLockedKey(string ptype, string structName)
+        {
+            bool res = false;
+            try
+            {
+                DevFDW devfdwObj = new DevFDW();
+                res = devfdwObj.HashDeletekeyLocked(ptype, structName);
+            }
+            catch (Exception ex)
+            {
+                res = false;
+            }
+            return res;
+        }
+
+        public void addFieldDynamically(string inputXml)
+        {
+            try
+            {
+                XmlDocument xmlDoc = new XmlDocument();
+                xmlDoc.LoadXml(inputXml);
+                XmlNode tftransid = xmlDoc.SelectSingleNode("//root/varlist/row/tftransid");
+                XmlNode tfcaption = xmlDoc.SelectSingleNode("//root/varlist/row/tfcaption");
+                XmlNode dc2fldprops = xmlDoc.SelectSingleNode("//root/varlist/row/dc2fldprops");
+                XmlNode dc3fldprops = xmlDoc.SelectSingleNode("//root/varlist/row/dc3fldprops");
+
+                XmlNode tftransid2 = xmlDoc.SelectSingleNode("//root/varlist/row/tftransid2");
+                XmlNode tfcaption2 = xmlDoc.SelectSingleNode("//root/varlist/row/tfcaption2");
+                //XmlNode a_dup_dc1caption = xmlDoc.SelectSingleNode("//root/varlist/row/a_dup_dc1caption");
+                XmlNode a_dup_dc1fldprops = xmlDoc.SelectSingleNode("//root/varlist/row/a_dup_dc1fldprops");
+                AddFieldRuntimeWS(tftransid.InnerText, tfcaption.InnerText, dc2fldprops.InnerText, "new", "", "");
+
+                AddFieldRuntimeWS(tftransid.InnerText, tfcaption.InnerText, dc3fldprops.InnerText, "new", "", "");
+                AddFieldRuntimeWS(tftransid2.InnerText, tfcaption2.InnerText, a_dup_dc1fldprops.InnerText, "new", "", "");
+            }
+            catch (Exception ex)
+            {
+                LogFile.Log logObj = new LogFile.Log();
+                logObj.CreateLog("Tstruct addFieldDynamically -Error - " + ex.Message, HttpContext.Current.Session.SessionID, "addFieldDynamically", "");
+            }
+        }
         public string LoginOTPPushToQueue(string _proj, string _uname, string _loginRes, string otpAuthExpiry, string axOTPAuthCahrs, string _isotpNumeric, string _JsonSmtp)
         {
             string response = string.Empty;
@@ -9691,19 +11395,19 @@ namespace ASB
                 //                    URL = _jsonAxEmail["arm_url"].ToString();
                 //                else
                 //                    return "ARM connection does not exist. Please contact the administrator.";
-                //                FDW fdwObj = FDW.Instance;
+                //                FDW fdwObj = new FDW();
                 //                fdwObj.SaveInRedisServer(Constants.AXEMAILSMTP_CONN_KEY, jsoncontents, Constants.AXEMAILSMTP_CONN_KEY, _proj);
                 //            }
                 //            else
                 //            {
-                //                FDW fdwObj = FDW.Instance;
+                //                FDW fdwObj = new FDW();
                 //                fdwObj.SaveInRedisServer(Constants.AXEMAILSMTP_CONN_KEY, "noemailsettings", Constants.AXEMAILSMTP_CONN_KEY, _proj);
                 //                return "Email settings does not exist. Please contact the administrator.";
                 //            }
                 //        }
                 //        else
                 //        {
-                //            FDW fdwObj = FDW.Instance;
+                //            FDW fdwObj = new FDW();
                 //            fdwObj.SaveInRedisServer(Constants.AXEMAILSMTP_CONN_KEY, "noemailsettings", Constants.AXEMAILSMTP_CONN_KEY, _proj);
                 //            return "Email settings does not exist. Please contact the administrator.";
                 //        }
@@ -9771,14 +11475,23 @@ namespace ASB
                 }
 
                 string _emailid = string.Empty, _mobileNo = string.Empty;
+                if (_loginRes != "")
+                {
+                    var match = Regex.Match(_loginRes, "email_id\\s*=\\s*\"([^\"]*)\"");
+                    if (match.Success)
+                        _emailid = match.Groups[1].Value;
 
-                var match = Regex.Match(_loginRes, "email_id\\s*=\\s*\"([^\"]*)\"");
-                if (match.Success)
-                    _emailid = match.Groups[1].Value;
-
-                var matchMob = Regex.Match(_loginRes, "mobileno\\s*=\\s*\"([^\"]*)\"");
-                if (matchMob.Success)
-                    _mobileNo = matchMob.Groups[1].Value;
+                    var matchMob = Regex.Match(_loginRes, "mobileno\\s*=\\s*\"([^\"]*)\"");
+                    if (matchMob.Success)
+                        _mobileNo = matchMob.Groups[1].Value;
+                }
+                else
+                {
+                    if (Session["userEmail_id"] != null)
+                        _emailid = Session["userEmail_id"].ToString();
+                    if (Session["userMobileno"] != null)
+                        _mobileNo = Session["userMobileno"].ToString();
+                }
 
                 string _esredisKey = _proj + "-" + Constants.AXEMAILSMTP_CONN_KEY;
                 string redisIp = string.Empty, redisPort = string.Empty, redisPwd = string.Empty;
@@ -9792,6 +11505,19 @@ namespace ASB
                 {
                     redisPwd = HttpContext.Current.Session["RedisCachePwd"].ToString();
                 }
+
+                if (HttpContext.Current.Session["RedisCacheIP"] == null)
+                {
+                    string rcDetails = utilObj.GetRedisConnDetails(_proj);
+                    if (rcDetails != "")
+                    {
+                        redisIp = rcDetails.Split('♣')[0];
+                        redisPort = redisIp.Split(':')[1];
+                        redisIp = redisIp.Split(':')[0];
+                        redisPwd = rcDetails.Split('♣')[1];
+                    }
+                }
+
                 if (_emailSubject == string.Empty)
                     _emailSubject = "Axpert OTP Authentication";
                 if (_emailBody == string.Empty)
@@ -9840,7 +11566,7 @@ namespace ASB
                 }
                 catch (Exception e)
                 {
-                    return response;
+                    return "Either ARM is not running or setup is not proper. Please contact administrator to rectify ARM setup issue.";
                 }
             }
             catch (Exception ex)
@@ -9851,8 +11577,871 @@ namespace ASB
                 return response;
             }
         }
+
+        [WebMethod(EnableSession = true)]
+        public string MultiFrameUpdateDataXML(ArrayList fldArray, ArrayList fldDbRowNo, ArrayList fldValueArray, ArrayList fldDeletedArray, ArrayList deletedFldArrayValues, string files, string rid, string delRows, string changedRows, string key, string resTstHtmlLS)
+        {
+            ObjExecTr.SetCurrentTime();
+            DateTime sTime1 = DateTime.Now;
+            if (HttpContext.Current.Session["project"] == null)
+                return utilObj.SESSTIMEOUT;
+            string _tstKeyChanged = "";
+            if (resTstHtmlLS != "")
+            {
+                utilObj.DeleteTstIvObject(key.Split('_')[0]);
+                key = utilObj.GetReGenTstDataObj(key, resTstHtmlLS);
+                _tstKeyChanged = key;
+            }
+            TStructData tstData = (TStructData)Session[key];
+            if (tstData == null)
+                return Constants.DUPLICATESESS;
+
+            string result = string.Empty;
+            DateTime eTime1 = DateTime.Now;
+
+            Util.Util.DeletedraftRediskeys(tstData.transid);
+            result = tstData.CallMultiFrameDataUpdate(tstData, fldArray, fldDbRowNo, fldValueArray, fldDeletedArray, deletedFldArrayValues, files, rid, delRows, changedRows);
+            DateTime sTime2 = DateTime.Now;
+            if (!result.StartsWith(Constants.ERROR))
+            {
+                if (tstData.IsDraftObj && HttpContext.Current.Session["AxEnableDraftSave"] != null && HttpContext.Current.Session["AxEnableDraftSave"].ToString() == "true")
+                {
+                    user = HttpContext.Current.Session["user"].ToString();
+                    utilObj.DeleteDraft(user + "-" + tstData.transid, user);
+                }
+            }
+            DateTime eTime2 = DateTime.Now;
+
+            if (tstData.logTimeTaken)
+                tstData.strServerTime = (tstData.webTime1 + (eTime1.Subtract(sTime1).TotalMilliseconds)) + "," + tstData.asbTime + "," + (tstData.webTime2 + (eTime2.Subtract(sTime2).TotalMilliseconds));
+            if (_tstKeyChanged != "")
+            {
+                result = _tstKeyChanged + "♠*♠" + result;
+            }
+            return result;
+        }
+
+        //[WebMethod(EnableSession = true)]
+        //public string MultiFrameDataPushToQueue(string multiframeJsonData)
+        //{
+        //    string result = string.Empty;
+        //    try
+        //    {
+        //        string response = string.Empty;
+        //        string DATA = string.Empty;
+        //        string URL = String.Empty;
+        //        if (HttpContext.Current.Session["ARM_URL"] != null && HttpContext.Current.Session["ARMPushToQueue_API"] != null)
+        //            URL = HttpContext.Current.Session["ARM_URL"].ToString() + HttpContext.Current.Session["ARMPushToQueue_API"].ToString();
+        //        string appsesskey = Session["AppSessionKey"].ToString();
+        //        string globalvars = xmltojson(Session["axGlobalVars"].ToString());
+        //        string uservars = xmltojson(Session["axUserVars"].ToString());
+        //        string axapps = xmltojson(Session["axApps"].ToString());
+        //        string pwd = utilObj.MD5Hash(Session["pwd"].ToString());
+        //        string axprops = HttpContext.Current.Application["axProps"].ToString();
+        //        axprops = xmltojson(axprops);
+        //        string axappsNode = HttpContext.Current.Session["project"].ToString();
+        //        JObject _obj = JObject.Parse(multiframeJsonData);
+        //        foreach (KeyValuePair<string, JToken> formData in _obj)
+        //        {
+        //            string formName = formData.Key;
+        //            JObject formContent = formData.Value as JObject;
+        //            if (formContent != null)
+        //            {
+        //                string tstDataId = formContent["tstDataId"] != null ? formContent["tstDataId"].ToString() : "";
+        //                string changedDcs = formContent["changedDcs"] != null ? formContent["changedDcs"].ToString() : "";
+        //                string recordid = formContent["recordid"] != null ? formContent["recordid"].ToString() : "";
+        //                string deledtedRows = formContent["delRows"] != null ? formContent["delRows"].ToString() : "";
+        //                string hfiles = formContent["files"] != null ? formContent["files"].ToString() : "";
+
+        //                JToken recdataNode = formContent["recdata"];
+        //                string recdataJsonString = recdataNode.ToString(Newtonsoft.Json.Formatting.None);
+        //                string jsonData = "\"recdata\":" + recdataJsonString;
+
+        //                TStructData tstData = (TStructData)Session[tstDataId];
+        //                if (tstData == null)
+        //                    return Constants.DUPLICATESESS;
+        //                string _transId = tstData.transid;
+
+        //                string deledtedRowsJson = string.Empty;
+        //                if (deledtedRows != "")
+        //                {
+        //                    deledtedRowsJson = tstData.GetDelRowsNode(deledtedRows);
+        //                    XmlDocument doc = new XmlDocument();
+        //                    doc.LoadXml(deledtedRowsJson);
+        //                    deledtedRows = JsonConvert.SerializeXmlNode(doc);
+        //                    deledtedRows = deledtedRows.Remove(deledtedRows.IndexOf("{"), 1);
+        //                    deledtedRows = deledtedRows.Remove(deledtedRows.LastIndexOf("}"), 1);
+        //                    deledtedRows += ",";
+        //                }
+        //                HttpWebRequest request = (HttpWebRequest)WebRequest.Create(URL);
+        //                request.Method = "POST";
+        //                request.ContentType = "application/json";
+        //                if (changedDcs == "{}")
+        //                    DATA = "{\"_parameters\":[{\"savedata\":{\"cachedsave\":\"true\",\"axpapp\":\"" + HttpContext.Current.Session["project"].ToString() + "\",\"appsessionkey\":\"" + appsesskey + "\" " + ",\"transid\":\"" + _transId + "\",\"s\":\"" + Session.SessionID + "\",\"username\":\"" + Session["username"].ToString() + "\",\"password\":\"" + pwd + "\",\"afiles\":\"" + hfiles + "\",\"changedrows\":{},\"trace\":\"" + HttpContext.Current.Session["AxTrace"].ToString() + "\",\"recordid\":\"" + recordid + "\"," + deledtedRows + "";
+        //                else
+        //                    DATA = "{\"_parameters\":[{\"savedata\":{\"cachedsave\":\"true\",\"axpapp\":\"" + HttpContext.Current.Session["project"].ToString() + "\",\"appsessionkey\":\"" + appsesskey + "\" " + ",\"transid\":\"" + _transId + "\",\"s\":\"" + Session.SessionID + "\",\"username\":\"" + Session["username"].ToString() + "\",\"password\":\"" + pwd + "\",\"afiles\":\"" + hfiles + "\",\"changedrows\":" + changedDcs + ",\"trace\":\"" + HttpContext.Current.Session["AxTrace"].ToString() + "\",\"recordid\":\"" + recordid + "\"," + deledtedRows + "";
+        //                DATA += jsonData + "},\"" + axappsNode + "\":{" + axapps + "},\"axprops\":{" + axprops + "},\"globalvars\":{" + globalvars + "},\"uservars\":{" + uservars + "}";
+        //                DATA += "}]}";
+        //                if (tstData.tstStrObj.FEncryptFlag.Count > 0)
+        //                {
+        //                    DATA = CachedSaveFldDataEncrypt(DATA, tstData.tstStrObj.FEncryptFlag);
+        //                }
+        //                var saveDetails = "{\"queuename\":\"CachedSaveQueue\",\"queuedata\":" + JsonConvert.SerializeObject(DATA) + "}";
+        //                request.ContentLength = saveDetails.Length;
+        //                StreamWriter requestWriter = new StreamWriter(request.GetRequestStream(), System.Text.Encoding.ASCII);
+        //                requestWriter.Write(saveDetails);
+        //                requestWriter.Close();
+        //                try
+        //                {
+        //                    WebResponse webResponse = request.GetResponse();
+        //                    Stream webStream = webResponse.GetResponseStream();
+        //                    StreamReader responseReader = new StreamReader(webStream);
+        //                    response = responseReader.ReadToEnd();
+        //                    responseReader.Close();
+        //                    try
+        //                    {
+        //                        HttpContext.Current.Session["AxpAttFileServer-" + _transId] = null;
+        //                    }
+        //                    catch (Exception ex) { }
+        //                    result = response;
+        //                }
+        //                catch (Exception e)
+        //                {
+        //                    result = response;
+        //                }
+        //            }
+        //        }
+        //    }
+        //    catch (Exception ex) { }
+        //    return result;
+        //}
+        [WebMethod(EnableSession = true)]
+        public string MultiFrameDataPushToQueue(string multiframeJsonData)
+        {
+            string result = string.Empty;
+            try
+            {
+                string URL = string.Empty;
+                if (HttpContext.Current.Session["ARM_URL"] != null && HttpContext.Current.Session["ARMPushToQueue_API"] != null)
+                    URL = HttpContext.Current.Session["ARM_URL"].ToString() + HttpContext.Current.Session["ARMPushToQueue_API"].ToString();
+
+                bool isRMQExist = false;
+                string rmqstatus = CheckRabbitMqStatus("CachedSaveQueue");
+                if (rmqstatus == "OK")
+                    isRMQExist = true;
+                else if (rmqstatus != "Queue does not exist or queue name incorrect")
+                    return "RMQError:" + rmqstatus;
+
+                AnalyticsUtils _aUtils = new AnalyticsUtils();
+                string armSessionId = _aUtils.ARMSessionId;
+                string project = HttpContext.Current.Session["project"].ToString();
+                string username = Session["username"].ToString();
+                string trace = HttpContext.Current.Session["AxTrace"].ToString();
+
+                JObject inputObj = JObject.Parse(multiframeJsonData);
+
+                JObject parameterObj = new JObject();
+                parameterObj["ARMSessionId"] = armSessionId;
+                parameterObj["project"] = project;
+                parameterObj["username"] = username;
+                parameterObj["sessionid"] = Session.SessionID;
+                parameterObj["trace"] = trace;
+                int txnCounter = 1;
+                foreach (KeyValuePair<string, JToken> formData in inputObj)
+                {
+                    JObject formContent = formData.Value as JObject;
+                    if (formContent == null)
+                        continue;
+
+                    string tstDataId = formContent["tstDataId"] != null ? formContent["tstDataId"].ToString() : "";
+                    string changedDcs = formContent["changedDcs"] != null ? formContent["changedDcs"].ToString() : "{}";
+                    string recordid = formContent["recordid"] != null ? formContent["recordid"].ToString() : "0";
+                    string deletedRows = formContent["delRows"] != null ? formContent["delRows"].ToString() : "";
+                    string hfiles = formContent["files"] != null ? formContent["files"].ToString() : "";
+
+                    JToken recdataNode = formContent["recdata"];
+
+                    TStructData tstData = (TStructData)Session["MultiFrame_" + tstDataId.Split('_')[0]];
+                    if (tstData == null)
+                        return Constants.DUPLICATESESS;
+
+                    string transId = tstData.transid;
+
+                    JObject txnObj = new JObject();
+                    txnObj["transid"] = transId;
+                    txnObj["afiles"] = hfiles;
+                    txnObj["recordid"] = recordid;
+                    txnObj["trace"] = trace;
+                    if (changedDcs == "{}")
+                        txnObj["changedrows"] = new JObject();
+                    else
+                        txnObj["changedrows"] = JObject.Parse(changedDcs);
+                    if (!string.IsNullOrEmpty(deletedRows))
+                    {
+                        string deletedRowsJson = tstData.GetDelRowsNode(deletedRows);
+                        XmlDocument doc = new XmlDocument();
+                        doc.LoadXml(deletedRowsJson);
+                        string json = JsonConvert.SerializeXmlNode(doc);
+                        try
+                        {
+                            txnObj["delRows"] = JObject.Parse(json);
+                        }
+                        catch
+                        {
+                            txnObj["delRows"] = json;
+                        }
+                    }
+                    if (tstData != null && tstData.tstStrObj.FEncryptFlag.Count > 0)
+                    {
+                        recdataNode = CachedSaveFldDataEncrypt(recdataNode.ToString(), tstData.tstStrObj.FEncryptFlag);
+                    }
+                    txnObj["recdata"] = recdataNode;
+                    parameterObj["transaction" + txnCounter] = txnObj;
+                    txnCounter++;
+                }
+                JObject finalObj = new JObject();
+                JArray paramArray = new JArray();
+                paramArray.Add(parameterObj);
+                finalObj["_parameters"] = paramArray;
+
+                string DATA = finalObj.ToString(Newtonsoft.Json.Formatting.None);
+
+                string saveDetails = "{\"queuename\":\"CachedSaveQueue\",\"queuedata\":" + JsonConvert.SerializeObject(DATA) + "}";
+                HttpWebRequest request = (HttpWebRequest)WebRequest.Create(URL);
+                request.Method = "POST";
+                request.ContentType = "application/json";
+                using (StreamWriter writer = new StreamWriter(request.GetRequestStream()))
+                {
+                    writer.Write(saveDetails);
+                }
+                using (WebResponse webResponse = request.GetResponse())
+                using (StreamReader reader = new StreamReader(webResponse.GetResponseStream()))
+                {
+                    result = reader.ReadToEnd();
+                }
+                if (!isRMQExist)
+                {
+                    string _rmqstatus = CheckRabbitMqStatus("ARMExportQueue");
+                    if (_rmqstatus != "OK")
+                        return "RMQError:" + _rmqstatus;
+                }
+            }
+            catch (Exception ex)
+            {
+                result = ex.Message;
+            }
+            return result;
+        }
+
+        [WebMethod(EnableSession = true)]
+        public string LoadAndkeepTstructAPI(string tformId, string mtstDataId)
+        {
+            string result = string.Empty;
+            try
+            {
+                if (!string.IsNullOrEmpty(mtstDataId) && !string.IsNullOrEmpty(tformId))
+                {
+                    TStructData tstData = (TStructData)HttpContext.Current.Session[mtstDataId];
+                    if (tstData == null)
+                        return Constants.DUPLICATESESS;
+                    TStructDef strObj = tstData.tstStrObj;
+                    ArrayList formCommonSessList = new ArrayList();
+                    try
+                    {
+                        string consttstCommonSessList = "savedraftKeyCreatedtime,tstHeaderAttachDbFileOnLoad,tstHeaderAttachDbFile,StructureHtml,ToolbarBtnIcons,ModernToolbarBtnOpen,Axp_DesignJson,axp_IsSaveUrl,AxDtConfigs,AxpFldMultiSelect,AxpFldMultiSelSp,AxpautoCompPatt,AxpSaveImageDb,PickListFetchSize,showSqlColumnsAdvSearch,switchboxToCheckbox,AxtstAFSDB,AxHypTstRefresh,openerIV,IsFromProcess,AxRuleOnSubmit,lvRecordKey,IsCustomHtml,Axp_OldDesignJson,AxpAttFileServer,attGridFileServer,tstGridDbFiles,tstHeaderAttach";
+                        foreach (var sessVar in consttstCommonSessList.Split(','))
+                        {
+                            if (Session[sessVar] != null)
+                                formCommonSessList.Add(sessVar + "♦♣" + Session[sessVar].ToString());
+                        }
+                    }
+                    catch (Exception ex) { }
+                    strObj.tstCommonSessList = formCommonSessList;
+                    tstData.tstStrObj = strObj;
+                    Session.Add("MultiFrame_" + tformId, tstData);
+                    result = "success";
+                }
+                else
+                {
+                    result = "error";
+                }
+            }
+            catch (Exception ex)
+            {
+                result = "error";
+            }
+            return result;
+        }
+
+        [WebMethod(EnableSession = true)]
+        public string ActivateTstructAPI(string tformId, string mtstDataId)
+        {
+            string result = string.Empty;
+            try
+            {
+                if (!string.IsNullOrEmpty(tformId) && !string.IsNullOrEmpty(mtstDataId))
+                {
+                    TStructData tstData = (TStructData)HttpContext.Current.Session["MultiFrame_" + tformId];
+                    if (tstData == null)
+                        return Constants.DUPLICATESESS;
+                    TStructDef strObj = tstData.tstStrObj;
+                    ArrayList formCommonSessList = strObj.tstCommonSessList;
+                    try
+                    {
+                        foreach (string sessVar in formCommonSessList)
+                        {
+                            string[] sessVarVal = sessVar.Split(new string[] { "♦♣" }, StringSplitOptions.None);
+                            Session[sessVarVal[0]] = sessVarVal[1];
+                        }
+                    }
+                    catch (Exception ex) { }
+                    Session.Add(mtstDataId, tstData);
+                    Session.Add("MultiFrame_" + tformId, tstData);
+                    result = "success";
+                }
+                else
+                {
+                    result = "error";
+                }
+            }
+            catch (Exception ex)
+            {
+                result = "error";
+            }
+            return result;
+        }
+
+        [WebMethod(EnableSession = true)]
+        public string BulkUserActivation()
+        {
+            if (HttpContext.Current.Session["project"] == null)
+                return utilObj.SESSTIMEOUT;
+            string jobId = Guid.NewGuid().ToString();
+            try
+            {
+                string schemaName = HttpContext.Current.Session["dbuserALC"].ToString();
+                DBContext obj = new DBContext();
+                DataTable userList = obj.GetDataTableInline(Constants.SQL_Bulk_User_Activation);
+                if (userList == null || userList.Rows.Count == 0)
+                    return "Error: No users found for activation.";
+                FDW fdwObj = new FDW();
+                fdwObj.WriteKeyAutoExpire(utilObj.GetRedisServerkey(Constants.REDISBULKUSERACTIVATE, jobId), "Queued", 60);
+                string strProj = HttpContext.Current.Session["project"].ToString();
+                string _dbuser = string.Empty;
+                if (HttpContext.Current.Session["dbuser"] != null)
+                    _dbuser = HttpContext.Current.Session["dbuser"].ToString();
+                string rcDetails = utilObj.GetRedisConnDetails(strProj);
+
+                string _db_type = HttpContext.Current.Session["axdb"].ToString();
+                string __connectionString = HttpContext.Current.Session["axconstr"].ToString();
+                ALCClient.InitializeBaseUrl();
+                ThreadPool.QueueUserWorkItem(state =>
+                {
+                    BulkUserActivate objss = new BulkUserActivate();
+                    objss.ProcessBulkActivation(jobId, userList, schemaName, _dbuser, rcDetails, _db_type, __connectionString);
+                });
+                return "JobQueued:" + jobId;
+            }
+            catch (Exception ex)
+            {
+                FDW fdwObj = new FDW();
+                fdwObj.Deletekey(utilObj.GetRedisServerkey(Constants.REDISBULKUSERACTIVATE, jobId));
+
+                LogFile.Log logObj = new LogFile.Log();
+                logObj.CreateLog("BulkUserActivation Error: " + ex.Message, HttpContext.Current.Session.SessionID, "BulkUserActivation", "new");
+                return "Error: Unable to start activation job.";
+            }
+        }
+
+        [WebMethod(EnableSession = true)]
+        public string GetBulkActivationStatus(string jobId)
+        {
+            try
+            {
+                string schemaName = string.Empty;
+                if (HttpContext.Current.Session["dbuser"] != null)
+                    schemaName = HttpContext.Current.Session["dbuser"].ToString();
+                FDR fdrObj = (FDR)HttpContext.Current.Session["FDR"];
+                var status = fdrObj.StringFromRedis(utilObj.GetRedisServerkey(Constants.REDISBULKUSERACTIVATE, jobId));
+                string statusMsg = string.IsNullOrEmpty(status) ? "Pending" : status.ToString();
+                if (statusMsg.StartsWith("Completed.") || statusMsg.StartsWith("Error:") || statusMsg.StartsWith("Pending"))
+                {
+                    FDW fdwObj = new FDW();
+                    fdwObj.Deletekey(utilObj.GetRedisServerkey(Constants.REDISBULKUSERACTIVATE, jobId));
+                }
+                return statusMsg;
+            }
+            catch (Exception ex)
+            {
+                FDW fdwObj = new FDW();
+                fdwObj.Deletekey(utilObj.GetRedisServerkey(Constants.REDISBULKUSERACTIVATE, jobId));
+                return "Error:" + ex.Message;
+            }
+        }
+        [WebMethod(EnableSession = true)]
+        public string GetInActiveUserCount()
+        {
+            try
+            {
+                DBContext obj = new DBContext();
+                DataTable userList = obj.GetDataTableInline(Constants.SQL_InActive_User_Count);
+                int count = 0;
+                if (userList != null && userList.Rows.Count > 0)
+                    count = Convert.ToInt32(userList.Rows[0]["InactiveCount"]);
+                return count.ToString();
+            }
+            catch (Exception ex)
+            {
+                LogFile.Log logObj = new LogFile.Log();
+                logObj.CreateLog("GetInActiveUserCount Error: " + ex.Message, HttpContext.Current.Session.SessionID, "GetInActiveUserCount", "new");
+                return "Error: " + ex.Message;
+            }
+        }
+
+        [WebMethod(EnableSession = true)]
+        public string ExecuteScriptPushtoQueue(ArrayList fldArray, ArrayList fldDbRowNo, ArrayList fldValueArray, ArrayList fldDeletedArray, ArrayList deletedFldArrayValues, string ArrActionLog, string visibleDcs, string s, string delRows, string changedRows, string key, string resTstHtmlLS, string tid, string rid, string _scripName, string _scriptCaption, string _queueName, string tstructCaption)
+        {
+            string res = string.Empty;
+            try
+            {
+                string response = string.Empty;
+                if (HttpContext.Current.Session["project"] == null || Session["nsessionid"] == null)
+                    return utilObj.SESSTIMEOUT;
+                string _RKey = tid + "-execScript-" + HttpContext.Current.Session["username"].ToString() + "-" + _queueName;
+                FDR fdrObj = (FDR)HttpContext.Current.Session["FDR"];
+                string armExportExcell = fdrObj.ReadStringKey(_RKey);
+                if (armExportExcell != string.Empty && armExportExcell == "requestinprocess")
+                {
+                    res = "keyexist";
+                    return res;
+                }
+
+                bool isRMQExist = false;
+                string rmqstatus = CheckRabbitMqStatus(_queueName);
+                if (rmqstatus == "OK")
+                    isRMQExist = true;
+                else if (rmqstatus != "Queue does not exist or queue name incorrect")
+                    return "RMQError:" + rmqstatus;
+
+                string _tstKeyChanged = "";
+                if (resTstHtmlLS != "")
+                {
+                    utilObj.DeleteTstIvObject(key.Split('_')[0]);
+                    key = utilObj.GetReGenTstDataObj(key, resTstHtmlLS);
+                    _tstKeyChanged = key;
+                }
+                TStructData tstData = (TStructData)Session[key];
+                if (tstData == null)
+                    return Constants.DUPLICATESESS;
+                string resultsss = string.Empty;
+                if (tstData != null)
+                {
+                    resultsss = tstData.GetVarListForScript(tstData, fldArray, fldDbRowNo, fldValueArray, fldDeletedArray, deletedFldArrayValues, s, delRows, changedRows);
+
+                }
+                string DATA = string.Empty;
+                string URL = String.Empty;
+                string ArmScriptURL = String.Empty;
+                if (HttpContext.Current.Session["ARM_URL"] != null && HttpContext.Current.Session["ARMPushToQueue_API"] != null)
+                    URL = HttpContext.Current.Session["ARM_URL"].ToString() + HttpContext.Current.Session["ARMPushToQueue_API"].ToString();
+                if (HttpContext.Current.Session["ARM_Scripts_URL"] != null)
+                    ArmScriptURL = HttpContext.Current.Session["ARM_Scripts_URL"].ToString();
+
+                if (URL == string.Empty || ArmScriptURL == string.Empty)
+                    return "error:ARM Connection defined";
+
+                HttpWebRequest request = (HttpWebRequest)WebRequest.Create(URL);
+                request.Method = "POST";
+                request.ContentType = "application/json";
+
+                string globalVars = HttpContext.Current.Session["axGlobalVars"].ToString();
+                globalVars = globalVars.Replace(@"\", "\\\\");
+                string _axapps = HttpContext.Current.Session["axApps"].ToString();
+                _axapps = _axapps.Replace(@"\", "\\\\");
+
+                //DATA = "{\"executescript\":{\"trace\":\"" + HttpContext.Current.Session["AxTrace"].ToString() + "\",\"project\":\"" + HttpContext.Current.Session["project"].ToString() + "\",\"s\":\"" + Session.SessionID + "\",\"username\":\"" + Session["username"].ToString() + "\",\"script\":\"" + _scripName + "\",\"type\":\"form\",\"name\":\"" + tid + "\",\"rid\":\"" + rid + "\",\"pageCaption\":\"" + tstructCaption + "\"},\"varlist\":{\"row\":{\"axp_recid1\":{\"_rowno\":\"001\",\"__text\":\"1185220000000\"},\"flda\":{\"_rowno\":\"001\",\"__text\":\"admin\"},\"fldb\":{\"_rowno\":\"001\",\"__text\":\"ARMAxpertJobsQueueLocal\"},\"apibody\":{\"_rowno\":\"001\"},\"queueName\":{\"_rowno\":\"001\"}}},\"axprops\":\"" + HttpContext.Current.Application["axProps"].ToString() + "\",\"axapps\":\"" + _axapps + "\",\"globalvars\":\"" + globalVars + "\",\"uservars\":\"" + HttpContext.Current.Session["axUserVars"].ToString() + "\"}";
+                DATA = "{\"executescript\":{\"trace\":\"" + HttpContext.Current.Session["AxTrace"].ToString() + "\",\"project\":\"" + HttpContext.Current.Session["project"].ToString() + "\",\"s\":\"" + Session.SessionID + "\",\"username\":\"" + Session["username"].ToString() + "\",\"script\":\"" + _scripName + "\",\"scriptcaption\":\"" + _scriptCaption + "\",\"scriptqueuename\":\"" + _queueName + "\",\"type\":\"form\",\"name\":\"" + tid + "\",\"rid\":\"" + rid + "\",\"pageCaption\":\"" + tstructCaption + "\"}," + resultsss.Replace("\r\n", "") + ",\"axprops\":\"" + HttpContext.Current.Application["axProps"].ToString() + "\",\"axapps\":\"" + _axapps + "\",\"globalvars\":\"" + globalVars + "\",\"uservars\":\"" + HttpContext.Current.Session["axUserVars"].ToString() + "\"}";
+
+                var saveDetails = "{\"queuename\":\"" + _queueName + "\",\"queuedata\":" + JsonConvert.SerializeObject(DATA) + ",\"timespandelay\":\"0\"}";
+
+                request.ContentLength = saveDetails.Length;
+
+                StreamWriter requestWriter = new StreamWriter(request.GetRequestStream(), System.Text.Encoding.ASCII);
+                requestWriter.Write(saveDetails);
+                requestWriter.Close();
+
+                try
+                {
+                    WebResponse webResponse = request.GetResponse();
+                    Stream webStream = webResponse.GetResponseStream();
+                    StreamReader responseReader = new StreamReader(webStream);
+                    response = responseReader.ReadToEnd();
+                    Console.Out.WriteLine(response);
+                    responseReader.Close();
+                    if (!isRMQExist)
+                    {
+                        string _rmqstatus = CheckRabbitMqStatus(_queueName);
+                        if (_rmqstatus != "OK")
+                            return "RMQError:" + _rmqstatus;
+                        else
+                            return response;
+                    }
+                    else
+                        return response;
+                }
+                catch (Exception e)
+                {
+                    Console.Out.WriteLine("-----------------");
+                    Console.Out.WriteLine(e.Message);
+                    return "error:" + e.Message;
+                }
+            }
+            catch (Exception ex)
+            {
+
+            }
+            return res;
+        }
+
+        [WebMethod(EnableSession = true)]
+        public string ExecuteScriptPushtoQueueIview(string _scripName, string _scriptCaption, string _queueName, string iviewName, string iviewCaption, string ivXml)
+        {
+            string res = string.Empty;
+            try
+            {
+                string response = string.Empty;
+                if (HttpContext.Current.Session["project"] == null || Session["nsessionid"] == null)
+                    return utilObj.SESSTIMEOUT;
+                string _RKey = iviewName + "-execScript-" + HttpContext.Current.Session["username"].ToString() + "-" + _queueName;
+                FDR fdrObj = (FDR)HttpContext.Current.Session["FDR"];
+                string armExportExcell = fdrObj.ReadStringKey(_RKey);
+                if (armExportExcell != string.Empty && armExportExcell == "requestinprocess")
+                {
+                    res = "keyexist";
+                    return res;
+                }
+
+                bool isRMQExist = false;
+                string rmqstatus = CheckRabbitMqStatus(_queueName);
+                if (rmqstatus == "OK")
+                    isRMQExist = true;
+                else if (rmqstatus != "Queue does not exist or queue name incorrect")
+                    return "RMQError:" + rmqstatus;
+
+                XmlDocument xmlDoc = new XmlDocument();
+                xmlDoc.LoadXml(ivXml);
+                string _params = string.Empty;
+                XmlNode paramsObj = xmlDoc.SelectSingleNode("//params");
+                if (paramsObj != null && paramsObj.OuterXml != "<params></params>")
+                {
+                    string paramjson = JsonConvert.SerializeXmlNode(paramsObj, Newtonsoft.Json.Formatting.None, false);
+                    JObject fullParamObj = JObject.Parse(paramjson);
+                    JToken paramsObject = fullParamObj["params"];
+                    JObject Paramsoutput = new JObject();
+                    Paramsoutput["params"] = paramsObject;
+                    _params = JsonConvert.SerializeObject(Paramsoutput, Newtonsoft.Json.Formatting.Indented);
+                    if (_params.StartsWith("{"))
+                        _params = _params.Substring(1);
+                    if (_params.EndsWith("}"))
+                        _params = _params.Substring(0, _params.Length - 1);
+                }
+                string _varlist = string.Empty;
+
+                XmlNode varlist = xmlDoc.SelectSingleNode("//varlist");
+                if (varlist != null && varlist.OuterXml != "<varlist></varlist>")
+                {
+                    string json = JsonConvert.SerializeXmlNode(varlist, Newtonsoft.Json.Formatting.None, false);
+                    JObject fullObj = JObject.Parse(json);
+                    JToken rowsToken = fullObj.SelectToken("varlist.row");
+                    if (rowsToken == null)
+                        return "{}";
+                    JArray rowArray = rowsToken.Type == JTokenType.Array ? (JArray)rowsToken : new JArray(rowsToken);
+                    JArray rowGridBlocks = new JArray();
+                    int index = 1;
+                    foreach (JToken rowToken in rowArray)
+                    {
+                        JObject rowObj = rowToken as JObject;
+                        if (rowObj == null)
+                            continue;
+                        string paddedRowNo = index.ToString("D3");
+                        JObject gridRow = new JObject();
+
+                        foreach (JProperty prop in rowObj.Properties())
+                        {
+                            if (prop.Name == "#text")
+                                continue;
+                            gridRow[prop.Name] = new JObject
+                        {
+                            { "_rowno", paddedRowNo },
+                            { "__text", prop.Value.Type == JTokenType.Object ? prop.Value["#text"].ToString() : prop.Value.ToString() }
+                        };
+                        }
+                        rowGridBlocks.Add(gridRow);
+                        index++;
+                    }
+                    JObject output = new JObject    {
+                    {
+                        "varlist", new JObject
+                    {
+                            {
+                                "row", new JObject
+                                {
+                                    {
+                                        "row_gridblocks", rowGridBlocks
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    };
+                    _varlist = JsonConvert.SerializeObject(output, Newtonsoft.Json.Formatting.Indented);
+                    if (_varlist.StartsWith("{"))
+                        _varlist = _varlist.Substring(1);
+                    if (_varlist.EndsWith("}"))
+                        _varlist = _varlist.Substring(0, _varlist.Length - 1);
+                }
+
+                string DATA = string.Empty;
+                string URL = String.Empty;
+                string ArmScriptURL = String.Empty;
+                if (HttpContext.Current.Session["ARM_URL"] != null && HttpContext.Current.Session["ARMPushToQueue_API"] != null)
+                    URL = HttpContext.Current.Session["ARM_URL"].ToString() + HttpContext.Current.Session["ARMPushToQueue_API"].ToString();
+                if (HttpContext.Current.Session["ARM_Scripts_URL"] != null)
+                    ArmScriptURL = HttpContext.Current.Session["ARM_Scripts_URL"].ToString();
+
+                if (URL == string.Empty || ArmScriptURL == string.Empty)
+                    return "error:ARM Connection defined";
+
+                HttpWebRequest request = (HttpWebRequest)WebRequest.Create(URL);
+                request.Method = "POST";
+                request.ContentType = "application/json";
+
+                string globalVars = HttpContext.Current.Session["axGlobalVars"].ToString();
+                globalVars = globalVars.Replace(@"\", "\\\\");
+                string _axapps = HttpContext.Current.Session["axApps"].ToString();
+                _axapps = _axapps.Replace(@"\", "\\\\");
+
+                DATA = "{\"executescript\":{\"trace\":\"" + HttpContext.Current.Session["AxTrace"].ToString() + "\",\"project\":\"" + HttpContext.Current.Session["project"].ToString() + "\",\"s\":\"" + Session.SessionID + "\",\"username\":\"" + Session["username"].ToString() + "\",\"script\":\"" + _scripName + "\",\"scriptcaption\":\"" + _scriptCaption + "\",\"scriptqueuename\":\"" + _queueName + "\",\"type\":\"report\",\"name\":\"" + iviewName + "\",\"pageCaption\":\"" + iviewCaption + "\"}," + (_params != string.Empty ? _params.Replace("\r\n", "") + "," : "") + (_varlist != string.Empty ? _varlist.Replace("\r\n", "") + "," : "") + "\"axprops\":\"" + HttpContext.Current.Application["axProps"].ToString() + "\",\"axapps\":\"" + _axapps + "\",\"globalvars\":\"" + globalVars + "\",\"uservars\":\"" + HttpContext.Current.Session["axUserVars"].ToString() + "\"}";
+
+                var saveDetails = "{\"queuename\":\"" + _queueName + "\",\"queuedata\":" + JsonConvert.SerializeObject(DATA) + ",\"timespandelay\":\"0\"}";
+
+                request.ContentLength = saveDetails.Length;
+
+                StreamWriter requestWriter = new StreamWriter(request.GetRequestStream(), System.Text.Encoding.ASCII);
+                requestWriter.Write(saveDetails);
+                requestWriter.Close();
+
+                try
+                {
+                    WebResponse webResponse = request.GetResponse();
+                    Stream webStream = webResponse.GetResponseStream();
+                    StreamReader responseReader = new StreamReader(webStream);
+                    response = responseReader.ReadToEnd();
+                    Console.Out.WriteLine(response);
+                    responseReader.Close();
+                    if (!isRMQExist)
+                    {
+                        string _rmqstatus = CheckRabbitMqStatus(_queueName);
+                        if (_rmqstatus != "OK")
+                            return "RMQError:" + _rmqstatus;
+                        else
+                            return response;
+                    }
+                    else
+                        return response;
+                }
+                catch (Exception e)
+                {
+                    Console.Out.WriteLine("-----------------");
+                    Console.Out.WriteLine(e.Message);
+                    return "error:" + e.Message;
+                }
+            }
+            catch (Exception ex)
+            {
+
+            }
+            return res;
+        }
+
+        [WebMethod(EnableSession = true)]
+        public string CheckRabbitMqStatus(string queueName)
+        {
+            string amqpUrl = string.Empty;
+            try
+            {
+                if (HttpContext.Current.Session["project"] == null || Session["nsessionid"] == null)
+                    return utilObj.SESSTIMEOUT;
+                amqpUrl = HttpContext.Current.Session["AxRabbitMQSet"].ToString();
+                LogFile.Log logObj = new LogFile.Log();
+                if (amqpUrl == "noRMQSettings")
+                {
+                    logObj.CreateLog("CheckRabbitMqStatus queueName:" + queueName + " amqpUrl: " + amqpUrl, HttpContext.Current.Session.SessionID, "CheckRabbitMqStatus", "new");
+                    return "RabbitMQ Server Setting not found, please contact application Administrator.";
+                }
+                var result = CheckConsumerStatus(amqpUrl, queueName);
+                switch (result)
+                {
+                    case QueueStatus.ServerDown:
+                        return "RMQueue Server is DOWN or not reachable, please contact Administrator.";
+
+                    case QueueStatus.InvalidSettings:
+                        return "RMQueue Settings are incorrect, please contact Administrator.";
+
+                    case QueueStatus.QueueNotFound:
+                        return "Queue does not exist or queue name incorrect";
+
+                    case QueueStatus.NoConsumer:
+                        return "Required Consumer Service is not running, please contact Administrator.";
+
+                    case QueueStatus.ConsumerActive:
+                        return "OK";
+                }
+                logObj.CreateLog("CheckRabbitMqStatus queueName:" + queueName + " amqpUrl: " + amqpUrl + " result:" + result, HttpContext.Current.Session.SessionID, "CheckRabbitMqStatus", "new");
+                return "error: " + result;
+            }
+            catch (Exception ex)
+            {
+                LogFile.Log logObj = new LogFile.Log();
+                logObj.CreateLog("CheckRabbitMqStatus exception queueName:" + queueName + " amqpUrl: " + amqpUrl + " Eexception: " + ex.Message, HttpContext.Current.Session.SessionID, "CheckRabbitMqStatus", "new");
+                return "error: Exception-" + ex.Message;
+            }
+        }
+
+        public static QueueStatus CheckConsumerStatus(string amqpUrl, string queueName)
+        {
+            try
+            {
+                var factory = new ConnectionFactory();
+                factory.Uri = new Uri(amqpUrl);
+
+                using (var connection = factory.CreateConnection())
+                using (var channel = connection.CreateModel())
+                {
+                    try
+                    {
+                        channel.QueueDeclarePassive(queueName);
+                    }
+                    catch (RabbitMQ.Client.Exceptions.OperationInterruptedException ex)
+                    {
+                        if (ex.ShutdownReason.ReplyCode == 404)
+                            return QueueStatus.QueueNotFound;
+                        return QueueStatus.InvalidSettings;
+                    }
+                    try
+                    {
+                        string tag = channel.BasicConsume(
+                            queue: queueName,
+                            autoAck: false,
+                            consumer: new DummyConsumer(channel),
+                            exclusive: true
+                        );
+
+                        channel.BasicCancel(tag);
+                        return QueueStatus.NoConsumer;
+                    }
+                    catch (RabbitMQ.Client.Exceptions.OperationInterruptedException)
+                    {
+                        return QueueStatus.ConsumerActive;
+                    }
+                }
+            }
+            catch
+            {
+                return QueueStatus.ServerDown;
+            }
+        }
+
+        [WebMethod(EnableSession = true)]
+        public string GetTstPermissions(string transId, string keyfield, string keyvalue, string action)
+        {
+            LogFile.Log logObj = new LogFile.Log();
+            string response = string.Empty;
+            string URL = String.Empty;
+            if (HttpContext.Current.Session["ARM_URL"] != null && HttpContext.Current.Session["ARM_URL"].ToString() != "")
+                URL = HttpContext.Current.Session["ARM_URL"].ToString() + "/AxTstructData/api/v1/AxUserPermission";
+            if (URL == string.Empty)
+                return "error:ARM Connection defined";
+
+            string tstpermission = utilObj.GetTstPermissions(transId);
+            if (tstpermission == string.Empty || tstpermission == "no permission applied")
+            {
+                return response;
+            }
+
+            HttpWebRequest request = (HttpWebRequest)WebRequest.Create(URL);
+            request.Method = "POST";
+            request.ContentType = "application/json";
+            AnalyticsUtils _aUtils = new AnalyticsUtils();
+            if (HttpContext.Current.Session["ARM_Token"] != null && HttpContext.Current.Session["ARM_Token"].ToString() != string.Empty)
+            {
+                var token = HttpContext.Current.Session["ARM_Token"].ToString();
+                request.Headers.Add("Authorization", "Bearer " + token);
+            }
+            string armSessionId = _aUtils.ARMSessionId;
+            var saveDetails = string.Empty;
+            bool axTrace = false;
+            if (HttpContext.Current.Session["AxTrace"] != null)
+                axTrace = Convert.ToBoolean(HttpContext.Current.Session["AxTrace"]);
+            string traceValue = axTrace.ToString().ToLower();
+            if (action == "edit" || action == "view")
+                saveDetails = "{\"ARMSessionId\":\"" + armSessionId + "\",\"action\":\"" + action + "\",\"trace\":" + traceValue + ",\"transid\":\"" + transId + "\",\"keyfield\":\"" + keyfield + "\",\"keyvalue\":\"" + keyvalue + "\"}";
+            else
+                saveDetails = "{\"ARMSessionId\":\"" + armSessionId + "\",\"action\":\"" + action + "\",\"trace\":" + traceValue + ",\"transid\":\"" + transId + "\"}";
+            request.ContentLength = saveDetails.Length;
+            StreamWriter requestWriter = new StreamWriter(request.GetRequestStream(), System.Text.Encoding.ASCII);
+            requestWriter.Write(saveDetails);
+            requestWriter.Close();
+            try
+            {
+                WebResponse webResponse = request.GetResponse();
+                Stream webStream = webResponse.GetResponseStream();
+                StreamReader responseReader = new StreamReader(webStream);
+                response = responseReader.ReadToEnd();
+                responseReader.Close();
+                response = ProcessResponse(response);
+                logObj.CreateLog("GetTstPermissions tstpermissionflag: " + tstpermission + " payload:" + saveDetails + " URL: " + URL, HttpContext.Current.Session.SessionID, "GetTstPermissions", "new");
+                return response;
+            }
+            catch (Exception e)
+            {
+                logObj.CreateLog("GetTstPermissions exception tstpermissionflag: " + tstpermission + " payload:" + saveDetails + " URL: " + URL + " Eexception: " + e.Message, HttpContext.Current.Session.SessionID, "GetTstPermissions", "new");
+                return response;
+            }
+        }
+        public string ProcessResponse(string response)
+        {
+            JObject json = JObject.Parse(response);
+            JToken resultToken = json["result"];
+            if (resultToken != null)
+            {
+                JToken successToken = resultToken["success"];
+                if (successToken != null && successToken.ToString().ToLower() == "false")
+                {
+                    JToken messageToken = resultToken["message"];
+                    if (messageToken != null)
+                        return messageToken.ToString();
+                }
+            }
+            return response;
+        }
+
     }
 }
+public class DummyConsumer : DefaultBasicConsumer
+{
+    public DummyConsumer(IModel model) : base(model) { }
+}
+
+public enum QueueStatus
+{
+    ServerDown,
+    InvalidSettings,
+    QueueNotFound,
+    NoConsumer,
+    ConsumerActive
+}
+
 public class SaveDataXMLRequest
 {
     public ArrayList fldArray { get; set; }
@@ -9868,6 +12457,7 @@ public class SaveDataXMLRequest
     public string axRulesFlds { get; set; }
     public string axPegApprovalSave { get; set; }
     public string resTstHtmlLS { get; set; }
+    public string isLoadFromDraft { get; set; }
 }
 
 public class CallActionWSRequest
@@ -9890,6 +12480,7 @@ public class CallActionWSRequest
     public string axRulesFlds { get; set; }
     public bool axRulesScript { get; set; }
     public string resTstHtmlLS { get; set; }
+    public string isLoadFromDraft { get; set; }
 }
 public class AddSessionPairRequest
 {

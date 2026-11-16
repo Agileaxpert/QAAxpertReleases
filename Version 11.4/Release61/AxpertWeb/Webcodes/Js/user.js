@@ -7,6 +7,8 @@ function ValidatePassword(obj) {
     var isPwdAlphaNumeric = hdnalphanumeric.value.toLowerCase();
     if (typeof hdnencryptkey.value != "undefined" && hdnencryptkey.value != "" && hdnencryptkey.value == "true")
         isPwdAlphaNumeric = "false";
+    else if (typeof hdnpwdPolicy.value != "undefined" && hdnpwdPolicy.value != "")
+        isPwdAlphaNumeric = "false";
     globalRndNum = "";
     var validatePwd = document.getElementById("pwdlength");
     var nPwd = document.getElementById("newPwd");
@@ -52,6 +54,16 @@ function ValidatePassword(obj) {
             nPwd.focus();
             return false;
         }
+        else if (typeof hdnpwdPolicy.value != "undefined" && hdnpwdPolicy.value != "") {
+            const { regex, message } = generatePasswordRegex(hdnpwdPolicy.value);
+            const regRes = regex.test(nPwd.value);
+            if (!regRes) {
+                showAlertDialog("error", message); 
+                displayAlertMsgOnParent();
+                nPwd.focus();
+                return false;
+            }
+        }
         else if (isPwdAlphaNumeric =="true" && !alphaNumericRegEx.test(nPwd.value)) {
 
             showAlertDialog("error", eval(callParent('lcm[450]'))); displayAlertMsgOnParent();
@@ -86,6 +98,71 @@ function ValidatePassword(obj) {
 
 }
 
+function generatePasswordRegex(policyString) {
+    const policy = JSON.parse(policyString);
+    const {
+        pwdminchar,
+        pwdmaxchar,
+        pwdalphanum,
+        pwdcapchar,
+        pwdsmallchar,
+        pwdnumchar,
+        pwdsplchar
+    } = policy;
+
+    const min = pwdminchar && !isNaN(pwdminchar) ? parseInt(pwdminchar) : 0;
+    const max = pwdmaxchar && !isNaN(pwdmaxchar) ? parseInt(pwdmaxchar) : '';
+    const pwdalphanumFlag = policy.pwdalphanum;
+
+    let regex;
+    let rules = [];
+
+    if (pwdalphanumFlag === "F") {
+        const pattern = max
+            ? `^.{${min},${max}}$`
+            : `^.{${min},}$`;
+        regex = new RegExp(pattern);
+        if (min) rules.push(`Minimum ${min} characters`);
+        if (max) rules.push(`Maximum ${max} characters`);
+    } else {
+        let lookaheads = [];
+
+        const cap = parseInt(pwdcapchar) || 0;
+        const small = parseInt(pwdsmallchar) || 0;
+        const num = parseInt(pwdnumchar) || 0;
+        const spl = parseInt(pwdsplchar) || 0;
+
+        if (cap > 0) {
+            lookaheads.push(`(?=(?:.*[A-Z]){${cap},})`);
+            rules.push(`At least ${cap} uppercase letter(s)`);
+        }
+        if (small > 0) {
+            lookaheads.push(`(?=(?:.*[a-z]){${small},})`);
+            rules.push(`At least ${small} lowercase letter(s)`);
+        }
+        if (num > 0) {
+            lookaheads.push(`(?=(?:.*\\d){${num},})`);
+            rules.push(`At least ${num} number(s)`);
+        }
+        if (spl > 0) {
+            lookaheads.push(`(?=(?:.*[^a-zA-Z0-9]){${spl},})`);
+            rules.push(`At least ${spl} special character(s)`);
+        }
+
+        if (min) rules.push(`Minimum ${min} characters`);
+        if (max) rules.push(`Maximum ${max} characters`);
+
+        const allowedChars = '[a-zA-Z0-9\\W]';
+        const lengthRange = max ? `{${min},${max}}` : `{${min},}`;
+        const pattern = `^${lookaheads.join('')}${allowedChars}${lengthRange}$`;
+
+        regex = new RegExp(pattern);
+    }
+    return {
+        regex,
+        message: rules.length ? "Password must have: " + rules.join(', ') + "." : "Invalid password."
+    };
+}
 function md5auth(a) {
     var hash = "";
     var newhash = "";

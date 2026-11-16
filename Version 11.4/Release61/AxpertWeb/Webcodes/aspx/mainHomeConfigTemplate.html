@@ -219,7 +219,6 @@ Home Cunfiguration Page Templete
                                     2024
                                 </a>
                             </div>-->
-
                             <!--begin::User-->
                             <!--end::User -->
 
@@ -243,7 +242,7 @@ Home Cunfiguration Page Templete
                             </div>
                             <!--end::Aside Toggle-->
                             <!--begin::Aside toggler-->
-                            <div class="btn btn-icon w-auto ps-0 btn-active-color-primary d-none d-lg-inline-flex me-2 me-lg-5 active---" data-kt-toggle="true" data-kt-toggle-state="active" data-kt-toggle-target="body" data-kt-toggle-name="aside-minimize">
+                            <div id="impopen" class="btn btn-icon w-auto ps-0 btn-active-color-primary d-none d-lg-inline-flex me-2 me-lg-5 active---" data-kt-toggle="true" data-kt-toggle-state="active" data-kt-toggle-target="body" data-kt-toggle-name="aside-minimize">
                                 <span class="material-icons material-icons-style material-icons-2 rotate-180">
                                     menu
                                 </span>
@@ -276,7 +275,7 @@ Home Cunfiguration Page Templete
                                 <!--begin::Search-->
                                 <div id="kt_header_search" class="d-flex align-items-center w-100 w-lg-300px w-xl-500px" data-kt-search-keypress="true" data-kt-search-min-length="2" data-kt-search-enter="enter" data-kt-search-layout="menu" data-kt-search-responsive="sm" data-kt-menu-trigger="auto" data-kt-menu-permanent="true" data-kt-menu-placement="bottom-start" data-kt-search="true" data-kt-menu-backdrop="true">
                                     <!--begin::Tablet and mobile search toggle-->
-                                    <div data-kt-search-element="toggle" class="d-flex d-lg-none align-items-center">
+                                    <div data-kt-search-element="toggle" class="d-flex d-md-none align-items-center">
                                         <div class="">
                                             <span class="material-icons material-icons-style material-icons-1 cursor-default mt-2">
                                                 search
@@ -285,7 +284,7 @@ Home Cunfiguration Page Templete
                                     </div>
                                     <!--end::Tablet and mobile search toggle-->
                                     <!--begin::Form(use d-none d-lg-block classes for responsive search)-->
-                                    <form data-kt-search-element="form" class="d-none d-lg-block w-100 mb-5 mb-lg-0" autocomplete="off">
+                                    <form data-kt-search-element="form" class="d-none-- d-block w-100 mb-5 mb-lg-0" autocomplete="off">
                                         <div class="position-relative d-flex align-items-center">
                                             <div class="vr mx-3 d-none d-lg-block"></div>
                                             <!--begin::Hidden input(Added to disable form autocomplete)-->
@@ -419,6 +418,25 @@ Home Cunfiguration Page Templete
                             <!--end::Search-->
                             <!--begin::Toolbar wrapper-->
                             <div class="d-flex align-items-stretch flex-shrink-0">
+                                <!--begin::Application Parameter Section when the axi cmd is enabled -->
+                                <div class="Application_Parameter-Section axi-cmd-param-section d-flex align-items-center me-1 d-none">
+                                    <div class="Application_Parameter_Wrapper">
+                                    </div>
+                                    <button type="button"
+                                            class="btn btn-icon btn-white btn-color-gray-600 btn-active-primary tb-btn btn-sm"
+                                            title="" data-kt-menu-trigger="{default:'click', lg: 'hover'}"
+                                            data-kt-menu-attach="parent" data-kt-menu-placement="bottom-end">
+                                        <span class="material-icons material-icons-style material-icons-2">more_horiz</span>
+                                    </button>
+                                    <!--begin::Menu-->
+                                    <div id="AppGlobalParams"
+                                         class="menu menu-sub menu-sub-dropdown menu-column menu-rounded menu-title-gray-700 menu-icon-gray-500 menu-active-bg menu-state-color fw-semibold py-4 fs-base w-150px"
+                                         data-kt-menu="true" data-kt-element="theme-mode-menu">
+
+                                    </div>
+                                    <!--end::Menu-->
+                                </div>
+                                <!--end::Application Parameter Section-->
                                 <!--begin::License Info-->
                                 <div id="LicInfo" class="d-flex align-items-center ms-1 ms-lg-2">
                                     <!--begin::Menu wrapper-->
@@ -540,11 +558,19 @@ Home Cunfiguration Page Templete
 
                                                     <div id="configurationStudio" class="col-md-4 col-sm-6 col-6">
                                                         <a href="#" class="d-flex flex-column flex-center h-100 p-6 bg-hover-light border-bottom border-0">
-                                                            <img src="../images/icons/configuration.png">                                                    <span class="divTitle fs-5 fw-bold text-gray-800 mb-0">Configuration</span>
+                                                            <img src="../images/icons/configuration.png">
+                                                            <span class="divTitle fs-5 fw-bold text-gray-800 mb-0">Configuration</span>
                                                             <span class="divSubTitle fs-7 text-gray-400">Studio</span>
+
                                                         </a>
                                                     </div>
 
+                                                    <!--<div id="pluginCustomCode" class="col-md-4 col-sm-6 col-6">
+                                                        <a href="javascript:void(0);" class="d-flex flex-column flex-center h-100 p-6 bg-hover-light border-bottom border-0">
+                                                            <img src="../images/icons/plugin.png">                                                           <span class="divTitle fs-5 fw-bold text-gray-800 mb-0">Plugin</span>
+                                                            <span class="divSubTitle fs-7 text-gray-400">Custom Code</span>
+                                                        </a>
+                                                    </div>-->
                                                     <!--end:Item-->
                                                     <!--begin:Item-->
                                                     <div id="ImportData" class="col-md-4 col-sm-6 col-6">
@@ -619,9 +645,9 @@ Home Cunfiguration Page Templete
                                                             <div id="chkexecshowlog" class="d-flex menu-content px-3 pb-6-- flex-center flex-column">
                                                                 <label class="form-check form-switch form-check-custom form-check-solid">
                                                                     <input class="form-check-input w-30px h-20px" type="checkbox" value="" name="trace">
-                                                                    <span id="imgExecLogTrace" class="form-check-label fs-5 fw-bold text-gray-800 mb-0" title="Show Execution Trace On">Show Execution</span>
+                                                                    <span id="imgExecLogTrace" class="divTitle form-check-label fs-5 fw-bold text-gray-800 mb-0" title="Show Execution Trace On">Show Execution</span>
                                                                 </label>
-                                                                <span class="fs-7 text-gray-400">Trace</span>
+                                                                <span class="divSubTitle fs-7 text-gray-400">Trace</span>
                                                             </div>
                                                         </div>
                                                     </div>
@@ -637,9 +663,9 @@ Home Cunfiguration Page Templete
                                                             <div id="chkshowlog" class="d-flex menu-content px-3 pb-6 flex-center flex-column">
                                                                 <label class="form-check form-switch form-check-custom form-check-solid">
                                                                     <input class="form-check-input w-30px h-20px" type="checkbox" value="" name="trace">
-                                                                    <span id="imgTogTrace" class="form-check-label fs-5 fw-bold text-gray-800 mb-0" title="Trace On">Show Logs</span>
+                                                                    <span id="imgTogTrace" class="divTitle form-check-label fs-5 fw-bold text-gray-800 mb-0" title="Trace On">Show Logs</span>
                                                                 </label>
-                                                                <span class="fs-7 text-gray-400">Trace</span>
+                                                                <span class="divSubTitle fs-7 text-gray-400">Trace</span>
                                                             </div>
                                                         </div>
                                                     </div>
@@ -653,6 +679,165 @@ Home Cunfiguration Page Templete
                                     <!--end::Menu wrapper-->
                                 </div>
                                 <!--end::Quick links-->
+                                <!--begin::Dev Studio options-->
+                                <div class="d-flex align-items-center ms-1 ms-lg-2" id="axpertstudio">
+                                    <!--begin::Menu wrapper-->
+                                    <div class="btn btn-icon btn-active-light-primary w-30px h-30px w-md-40px h-md-40px" id="AllDevOptions" data-kt-menu-trigger="click" data-kt-menu-attach="parent" data-kt-menu-placement="bottom-end" data-kt-menu-backdrop="true" style="background: #483d8b1a;">
+                                        <img class="notif-new" src="../images/devops/axpertstudio.png">
+                                    </div>
+                                    <!--begin::Menu-->
+                                    <div class="DevOptions menu menu-sub menu-sub-dropdown menu-column w-sm-250px w-md-600px w-lg-600px overflow-sm-auto " data-kt-menu="true" style="">
+                                        <!-- min-h-150px h-sm-150px h-md-500px -->
+                                        <div class="card-body py-5 scroll-y me-n5 pe-5">
+                                            <!--begin::Scroll-->
+                                            <!--begin:Nav-->
+                                            <div class="row g-0">
+                                                <!--begin:Item-->
+
+                                                <div id="Tstruct" class="col-md-3 col-sm-6 col-6">
+                                                    <a href="#" data-ax-click='openDeveloperStudio("tstreact")' title="Tstruct" class="d-flex flex-column flex-center h-100 p-6 bg-hover-light border-bottom border-0">
+                                                        <img loading="lazy" width="64" height="64" src="../images/devops/tstruct.png">
+                                                        <span class="divTitle fs-5 fw-bold text-gray-800 mb-0">Tstruct</span>
+                                                        <span class="divSubTitle fs-7 text-gray-400">Forms</span>
+                                                    </a>
+                                                </div>
+
+                                                <div id="Iview" class="col-md-3 col-sm-6 col-6">
+                                                    <a href="#" data-ax-click='openDeveloperStudio("ivreact")' title="Iview" class="d-flex flex-column flex-center h-100 p-6 bg-hover-light border-bottom border-0">
+                                                        <img src="../images/devops/iview.png">
+                                                        <span class="divTitle fs-5 fw-bold text-gray-800 mb-0">Iview</span>
+                                                        <span class="divSubTitle fs-7 text-gray-400">Reports</span>
+                                                    </a>
+                                                </div>
+
+                                                <div id="pluginCustomCode" class="col-md-3 col-sm-6 col-6">
+                                                    <a href="#" data-ax-click='openPluginEditor()' title="Custom Plugins" class="d-flex flex-column flex-center h-100 p-6 bg-hover-light border-bottom border-0">
+                                                        <img src="../images/icons/plugin.png">
+                                                        <span class="divTitle fs-5 fw-bold text-gray-800 mb-0">Custom Plugins</span>
+                                                        <span class="divSubTitle fs-7 text-gray-400">Plugin</span>
+                                                    </a>
+                                                </div>
+
+                                                <div id="ADS" class="col-md-3 col-sm-6 col-6">
+                                                    <a href="#" data-ax-click='openDeveloperStudio("icsqlist")' title="Axpert Data Sources" class="d-flex flex-column flex-center h-100 p-6 bg-hover-light border-bottom border-0">
+                                                        <img src="../images/devops/custom-data-sourse.png">
+                                                        <span class="divTitle fs-5 fw-bold text-gray-800 mb-0">Axpert Data Sources</span>
+                                                        <span class="divSubTitle fs-7 text-gray-400">ADS</span>
+                                                    </a>
+                                                </div>
+
+                                                <div id="APIPlugins" class="col-md-3 col-sm-6 col-6">
+                                                    <a href="#" data-ax-click='openDeveloperStudio("iexapidef")' title="API Plugins" class="d-flex flex-column flex-center h-100 p-6 bg-hover-light border-bottom border-0">
+                                                        <img src="../images/devops/Api-plugin.png">
+                                                        <span class="divTitle fs-5 fw-bold text-gray-800 mb-0">API Plugins</span>
+                                                        <span class="divSubTitle fs-7 text-gray-400">External APIs</span>
+                                                    </a>
+                                                </div>
+
+                                                <div id="DevOptions" class="col-md-3 col-sm-6 col-6">
+                                                    <a href="#" data-ax-click='openDeveloperStudio("idop_list")' title="Developer Options" class="d-flex flex-column flex-center h-100 p-6 bg-hover-light border-bottom border-0">
+                                                        <img src="../images/devops/dev-options.png">
+                                                        <span class="divTitle fs-5 fw-bold text-gray-800 mb-0">Dev Options</span>
+                                                        <span class="divSubTitle fs-7 text-gray-400">Dev Options</span>
+                                                    </a>
+                                                </div>
+
+                                                <div id="AxpertJobs" class="col-md-3 col-sm-6 col-6">
+                                                    <a href="#" data-ax-click='openDeveloperStudio("ijobtsk")' title="Axpert Jobs" class="d-flex flex-column flex-center h-100 p-6 bg-hover-light border-bottom border-0">
+                                                        <img src="../images/devops/axpert-jobs.png">
+                                                        <span class="divTitle fs-5 fw-bold text-gray-800 mb-0">Axpert Jobs</span>
+                                                        <span class="divSubTitle fs-7 text-gray-400">Axpert Jobs</span>
+                                                    </a>
+                                                </div>
+
+                                                <div id="DevLanguages" class="col-md-3 col-sm-6 col-6">
+                                                    <a href="#" data-ax-click='openDeveloperStudio("iaxlangs")' title="Axpert Languages" class="d-flex flex-column flex-center h-100 p-6 bg-hover-light border-bottom border-0">
+                                                        <img src="../images/devops/languages.png">
+                                                        <span class="divTitle fs-5 fw-bold text-gray-800 mb-0">Languages</span>
+                                                        <span class="divSubTitle fs-7 text-gray-400">Languages</span>
+
+                                                    </a>
+                                                </div>
+
+                                                <div id="DevPublish" class="col-md-3 col-sm-6 col-6">
+                                                    <a href="#" data-ax-click='openDeveloperStudio("ipublist")' title="Publish" class="d-flex flex-column flex-center h-100 p-6 bg-hover-light border-bottom border-0">
+                                                        <img src="../images/devops/publish.png">
+                                                        <span class="divTitle fs-5 fw-bold text-gray-800 mb-0">Publish</span>
+                                                        <span class="divSubTitle fs-7 text-gray-400">Publish</span>
+
+                                                    </a>
+                                                </div>
+
+                                                <div id="CustomDataType" class="col-md-3 col-sm-6 col-6">
+                                                    <a href="#" data-ax-click='openDeveloperStudio("icdlist")' title="Custom Data Type" class="d-flex flex-column flex-center h-100 p-6 bg-hover-light border-bottom border-0">
+                                                        <img src="../images/devops/custom-data-type.png">
+                                                        <span class="divTitle fs-5 fw-bold text-gray-800 mb-0">Custom Data Type</span>
+                                                        <span class="divSubTitle fs-7 text-gray-400">Data Type</span>
+                                                    </a>
+                                                </div>
+
+                                                <div id="Appvariables" class="col-md-3 col-sm-6 col-6">
+                                                    <a href="#" data-ax-click='openDeveloperStudio("iaxvars")' title="Application Variables" class="d-flex flex-column flex-center h-100 p-6 bg-hover-light border-bottom border-0">
+                                                        <img src="../images/devops/app-variables.png">
+                                                        <span class="divTitle fs-5 fw-bold text-gray-800 mb-0">App Variables</span>
+                                                        <span class="divSubTitle fs-7 text-gray-400">App Variables</span>
+                                                    </a>
+                                                </div>
+
+                                                <div id="DevExplorer" class="col-md-3 col-sm-6 col-6">
+                                                    <a href="#" data-ax-click='openDeveloperStudio("AxDBScript.aspx")' title="Data Base Explorer" class="d-flex flex-column flex-center h-100 p-6 bg-hover-light border-bottom border-0">
+                                                        <img src="../images/devops/DB-Explorer.png">
+                                                        <span class="divTitle fs-5 fw-bold text-gray-800 mb-0">DB Explorer</span>
+                                                        <span class="divSubTitle fs-7 text-gray-400">DB Explorer</span>
+                                                    </a>
+                                                </div>
+
+                                                <div id="ArrangeMenu" class="col-md-3 col-sm-6 col-6">
+                                                    <a href="#" data-ax-click='openDeveloperStudio("ArrangeMenu.aspx")' title="Arrange Menu" class="d-flex flex-column flex-center h-100 p-6 bg-hover-light border-bottom border-0">
+                                                        <img src="../images/devops/ArrangeMenu.png">
+                                                        <span class="divTitle fs-5 fw-bold text-gray-800 mb-0">Arrange Menu</span>
+                                                        <span class="divSubTitle fs-7 text-gray-400">Arrange Menu</span>
+                                                    </a>
+                                                </div>
+
+                                                <div id="EmailDefinitions" class="col-md-3 col-sm-6 col-6">
+                                                    <a href="#" data-ax-click='openDeveloperStudio("iemaildef")' title="Email Definitions" class="d-flex flex-column flex-center h-100 p-6 bg-hover-light border-bottom border-0">
+                                                        <img src="../images/devops/email-definition.png">
+                                                        <span class="divTitle fs-5 fw-bold text-gray-800 mb-0">Email Definitions</span>
+                                                        <span class="divSubTitle fs-7 text-gray-400">Definitions</span>
+                                                    </a>
+                                                </div>
+                                                <div id="TableDescriptor" class="col-md-3 col-sm-6 col-6">
+                                                    <a href="#" data-ax-click='openDeveloperStudio("iad___tbd")' title="Table Type Field Descriptor" class="d-flex flex-column flex-center h-100 p-6 bg-hover-light border-bottom border-0">
+                                                        <img src="../images/devops/table-filed-descriptor.png">
+                                                        <span class="divTitle fs-5 fw-bold text-gray-800 mb-0">Table Field Descriptor</span>
+                                                        <span class="divSubTitle fs-7 text-gray-400">Descriptor</span>
+                                                    </a>
+                                                </div>
+
+                                                <div id="QueueListing" class="col-md-3 col-sm-6 col-6">
+                                                    <a href="#" data-ax-click='openDeveloperStudio("iad__qls")' title="Queue Listing" class="d-flex flex-column flex-center h-100 p-6 bg-hover-light border-bottom border-0">
+                                                        <img src="../images/devops/queue-Listing.png">
+                                                        <span class="divTitle fs-5 fw-bold text-gray-800 mb-0">Queue Listing</span>
+                                                        <span class="divSubTitle fs-7 text-gray-400">Queue</span>
+                                                    </a>
+                                                </div>
+                                                <div id="MemDBConsole" class="col-md-3 col-sm-6 col-6">
+                                                    <a href="#" data-ax-click='openDeveloperStudio("iinmemdb")' title="Mem DB Console" class="d-flex flex-column flex-center h-100 p-6 bg-hover-light border-bottom border-0">
+                                                        <img src="../images/devops/Mem-DB-Console.png">
+                                                        <span class="divTitle fs-5 fw-bold text-gray-800 mb-0">Mem DB Console</span>
+                                                        <span class="divSubTitle fs-7 text-gray-400">Mem DB</span>
+                                                    </a>
+                                                </div>
+                                                <!--end:Item-->
+                                            </div>
+                                            <!--end:Nav-->
+                                        </div>
+                                    </div>
+                                </div>
+                                <!--end::Menu-->
+                                <!--end::Menu wrapper-->
+                                <!--end::Dev Studio options-->
                                 <!--begin::User-->
                                 <div class="d-flex align-items-center ms-2 ms-lg-3">
                                     <!--begin::Menu wrapper-->
@@ -880,7 +1065,7 @@ Home Cunfiguration Page Templete
                         <!--end::Topbar-->
                     </div>
                     <!--end::Container-->
-                    <div class="Application_Parameter-Section">
+                    <div class="Application_Parameter-Section product-param-section">
                         <div class="Application_Parameter_Wrapper">
                         </div>
                         <button type="button"
@@ -899,6 +1084,208 @@ Home Cunfiguration Page Templete
 
                 </div>
                 <!--end::Header-->
+                <!--Begin::Axi CMD line div -->
+                <div class="DvAxiCMD d-none" id="DvAxiCMD">
+                    <!--Should add here Axi CMD html -->
+                    <!-- begin: Axi Popup IFrame (hidden container used for iframe loaders) -->
+                    <iframe id="hiddenLoader" style="display:none;"></iframe>
+                    <!-- end: Axi Popup IFrame -->
+                    <!-- begin: Axi Favourites Add Modal -->
+                    <div id="axiFavModalOverlay" class="axi-modal-overlay" style="display: none;">
+                        <div class="axi-modal-container">
+                            <h4 class="axi-modal-title">Save to Favorites</h4>
+                            <label class="axi-modal-label">Name your favorite:</label>
+                            <input type="text" id="axiFavNameInput" class="axi-modal-input" autocomplete="off" />
+                            <input type="hidden" id="axiFavOriginalCmd" />
+                            <input type="hidden" id="axiFavTargetUrl" class="d-none" />
+                            <input type="hidden" id="axiFavIsEdit" value="false" />
+                            <div class="axi-modal-actions">
+                                <button id="axiFavCancelBtn" class="axi-btn axi-btn-cancel">Cancel</button>
+                                <button id="axiFavSaveBtn" class="axi-btn axi-btn-save d-flex align-items-center justify-content-center">
+                                    <span class="axi-spinner d-none" id="axiFavSaveSpinner"></span>
+                                    <span class="axi-btn-text">Save</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- end: Axi Favourites Add Modal -->
+                    <!-- begin: Axi Favourites Delete Alert Modal -->
+                    <div id="axiFavDeleteModalOverlay" class="axi-modal-overlay" style="display: none;">
+                        <div class="axi-modal-container">
+                            <h4 class="axi-modal-title" style="color: #ef4444;">Delete Favourite</h4>
+                            <p id="axiDeleteModalParagraph" style="font-size: 14px; color: #4b5563; margin-bottom: 20px;">
+                            </p>
+                            <input type="hidden" id="axiFavDeleteCmd" />
+                            <div class="axi-modal-actions">
+                                <button id="axiFavDeleteCancelBtn" class="axi-btn axi-btn-cancel">Cancel</button>
+                                <button id="axiFavDeleteConfirmBtn" class="axi-btn axi-btn-danger d-flex align-items-center justify-content-center">
+                                    <span class="axi-spinner d-none" id="axiFavDeleteSpinner"></span>
+                                    <span class="axi-btn-text">Delete</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- end: Axi Favourites Delete Alert  Modal -->
+                    <!--begin: Axi Command Pallete-->
+                    <div class="AXI-Sec">
+                        <div class="searchwrap-AXI">
+                            <label id="axiLogo" class="AXI-Logo">
+                                <img src="../AxpertPlugins/AxiCMD/images/axi-logo.png" alt="axi logo">
+                                cmd
+                            </label>
+                            <input type="text" class="search-input form-control form-control-transparent ps-8" name="search"
+                                   value="" data-kt-search-element="input" placeholder="Axpert AI" id="Axi-Searchinp"
+                                   autocomplete="off">
+                            <div id="axiHint" class="axi-input-hint"></div>
+                            <div id="axiClearBtn" class="clearbtn" style="display: none; cursor: pointer;">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                     stroke-linecap="round" stroke-linejoin="round">
+                                    <line x1="18" y1="6" x2="6" y2="18"></line>
+                                    <line x1="6" y1="6" x2="18" y2="18"></line>
+                                </svg>
+                            </div>
+                        </div>
+                        <div class="Tkts-toolbar-Left">
+                            <div class="d-flex gap-1">
+                                <div class="d-flex-- align-items-stretch flex-shrink-0 gap-8">
+                                    <!--Run/Send Button-->
+                                    <div class="btn btn-icon btn-white btn-color-gray-600 btn-active-primary shadow-sm tb-btn btn-sm"
+                                         id="runBtn" data-kt-menu-placement="bottom" data-kt-menu-flip="top"
+                                         data-kt-menu-attach="parent" data-kt-menu-trigger="click">
+                                        <span class="material-icons material-icons-style material-icons-2"
+                                              data-bs-toggle="tooltip" data-bs-placement="bottom"
+                                              title="Run">send</span>
+                                    </div>
+                                    <!-- Add to Favorites Button -->
+                                    <div class="btn btn-icon btn-white btn-color-gray-600 btn-active-primary shadow-sm tb-btn btn-sm"
+                                         id="axiAddFavoriteBtn" aria-label="Add to Favorites">
+                                        <span class="material-icons material-icons-style material-icons-2"
+                                              data-bs-toggle="tooltip" data-bs-placement="bottom" title="Add to Favorites">bookmark_add</span>
+                                    </div>
+                                    <!-- View Favorites Button -->
+                                    <div class="btn btn-icon btn-white btn-color-gray-600 btn-active-primary shadow-sm tb-btn btn-sm"
+                                         id="axiViewFavoritesBtn" aria-label="View Favorites">
+                                        <span class="material-icons material-icons-style material-icons-2"
+                                              data-bs-toggle="tooltip" data-bs-placement="bottom" title="View Favorites">bookmarks</span>
+                                    </div>
+                                    <!--                                Previous Page Btn-->
+                                    <div id="btnHistoryPrev"
+                                         class="btn btn-icon btn-white btn-color-gray-600 btn-active-primary shadow-sm tb-btn btn-sm enhance-btn d-none">
+                                        <span data-bs-toggle="tooltip" data-bs-placement="bottom" title=""
+                                              class="material-icons material-icons-style material-icons-2 "
+                                              data-bs-original-title="Previous Page">keyboard_arrow_left</span>
+                                    </div>
+                                    <!--  Previous Page Btn-->
+                                    <!--  Next Page Btn-->
+                                    <div class="btn btn-icon btn-white btn-color-gray-600 btn-active-primary shadow-sm tb-btn btn-sm enhance-btn d-none">
+                                        <span data-bs-toggle="tooltip" data-bs-placement="bottom" title=""
+                                              class="material-icons material-icons-style material-icons-2 "
+                                              data-bs-original-title="Next Page">keyboard_arrow_right</span>
+                                    </div>
+                                    <!--  Next Page Btn-->
+                                    <!--  History Pages Btn-->
+                                    <div class="btn btn-icon btn-white btn-color-gray-600 btn-active-primary shadow-sm tb-btn btn-sm d-none"
+                                         id="History_pages" data-kt-menu-placement="bottom" data-kt-menu-flip="top"
+                                         data-kt-menu-attach="parent">
+                                        <span class="material-icons material-icons-style material-icons-2 "
+                                              data-bs-toggle="tooltip" data-bs-placement="bottom"
+                                              title="History">restore</span>
+                                    </div>
+                                    <!--  History Pages Btn-->
+                                    <!--begin::My Favourites-->
+                                    <div class="d-flex align-items-center " id="My_Fav_Bookmarks">
+                                        <!--begin::Menu wrapper-->
+                                        <div id="axiFavouriteBtn"
+                                             class="btn btn-icon btn-white btn-color-gray-600 btn-active-primary shadow-sm tb-btn btn-sm">
+                                            <span class="material-icons material-icons-style material-icons-2 "
+                                                  data-bs-toggle="tooltip" data-bs-placement="bottom"
+                                                  data-bs-original-title="My Favourites" title="My Favourites">
+                                                bookmark_star
+                                            </span>
+                                        </div>
+                                        <!--begin::My Favourite popout-->
+                                        <div id="axiMegaDropdown" data-kt-menu="true"
+                                             class="menu menu-sub menu-sub-dropdown menu-column z-3"
+                                             style="display: none; position: absolute; bottom: 100%; left: 100px; width: 950px !important; max-width: calc(100vw - 120px) !important;">
+                                            <!--begin::Card-->
+                                            <div id="axiFavouritesCard" class="card">
+                                                <!--begin::Card header-->
+                                                <div class="card-header">
+                                                    <h3 class="card-title">
+                                                        My Favorites
+                                                        <span id="axiFavoriteCount"
+                                                              class="badge badge-light-success fs-7 fw-500 ms-3"></span>
+                                                    </h3>
+                                                    <!-- <a href="#">View All</a> -->
+                                                </div>
+                                                <!--end::Card header-->
+                                                <!--begin::Card body-->
+                                                <div class="card-body p-0">
+                                                    <div class="axi-fav-search-container" id="axiFavFilterContainer">
+                                                        <div class="axi-fav-search-wrapper">
+                                                            <span class="axi-fav-search-icon material-icons">search</span>
+                                                            <input type="text"
+                                                                   id="axiFavFilterInput"
+                                                                   class="axi-fav-search-input"
+                                                                   placeholder="Search favorites..."
+                                                                   autocomplete="off">
+                                                        </div>
+                                                    </div>
+                                                    <!--begin::Notifications-->
+                                                    <div class="scroll-y My-Fav-Items-Wrapper">
+                                                    </div>
+                                                    <!--end::Notifications-->
+                                                </div>
+                                                <!--end::Card header-->
+                                            </div>
+                                            <div class="card">
+                                                <div class="card-header" id="axiCommandsHeader">
+                                                    <h3 class="card-title">Commands</h3>
+                                                </div>
+                                                <div class="card-body p-0">
+                                                    <div class="My-Command-Wrapper">
+                                                        <ul id="axiSuggestions" class="axi-suggestions"></ul>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <!--end::My Favourite popout--> <!--end::Menu wrapper-->
+                                    </div>
+                                    <!--end::Favourites-->
+                                    <!--Enhance Button-->
+                                    <div class="btn btn-icon btn-white btn-color-gray-600 btn-active-primary shadow-sm tb-btn btn-sm enhance-btn d-none">
+                                        <span data-bs-toggle="tooltip" data-bs-placement="bottom" title="Enhance">âœ¨</span>
+                                    </div>
+                                    <!--Refresh Button-->
+                                    <div class="btn btn-icon btn-white btn-color-gray-600 btn-active-primary shadow-sm tb-btn btn-sm"
+                                         id="btnRefresh" data-kt-menu-placement="bottom" data-kt-menu-flip="top"
+                                         data-kt-menu-attach="parent">
+                                        <span class="material-icons material-icons-style material-icons-2 axi-refresh-icon"
+                                              data-bs-toggle="tooltip" data-bs-placement="bottom"
+                                              title="Refresh">refresh</span>
+                                    </div>
+                                    <!--Settings Button (records to load at a time)-->
+                                    <div class="btn btn-icon btn-white btn-color-gray-600 btn-active-primary shadow-sm tb-btn btn-sm"
+                                         id="axiSettingsBtn" aria-label="AxiCMD Settings">
+                                        <span class="material-icons material-icons-style material-icons-2"
+                                              data-bs-toggle="tooltip" data-bs-placement="bottom"
+                                              title="Settings">settings</span>
+                                    </div>
+                                    <!--Notification Button-->
+                                    <div class="btn btn-icon btn-white btn-color-gray-600 btn-active-primary shadow-sm tb-btn btn-sm selectbtn d-none"
+                                         data-kt-menu-placement="bottom" data-kt-menu-flip="top"
+                                         data-kt-menu-attach="parent">
+                                        <span class="material-icons material-icons-style material-icons-2 initialized"
+                                              data-bs-toggle="tooltip" data-bs-placement="bottom"
+                                              data-bs-original-title="Notify" title="Notify">notifications_active</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <!--end: Axi Command Pallete-->
+                </div>
+                <!--end::Axi CMD line div-->
                 <!--begin::Content-->
                 <div class="content fs-6 d-flex flex-column flex-column-fluid px-3 pt-5 pb-2">
                     <!-- <div class="btn btn-icon btn-sm position-absolute ms-n20 mt-2 fw-bolder z-index-2 transform-270 appBackBtn" onclick="prevbtn_click($(this))">
@@ -968,7 +1355,7 @@ Home Cunfiguration Page Templete
                                 <!-- Top KPI Section starts -->
                                 <div class="cardsPlot mb-8 col-md-12 d-none" id="Homepage_CardsList">
                                     <!-- card style change option Begin-->
-                                    <div class="cards-style">
+                                    <div class="cards-style d-none">
                                         <button type="button" class="btn btn-sm btn-icon btn-primary btn-active-primary btn-custom-border-radius" title="" name="smallcards">
                                             <span class="material-icons material-icons-style material-icons-2">apps</span>
                                         </button>
@@ -986,6 +1373,7 @@ Home Cunfiguration Page Templete
                                 <!-- Top KPI Section ends -->
                                 <!-- Left cardslists Starts  -->
                                 <div class="HomePageMenuOptionCards mb-8 col-md-12"></div>
+                                <div class="HtmlPanelCards mb-8 col-md-12"><div class="row"></div></div>
                                 <div class="HomePageCards mb-8 col-md-12"></div>
                                 <!-- Left cardslists ends -->
 
@@ -1073,18 +1461,18 @@ Home Cunfiguration Page Templete
     files.js.push("/Js/handlebars.min.js?v=3");
     files.js.push("/Js/handleBarsHelpers.min.js");
     if (homePageType == "cards") {
-        files.js.push("/Js/AxInterface.min.js?v=13");//min
+        files.js.push("/Js/AxInterface.min.js?v=24");//min
         files.js.push("/ThirdParty/Highcharts/highcharts.js");
         files.js.push("/ThirdParty/Highcharts/highcharts-3d.js");
         files.js.push("/ThirdParty/Highcharts/highcharts-more.js");
         files.js.push("/ThirdParty/Highcharts/highcharts-exporting.js");
-        files.js.push("/Js/high-charts-functions.min.js?v=23");//min
+        files.js.push("/Js/high-charts-functions.min.js?v=24");//min
 
         files.js.push("/ThirdParty/DataTables-1.10.13/media/js/jquery.dataTables.js");
         files.js.push("/ThirdParty/DataTables-1.10.13/media/js/dataTables.bootstrap.js");
 
         files.js.push("/ThirdParty/DataTables-1.10.13/extensions/Extras/moment.min.js");
-        files.js.push("/ThirdParty/fullcalendar-6.1.8/index.global.min.js");
+        // files.js.push("/ThirdParty/fullcalendar-6.1.8/index.global.min.js");
         files.css.push("/ThirdParty/fullcalendar/lib/main.min.css");
         files.js.push("/ThirdParty/fullcalendar/lib/main.min.js");
 
@@ -1102,14 +1490,55 @@ Home Cunfiguration Page Templete
     if (!customStyleApplied) {
         // files.css.push("/Css/axpertUI.min.css?v=50");
     }
-    files.css.push("/Css/LayoutTheme.min.css?v=2");
-    files.css.push("/Css/AxNotifications.min.css?v=1");
-    files.css.push("/Css/HomeConfigPageCards.min.css?v=5");
+
+    files.css.push("/Css/LayoutTheme.min.css?v=13");
+    files.css.push("/Css/AxNotifications.min.css?v=2");
+    files.css.push("/Css/HomeConfigPageCards.min.css?v=13");
     files.js.push("/Js/signalr.min.js");
-    files.js.push("/Js/axpertUI_homecards.min.js?v=16");
-    files.js.push("/Js/AxNotifications.min.js?v=5");
-    files.js.push("/Js/HomeConfigPageCards.min.js?v=14");
-    files.js.push("/Js/AxHtml.min.js?v=2");
+    files.js.push("/Js/axpertUI_homecards.min.js?v=31");
+    files.js.push("/Js/AxNotifications.min.js?v=19");
+    files.js.push("/Js/HomeConfigPageCards.min.js?v=16");
+    files.js.push("/Js/Entity-common.min.js?v=18");
+
+    var isAxiCMDEnabled = typeof axicmdEnabled !== 'undefined' && axicmdEnabled !== false && axicmdEnabled !== 'false';
+    if (isAxiCMDEnabled) {
+        let _appUrl = top.window.location.href.toLowerCase().substring("0", top.window.location.href.indexOf("/aspx/"));
+        var axiCmdJs = _appUrl + "/AxpertPlugins/AxiCMD/HTMLPages/js/axicmdmain.js?v=104";
+        var axiCmdCss = _appUrl + "/AxpertPlugins/AxiCMD/HTMLPages/css/axicmdmain.css?v=17";
+        function checkFileExists(url) {
+            var fileExists = false;
+            $.ajax({
+                url: url,
+                type: "GET",
+                // new code: read the file as plain text; without a dataType jQuery ran axicmdmain.js a second time (as an unnamed VM script, so breakpoints did not stop). HEAD is not used because IIS returns 404 for it.
+                dataType: "text",
+                async: false,
+                cache: false,
+                success: function (data, textStatus, xhr) {
+                    if (xhr.status >= 200 && xhr.status < 300) {
+                        fileExists = true;
+                    }
+                },
+                error: function (xhr) {
+                    fileExists = false;
+                }
+            });
+            if (!fileExists) {
+                throw new Error("File not found: " + url);
+            }
+        }
+        try {
+            checkFileExists(axiCmdJs);
+            checkFileExists(axiCmdCss);
+            files.js.push(axiCmdJs);
+            files.css.push(axiCmdCss);
+        }
+        catch (ex) {
+            isAxiCMDEnabled = false;
+            console.log("AxiCMD files not available. AxiCMD disabled.");
+        }
+    }
+
     var dirLeft = true;
 
     if ($("body").hasClass("btextDir-rtl")) {
@@ -1121,11 +1550,23 @@ Home Cunfiguration Page Templete
         callBack: function () {
             $("body").addClass("mixed-theme");
             renderTemplete('template.templateContent');
-
+            var userOptionsMenu = document.querySelector("#AllUserOptions + [data-kt-menu='true']");
+            if (userOptionsMenu) {
+                userOptionsMenu.addEventListener("click", function (event) {
+                    var link = event.target.closest("a[href='#']");
+                    if (link && userOptionsMenu.contains(link))
+                        event.preventDefault();
+                }, true);
+            }
+            if (!isAxiCMDEnabled) {
+                $("#DvAxiCMD").remove();
+                $(".axi-cmd-param-section").remove();
+            } else {
+                $("#DvAxiCMD").removeClass('d-none');
+                $(".product-param-section").remove();
+                $(".axi-cmd-param-section").removeClass('d-none');
+            }
             $(function () {
-                try {
-                    objHomePageCards.init();
-                } catch (ex) { }
                 KTDrawer.init();
                 KTMenu.init();
                 KTScroll.init();
@@ -1154,6 +1595,30 @@ Home Cunfiguration Page Templete
                     }
                 });
                 try {
+                    if ($("#hdHomeUrl").val() == "") {
+                        $.ajax({
+                            url: 'mainnew.aspx/GetCardsWithDataOnLoginWS',
+                            type: 'POST',
+                            cache: false,
+                            async: false,
+                            dataType: 'json',
+                            contentType: "application/json",
+                            success: function (data) {
+                                if (data && data.d) {
+                                    if (typeof data.d != "undefined" && data.d != "" && (data.d == 'Error occurred. Please check with administrator.' || data.d.toLowerCase().startsWith('error ')))
+                                        ShowDimmer(false);
+                                    else
+                                        $("#cardsData").val(data.d);
+                                } else {
+                                    ShowDimmer(false);
+                                }
+                            },
+                            error: function (er) {
+                                ShowDimmer(false);
+                            }
+                        });
+                    }
+
                     appGlobalVarsObject._CONSTANTS.cardsPage = $.extend(true, {},
                         appGlobalVarsObject._CONSTANTS.cardsPage, {
                         setCards: $("#hdHomeUrl").val() == "" && homePageType == "cards",
@@ -1291,11 +1756,11 @@ Home Cunfiguration Page Templete
                                         //title: lcm[460]
                                         title: {
                                             div: ".divTitle",
-                                            title: "Show Log"
+                                            title: lcm[546].split(" ")[0] + " " + lcm[546].split(" ")[1]
                                         },
                                         subTitle: {
                                             div: ".divSubTitle",
-                                            divTitle: "Log"
+                                            title: lcm[546].split(" ")[2]
                                         }
                                     },
                                     traceValue: {
@@ -1315,13 +1780,14 @@ Home Cunfiguration Page Templete
                                         //title: lcm[503]
                                         title: {
                                             div: ".divTitle",
-                                            title: "Show Execution"
+                                            title: lcm[547].split(" ")[0] + " " + lcm[547].split(" ")[1]
                                         },
                                         subTitle: {
                                             div: ".divSubTitle",
-                                            divTitle: "Trace"
+                                            title: lcm[547].split(" ")[2]
                                         }
-                                    }, exectraceValue: {
+                                    },
+                                    exectraceValue: {
                                         div: "#chkexecshowlog",
                                         divClick: "label",
                                         divControl: "input",
@@ -1376,26 +1842,32 @@ Home Cunfiguration Page Templete
                                             title: "Developer"
                                         }
                                     },
+                                    axpertstudio: {
+                                        div: "#axpertstudio",
+                                        title: {
+                                            title: "Axpert Developer Studio"
+                                        }
+                                    },
                                     configurationStudio: {
                                         div: "#configurationStudio",
                                         title: {
                                             div: ".divTitle",
-                                            title: "Configuration"
+                                            title: lcm[542].split(" ")[0]
                                         },
                                         subTitle: {
                                             div: ".divSubTitle",
-                                            title: "Studio"
+                                            title: lcm[542].split(" ")[1]
                                         }
                                     },
                                     ArrangeCards: {
                                         div: "#arrangeCards",
                                         title: {
                                             div: ".divTitle",
-                                            title: "Dashboard"
+                                            title: lcm[545].split(" ")[0]
                                         },
                                         subTitle: {
                                             div: ".divSubTitle",
-                                            divTitle: "Setting"
+                                            title: lcm[545].split(" ")[1] + " " + lcm[545].split(" ")[2]
                                         }
                                     },
                                     refreshMenu: {
@@ -1403,11 +1875,11 @@ Home Cunfiguration Page Templete
                                         /*title: lcm[456]*/
                                         title: {
                                             div: ".divTitle",
-                                            title: "Refresh Menu"
+                                            title: lcm[544]
                                         },
                                         subTitle: {
                                             div: ".divSubTitle",
-                                            divTitle: "Menu"
+                                            title: lcm[544].split(" ")[1]
                                         }
                                     },
                                     refreshVarParam: {
@@ -1415,11 +1887,11 @@ Home Cunfiguration Page Templete
                                         /*title: lcm[507]*/
                                         title: {
                                             div: ".divTitle",
-                                            title: "Refresh App"
+                                            title: lcm[543].split(" ")[0] + " " + lcm[543].split(" ")[1]
                                         },
                                         subTitle: {
                                             div: ".divSubTitle",
-                                            divTitle: "Variables"
+                                            title: lcm[543].split(" ")[2]
                                         }
                                     },
                                     AppConfig: {
@@ -1458,11 +1930,11 @@ Home Cunfiguration Page Templete
                                         //title: lcm[461],
                                         title: {
                                             div: ".divTitle",
-                                            title: "QR Code"
+                                            title: lcm[548]
                                         },
                                         subTitle: {
                                             div: ".divSubTitle",
-                                            divTitle: "QR Code"
+                                            title: lcm[548]
                                         }
                                     },
                                     WidgetBuilder: {
@@ -1490,7 +1962,7 @@ Home Cunfiguration Page Templete
                                         },
                                         subTitle: {
                                             div: ".divSubTitle",
-                                            divTitle: lcm[250].split(" ")[1]
+                                            title: lcm[250].split(" ")[1]
                                         },
                                     },
                                     ImportData: {
@@ -1501,7 +1973,7 @@ Home Cunfiguration Page Templete
                                         },
                                         subTitle: {
                                             div: ".divSubTitle",
-                                            divTitle: lcm[251].split(" ")[1]
+                                            title: lcm[251].split(" ")[1]
                                         },
                                     },
                                     ImportHistory: {
@@ -1512,8 +1984,234 @@ Home Cunfiguration Page Templete
                                         div: "#WorkFlow",
                                         title: lcm[398],
                                     },
-                                },
 
+                                    //CustomPages: {
+                                    //    div: "#CustomPages",
+                                    //    atitle: lcm[549].split(" ")[0] + " " + lcm[549].split(" ")[1],
+                                    //    title: {
+                                    //        div: ".divTitle",
+                                    //        title: lcm[549].split(" ")[0] + " " + lcm[549].split(" ")[1]
+                                    //    },
+                                    //    subTitle: {
+                                    //        div: ".divSubTitle",
+                                    //        title: lcm[549].split(" ")[2]
+                                    //    }
+                                    //},
+
+                                    pluginCustomCode: {
+                                        div: "#pluginCustomCode",
+                                        atitle: lcm[550].split(" ")[0] + " " + lcm[550].split(" ")[1],
+                                        title: {
+                                            div: ".divTitle",
+                                            title: lcm[550].split(" ")[0] + " " + lcm[550].split(" ")[1]
+                                        },
+                                        subTitle: {
+                                            div: ".divSubTitle",
+                                            title: lcm[550].split(" ")[2]
+                                        }
+                                    },
+                                    Iview: {
+                                        div: "#Iview",
+                                        atitle: lcm[551].split(" ")[0],
+                                        title: {
+                                            div: ".divTitle",
+                                            title: lcm[551].split(" ")[0]
+                                        },
+                                        subTitle: {
+                                            div: ".divSubTitle",
+                                            title: lcm[551].split(" ")[1]
+                                        }
+                                    },
+
+                                    Tstruct: {
+                                        div: "#Tstruct",
+                                        atitle: lcm[552].split(" ")[0],
+                                        title: {
+                                            div: ".divTitle",
+                                            title: lcm[552].split(" ")[0]
+                                        },
+                                        subTitle: {
+                                            div: ".divSubTitle",
+                                            title: lcm[552].split(" ")[1]
+                                        }
+                                    },
+
+                                    AxpertJobs: {
+                                        div: "#AxpertJobs",
+                                        atitle: lcm[553],
+                                        title: {
+                                            div: ".divTitle",
+                                            title: lcm[553]
+                                        },
+                                        subTitle: {
+                                            div: ".divSubTitle",
+                                            title: lcm[553]
+                                        }
+                                    },
+
+                                    DevOptions: {
+                                        div: "#DevOptions",
+                                        atitle: lcm[567],
+                                        title: {
+                                            div: ".divTitle",
+                                            title: lcm[554]
+                                        },
+                                        subTitle: {
+                                            div: ".divSubTitle",
+                                            title: lcm[554]
+                                        }
+                                    },
+
+                                    APIPlugins: {
+                                        div: "#APIPlugins",
+                                        atitle: lcm[555].split(" ")[0] + " " + lcm[555].split(" ")[1],
+                                        title: {
+                                            div: ".divTitle",
+                                            title: lcm[555].split(" ")[0] + " " + lcm[555].split(" ")[1]
+                                        },
+                                        subTitle: {
+                                            div: ".divSubTitle",
+                                            title: lcm[555].split(" ")[2] + " " + lcm[555].split(" ")[3]
+                                        }
+                                    },
+                                    ADS: {
+                                        div: "#ADS",
+                                        atitle: lcm[556].split(" ")[0] + " " + lcm[556].split(" ")[1] + " " + lcm[556].split(" ")[2],
+                                        title: {
+                                            div: ".divTitle",
+                                            title: lcm[556].split(" ")[0] + " " + lcm[556].split(" ")[1] + " " + lcm[556].split(" ")[2]
+                                        },
+                                        subTitle: {
+                                            div: ".divSubTitle",
+                                            title: lcm[556].split(" ")[3]
+                                        }
+                                    },
+                                    Appvariables: {
+                                        div: "#Appvariables",
+                                        atitle: lcm[568],
+                                        title: {
+                                            div: ".divTitle",
+                                            title: lcm[557]
+                                        },
+                                        subTitle: {
+                                            div: ".divSubTitle",
+                                            title: lcm[557]
+                                        }
+                                    },
+                                    CustomDataType: {
+                                        div: "#CustomDataType",
+                                        atitle: lcm[558].split(" ")[0] + " " + lcm[558].split(" ")[1] + " " + lcm[558].split(" ")[2],
+                                        title: {
+                                            div: ".divTitle",
+                                            title: lcm[558].split(" ")[0] + " " + lcm[558].split(" ")[1] + " " + lcm[558].split(" ")[2]
+                                        },
+                                        subTitle: {
+                                            div: ".divSubTitle",
+                                            title: lcm[558].split(" ")[1] + " " + lcm[558].split(" ")[2]
+                                        }
+                                    },
+
+                                    DevPublish: {
+                                        div: "#DevPublish",
+                                        atitle: lcm[559],
+                                        title: {
+                                            div: ".divTitle",
+                                            title: lcm[559]
+                                        },
+                                        subTitle: {
+                                            div: ".divSubTitle",
+                                            title: lcm[559]
+                                        }
+                                    },
+
+                                    DevLanguages: {
+                                        div: "#DevLanguages",
+                                        atitle: lcm[569],
+                                        title: {
+                                            div: ".divTitle",
+                                            title: lcm[560]
+                                        },
+                                        subTitle: {
+                                            div: ".divSubTitle",
+                                            title: lcm[560]
+                                        }
+                                    },
+
+                                    TableDescriptor: {
+                                        div: "#TableDescriptor",
+                                        atitle: lcm[570],
+                                        title: {
+                                            div: ".divTitle",
+                                            title: lcm[561]
+                                        },
+                                        subTitle: {
+                                            div: ".divSubTitle",
+                                            title: lcm[561].split(" ")[2]
+                                        }
+                                    },
+
+                                    EmailDefinitions: {
+                                        div: "#EmailDefinitions",
+                                        atitle: lcm[562],
+                                        title: {
+                                            div: ".divTitle",
+                                            title: lcm[562]
+                                        },
+                                        subTitle: {
+                                            div: ".divSubTitle",
+                                            title: lcm[562].split(" ")[2]
+                                        }
+                                    },
+
+                                    ArrangeMenu: {
+                                        div: "#ArrangeMenu",
+                                        atitle: lcm[563],
+                                        title: {
+                                            div: ".divTitle",
+                                            title: lcm[563]
+                                        },
+                                        subTitle: {
+                                            div: ".divSubTitle",
+                                            title: lcm[563]
+                                        }
+                                    },
+                                    DevExplorer: {
+                                        div: "#DevExplorer",
+                                        atitle: lcm[571],
+                                        title: {
+                                            div: ".divTitle",
+                                            title: lcm[564]
+                                        },
+                                        subTitle: {
+                                            div: ".divSubTitle",
+                                            title: lcm[564]
+                                        }
+                                    },
+                                    MemDBConsole: {
+                                        div: "#MemDBConsole",
+                                        atitle: lcm[565],
+                                        title: {
+                                            div: ".divTitle",
+                                            title: lcm[565]
+                                        },
+                                        subTitle: {
+                                            div: ".divSubTitle",
+                                            title: lcm[565].split(" ")[0] + " " + lcm[565].split(" ")[1]
+                                        }
+                                    },
+                                    QueueListing: {
+                                        div: "#QueueListing",
+                                        atitle: lcm[566],
+                                        title: {
+                                            div: ".divTitle",
+                                            title: lcm[566]
+                                        },
+                                        subTitle: {
+                                            div: ".divSubTitle",
+                                            title: lcm[566].split(" ")[0]
+                                        }
+                                    },
+                                },
                                 settings: appGlobalVarsObject._CONSTANTS.axpertUserSettings
                             },
                             search: {
@@ -1579,7 +2277,9 @@ Home Cunfiguration Page Templete
                     appGlobalVarsObject._CONSTANTS.history = tempaxpertUIObj.history;
 
                     appGlobalVarsObject.methods.toggleCompressModeUI($("body"));
-
+                    try {
+                        axpertDevOptAccess();
+                    } catch (ex) { }
                 } catch (ex) { }
                 //end AxpertUI Init
 
@@ -1592,14 +2292,14 @@ Home Cunfiguration Page Templete
                         document.querySelector(".cardsPageWrapper")?.classList.remove('d-none');
                         document.querySelector(".splitter-wrapper")?.classList.add('d-none');
                     }, 0);
-                    if (appGlobalVarsObject._CONSTANTS.cardsPage.setCards && cardsData.value != "[]") {
+                    if (appGlobalVarsObject._CONSTANTS.cardsPage.setCards && (cardsData.value != "[]" && cardsData.value != "")) {
                         document.querySelector(".HomePageCards")?.classList.remove('col-md-12');
                         document.querySelector(".HomePageCards")?.classList.add('col-md-12');
                         document.querySelector("#Homepage_CardsList")?.classList.add('col-md-3');
                         document.querySelector("#Homepage_CardsList")?.classList.remove('d-none');
 
-                        $(".htmlDomWrapper").removeClass('col-lg-3 col-md-3 col-sm-12 col-xs-3');
-                        $(".htmlDomWrapper").addClass('col-lg-4 col-md-4 col-sm-12 col-xs-4');
+                        //$(".htmlDomWrapper").removeClass('col-lg-3 col-md-3 col-sm-12 col-xs-3');
+                        //$(".htmlDomWrapper").addClass('col-lg-4 col-md-4 col-sm-12 col-xs-4');
                     }
                     resetMainPageUI();
                     GetProcessTime();
@@ -1613,11 +2313,6 @@ Home Cunfiguration Page Templete
                 }
 
             });
-
-
-            if (bannerHtml) {
-                document.querySelector("#New-Landing-layout").insertAdjacentHTML("afterbegin", bannerHtml);
-            }
 
             if (document.querySelector("#AxGloVarHTML")) {
                 let axGloVarsHtml = document.querySelector("#AxGloVarHTML").innerHTML;
@@ -1648,7 +2343,7 @@ Home Cunfiguration Page Templete
                         myModal.close();
                     }
 
-                    $(document.querySelector(".Application_Parameter-Section")).attr("onclick", $.axpertUI.options.axpertUserSettings.settings.axUserOptions.GlobalParamsonclick.onclick);
+                    $(document.querySelector(".Application_Parameter-Section")).attr("data-ax-click", $.axpertUI.options.axpertUserSettings.settings.axUserOptions.GlobalParamsonclick.onclick);
                 }, 1)
             }
 

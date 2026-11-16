@@ -20,6 +20,7 @@ var MainNewEdit = false,
     mainSQLhintObj = {},
     AxUserPagesInfo = {},
     IsfieldaddInDesignMode = false,
+    isMenuOpen = false,
     notifyJsonOldobj = "";
 var colorArray = ['#999966', '#FFB399', '#FF33FF', '#FFFF99', '#00B3E6',
     '#E6B333', '#3366E6', '#999966', '#99FF99', '#B34D4D',
@@ -49,6 +50,14 @@ var AxNotifyMsgId = "";
 var AxNotifyHistory = "";
 var axTraceFlag = false;
 var axExecTraceFlag = 'false';
+var axDevStudioInfo = 'false';
+var SQLHintObj = '';
+var addFormRuntimeDcFlag = '';
+var formComponentsFlag = '';
+var mainSqlHintObj = {};
+var cpwdLoadExit = "false";
+var multiFormsJson = {};
+var isStudioOpenedInIframe = false;
 if (typeof (Storage) !== "undefined") {
     try {
         let appSessUrl = top.window.location.href.toLowerCase().substring("0", top.window.location.href.indexOf("/aspx/"));
@@ -100,6 +109,7 @@ appGlobalVarsObject = new appGlobalObj();
  */
 function appGlobalObj() {
     //this.lcm = callParentNew("lcm");
+    var hideCount = 0;
     _this_ = this;
     this.lcm = lcm;
     this._CONSTANTS = new globalConstants();
@@ -189,16 +199,33 @@ function appGlobalObj() {
                 },
                 hide(e, modal, win) {
                     // setTimeout(() => {
+                    if (hideCount > 0) {
+                        try {
+                            var backBtn = $(_this_._CONSTANTS.window.appGlobalVarsObject._CONSTANTS.navigation.backButton.div);
+                            if (backBtn?.length > 0) {
+                                if (!_this_._CONSTANTS.window.appGlobalVarsObject._CONSTANTS.isBackBtnHidden) {
+                                    backBtn.addClass("d-none");
+                                    _this_._CONSTANTS.window.appGlobalVarsObject._CONSTANTS.isBackBtnHidden = true;
+                                }
+                            }
+                        } catch (ex) { }
+                        return;
+                    }
+                    hideCount++;
                     try {
                         var backBtn = $(_this_._CONSTANTS.window.appGlobalVarsObject._CONSTANTS.navigation.backButton.div);
                         if (backBtn?.length > 0) {
-                            if (_this_._CONSTANTS.window.appGlobalVarsObject._CONSTANTS.isBackBtnHidden) {
+                            if (_this_._CONSTANTS.window.appGlobalVarsObject._CONSTANTS.isBackBtnHidden && typeof win != "undefined" && win?.name != 'loadPopUpPage') {
                                 backBtn.removeClass("d-none");
                                 // backBtn.show();
                                 _this_._CONSTANTS.window.appGlobalVarsObject._CONSTANTS.isBackBtnHidden = false;
                             }
                         }
-                    } catch (ex) { }
+                    } finally {
+                        setTimeout(function () {
+                            hideCount = 0;
+                        }, 0);
+                    }
                     // }, 0);
                 }
             }
@@ -453,8 +480,8 @@ function signout(path) {
                     text: lcm[280],
                     btnClass: 'btn btn-primary-white btn-bg-light',
                     action: function () {
-                        if (typeof keepAlive != "undefined" && keepAlive == "true")
-                            keepAlive = "false";
+                        //if (typeof keepAlive != "undefined" && keepAlive == "true")
+                        //    keepAlive = "false";
                         signoutCB.close();
                         SaveAxNotifyHistory();
                         setTimeout(function () {
@@ -488,12 +515,13 @@ function signout(path) {
                     text: lcm[164],
                     btnClass: 'btn btn-primary',
                     action: function () {
-                        if (typeof keepAlive != "undefined" && keepAlive == "true")
-                            keepAlive = "false";
+                        //if (typeof keepAlive != "undefined" && keepAlive == "true")
+                        //    keepAlive = "false";
                         signoutCB.close();
                         SaveAxNotifyHistory();
                         doPageUnload = "true";
                         BeforeWindowClose();
+                        doPageUnload = "false";
                         setTimeout(function () {
                             window.location.href = path;
                         }, 0);
@@ -830,56 +858,60 @@ function SetUnload(status) {
 
 //Main page on before unload- calling sgnout webservice to handle record lock
 function BeforeWindowClose() {
-
     if (doPageUnload != "false") {
         try {
             sessionStorage.removeItem("homeJsonObj");
             sessionStorage.clear();
             var localSessionVal = parseInt(window.localStorage.getItem("axpertLocalsession"));
-            //window.localStorage.setItem("axpertLocalsession", localSessionVal + 1);
-
             if (!localSessionVal || localSessionVal == 0) {
-                //var isExeSave=ExecutionTraceInterval(true);
-                /*var isExeSave = (typeof callParentNew("ExecTraceOn") != 'undefined' && callParentNew("ExecTraceOn") == "true") ? ExecutionTraceInterval(true) : true;*/
                 var isExeSave = (typeof callParentNew("axExecTraceFlag") != 'undefined' && callParentNew("axExecTraceFlag") == 'true') ? ExecutionTraceInterval(true) : true;
-                clearLocalStorage(['projInfo-', 'versionInfo-', 'langInfo-', 'hybridGUID-', 'hybridDeviceId-', 'compressedMode-', 'duplicateUser-', 'instanceName-', 'customGlobalStylesExist-', 'axGlobalThemeStyle-', 'axThemeFldr-'], true);
+                clearLocalStorage(['projInfo-', 'versionInfo-', 'langInfo-', 'hybridGUID-', 'hybridDeviceId-', 'compressedMode-', 'duplicateUser-', 'instanceName-', 'customGlobalStylesExist-', 'axGlobalThemeStyle-', 'axThemeFldr-', 'tstDDFVal♠', 'current_tabsignin-', 'axKeepMeBrowserId-'], true);
                 window.localStorage.removeItem("axpertLocalsession");
                 if (isExeSave) {
-                    let appSessUrl = top.window.location.href.toLowerCase().substring("0", top.window.location.href.indexOf("/aspx/"));
+                    let appSessUrl = top.window.location.href.toLowerCase().substring(0, top.window.location.href.indexOf("/aspx/"));
+                    let logoutKey = "axpertLogoutLock-" + appSessUrl;
                     localStorage.setItem('logged_in-' + appSessUrl, 'no');
                     if (typeof AxNotifyHistory != "undefined" && AxNotifyHistory != "")
                         SaveAxNotifyHistory();
-                    /* if (typeof callParentNew("ExecTraceOn") != 'undefined' && callParentNew("ExecTraceOn") == "false") {*/
-                    if (typeof callParentNew("axExecTraceFlag") != 'undefined' && callParentNew("axExecTraceFlag") == "false") {
-                        if (typeof keepAlive != "undefined" && keepAlive == "true") {
-                            let currPageUrl = callParentNew("middle1", "id").src;
-                            if (currPageUrl.indexOf('mainnew.aspx') > -1) {
-                                currPageUrl = "mainnew";
-                            } else {
-                                currPageUrl = currPageUrl.substring(currPageUrl.length, currPageUrl.indexOf('/aspx/') + 6);
-                                currPageUrl = currPageUrl.substring(0, currPageUrl.indexOf("&hdnbElapsTime="));
-                            }
-                            ASB.WebService.SignOut(currPageUrl);
-                        } else
-                            ASB.WebService.SignOut('false');
-                    } else
-                        ASB.WebService.SignOut();
+                    let _keepAliveFlag = 'false';
+                    if (typeof keepAlive != "undefined" && keepAlive == "true") {
+                        let currPageUrl = callParentNew("middle1", "id").src;
+                        if (currPageUrl.indexOf('mainnew.aspx') > -1) {
+                            currPageUrl = "mainnew";
+                        } else {
+                            currPageUrl = currPageUrl.substring(currPageUrl.length, currPageUrl.indexOf('/aspx/') + 6);
+                            currPageUrl = currPageUrl.substring(0, currPageUrl.indexOf("&hdnbElapsTime="));
+                        }
+                        _keepAliveFlag = currPageUrl;
+                    }
+
+                    if (!localStorage.getItem(logoutKey)) {
+                        localStorage.setItem(logoutKey, "true");
+                        if (typeof callParentNew("axExecTraceFlag") != 'undefined' &&
+                            callParentNew("axExecTraceFlag") == "false")
+                            ASB.WebService.SignOut(_keepAliveFlag);
+                        else
+                            ASB.WebService.SignOut();
+                    }
                 }
             } else {
                 if (isDuplicateTab.startsWith('true-') && isMulDuplicateTab == "false") {
-                    let _appSessUrl = top.window.location.href.toLowerCase().substring("0", top.window.location.href.indexOf("/aspx/"));
+                    let _appSessUrl = top.window.location.href.toLowerCase().substring(0, top.window.location.href.indexOf("/aspx/"));
                     if (localStorage.getItem('web_browser_dup-' + _appSessUrl) != null)
                         localStorage.removeItem('web_browser_dup-' + _appSessUrl);
-                } else if (isDuplicateTab.startsWith('true-') && isMulDuplicateTab == "true") {
+                }
+                else if (isDuplicateTab.startsWith('true-') && isMulDuplicateTab == "true") {
                     isMulDuplicateTab = "false";
                 }
                 window.localStorage.setItem("axpertLocalsession", localSessionVal - 1);
             }
         } catch (ex) { }
+
     } else if (isMobile && isFileDownload) {
         isFileDownload = false;
-    } else
+    } else {
         doPageUnload = "true";
+    }
 }
 
 function createLocalSession() {
@@ -938,7 +970,20 @@ window.addEventListener('DOMContentLoaded', function () {
 
 var visibleAppSettings = 0; //total visible menu count for utilities menu
 $(document).ready(function (event) {
+    $(document).on('click', '#impopen', function () {
+        const $target = $('body');
+        const stateClass = $(this).data('kt-toggle-state') || 'active';
+
+        if ($target.hasClass(stateClass)) {
+            $target.removeClass(stateClass);
+            isMenuOpen = false;
+        } else {
+            $target.addClass(stateClass);
+            isMenuOpen = true;
+        }
+    });
     setTimeout(function () {
+        ShowDimmer(true);
         let _appLogged = top.window.location.href.toLowerCase().substring("0", top.window.location.href.indexOf("/aspx/"));
         localStorage.setItem('logged_in-' + _appLogged, 'yes');
         if (typeof callParentNew("ExecTraceOn") != 'undefined' && callParentNew("ExecTraceOn") == "true")
@@ -1121,7 +1166,7 @@ $(document).ready(function (event) {
             $(".rightPartAC").addClass("middle1_isNotCloudApp");
 
             $(".ACmainwrapper").css("margin-top", "0px");
-           /* $("#exeiddownload").hide();*/
+            /* $("#exeiddownload").hide();*/
             $("#li_ConfigApp").hide();
             $("li2").hide();
             $("#wrapperForMainNewData").css("top", "109px");
@@ -1504,8 +1549,6 @@ $(document).ready(function (event) {
         catch (ex) {
 
         }
-
-
         //ppn-AssignGloSrchScroll();
 
         if (typeof localStorUser != "undefined" && localStorUser == "true") {
@@ -1540,7 +1583,16 @@ function AxAfterMainPageLoad(mCollapse) {
 
 
 function prevbtn_click(thisobject) {
+    if (typeof $($(thisobject).find('button'))[0] != "undefined") {
+        if ($($(thisobject).find('button'))[0].style.pointerEvents === "none") {
+            return false;
+        }
+        $($(thisobject).find('button'))[0].style.pointerEvents = "none";
+    }
+
     if (thisobject.hasClass('linkGray')) {
+        if (typeof $($(thisobject).find('button'))[0] != "undefined")
+            $($(thisobject).find('button'))[0].style.pointerEvents = "auto";
         return false;
     }
 
@@ -1549,6 +1601,8 @@ function prevbtn_click(thisobject) {
 
     if (isMobile && appLinkHistory.length == 1)
         console.log('axm_mainpageloaded');
+    else if (isMobile && appLinkHistory.length == 0)
+        console.log('axm_homepageloaded');
     updateLinks(thisobject, 'prev');
 
 }
@@ -1770,7 +1824,74 @@ function getKeysWithPrefix(prefix) {
 
     return matchingKeys;
 }
+//function clearKeysByFormat(input) {
+//    try {
+//        var parts = input.split("♣");
+//        var start = parts[0];
+//        var end = parts[1];
+//        var allKeys = Object.keys(localStorage);
+//        allKeys.forEach(function (key) {
+//            if (key.startsWith(start) && key.includes(end)) {
+//                localStorage.removeItem(key);
+//            }
+//        });
+//    } catch (ex) { }
+//}
+function clearKeysByFormat(input) {
+    try {
+        var parts = input.split("♣");
+        var start = parts[0];
+        var end = parts[1];
+        if (typeof indexedDB == "undefined")
+            return;
+        var request = indexedDB.open("AxDropdownCacheDB", 1);
+        request.onupgradeneeded = function (event) {
+            var db = event.target.result;
+            if (!db.objectStoreNames.contains("dropdowns")) {
+                var store = db.createObjectStore("dropdowns", { keyPath: "key" });
+                store.createIndex("timestamp", "timestamp", { unique: false });
+            }
+        };
+        request.onsuccess = function (event) {
+            var db = event.target.result;
+            try {
+                var tx = db.transaction("dropdowns", "readwrite");
+                var store = tx.objectStore("dropdowns");
+                var cursorRequest = store.openCursor();
+                cursorRequest.onsuccess = function (event) {
+                    var cursor = event.target.result;
+                    if (cursor) {
+                        var key = cursor.primaryKey;
+                        if (typeof key === "string" && key.startsWith(start) && key.includes(end)) {
+                            cursor.delete();
+                        }
+                        cursor.continue();
+                    }
+                };
+                cursorRequest.onerror = function (event) {
+                    // handle error if required
+                };
+                tx.oncomplete = function () {
+                    db.close();
+                };
+                tx.onerror = function (event) {
+                    db.close();
+                };
+            } catch (ex) {
+                db.close();
+            }
+        };
+        request.onerror = function () {
+            // handle error if required
+        };
+    } catch (ex) {
+        // handle error if required
+    }
+}
+
 function LoadIframe(src, isautoprocess = false) {
+    if (typeof src != "undefined" && src.toLowerCase().indexOf('iview.aspx?') == -1 && src.toLowerCase().indexOf('tstruct.aspx?') == -1 && src.toLowerCase().indexOf('htmlpages.aspx?') == -1 && src.toLowerCase().indexOf('page.aspx?') == -1 && (src.toLowerCase() == "loadhomepage" && $("#hdHomeUrl").val() == ""))
+        ShowDimmer(true);
     setTimeout(function () {
         try {
             var _el = document.getElementById('middle1');
@@ -1789,7 +1910,7 @@ function LoadIframe(src, isautoprocess = false) {
                         }
                         return values
                     }, {});
-                if ((src.indexOf("&recordid=") > -1 || src.indexOf("?recordid=") > -1) && isdummyLoad != "true") {
+                if ((src.indexOf("&recordid=") > -1 || src.indexOf("?recordid=") > -1) && isdummyLoad != "true" && src.indexOf("&dummyload=") == -1) {
                     src += "&dummyload=false";
                     lastLoadtstId = src + "&hdnbElapsTime=" + browserElapsTime;
                 }
@@ -1799,10 +1920,17 @@ function LoadIframe(src, isautoprocess = false) {
                         _thisUri = _el.contentWindow.jQuery('#form1').attr('action');
                     if (_thisUri.toLowerCase().indexOf('tstruct.aspx') == -1) {
                         originalUri = src;
-                        if (src.indexOf("&recordid=") > -1 || src.indexOf("&act=load") > -1)
-                            src += "&dummyload=false";
-                        else
-                            src += "&dummyload=true";
+                        if (src.indexOf('&dummyload=') == -1) {
+                            if (src.indexOf("&recordid=") > -1 || src.indexOf("&act=load") > -1)
+                                src += "&dummyload=false";
+                            else
+                                src += "&dummyload=true";
+                        } else {
+                            if (src.indexOf("&recordid=") > -1 || src.indexOf("&act=load") > -1)
+                                src = src.replace("&dummyload=true", "&dummyload=false");
+                            else
+                                src = src.replace("&dummyload=false", "&dummyload=true");
+                        }
                         lastLoadtstId = src + "&hdnbElapsTime=" + browserElapsTime;
                     } else {
                         originalUri = "";
@@ -1812,20 +1940,21 @@ function LoadIframe(src, isautoprocess = false) {
                         let _ifactionUri = _el.contentWindow.jQuery('#form1').attr('action');
                         try {
                             if (typeof (Storage) !== "undefined") {
+                                removeLSKeyOnDateChange(_oepnTransid);
                                 let appSUrl = top.window.location.href.toLowerCase().substring("0", top.window.location.href.indexOf("/aspx/"));
                                 let _thisKey = getKeysWithPrefix("tstHtml♠" + _oepnTransid + "-" + appSUrl + "♥");
                                 _TstlocalStorage = localStorage[_thisKey[0]];
                                 if (typeof _TstlocalStorage == "undefined") {
                                     _TstlocalStorage = "";
                                 }
-
                                 if (_TstlocalStorage != '') {
                                     for (const val of _thisKey) {
                                         localStorage.removeItem(val);
                                     }
                                     var _time = new Date();
                                     let _localTime = _time.getTime();
-                                    localStorage.setItem("tstHtml♠" + _oepnTransid + "-" + appSUrl + "♥" + _localTime, _TstlocalStorage);
+                                    let _localDate = String(_time.getDate()).padStart(2, '0') + String(_time.getMonth() + 1).padStart(2, '0') + _time.getFullYear();
+                                    localStorage.setItem("tstHtml♠" + _oepnTransid + "-" + appSUrl + "♥" + _localTime + "♥" + _localDate, _TstlocalStorage);
                                 }
                             }
                         } catch (e) {
@@ -1878,14 +2007,21 @@ function LoadIframe(src, isautoprocess = false) {
                         }
                     }
                 } else {
-                    src += "&dummyload=false";
+                    if (src.indexOf('&dummyload=') == -1)
+                        src += "&dummyload=false";
+                    else
+                        src = src.replace("&dummyload=true", "&dummyload=false");
                     lastLoadtstId = src + "&hdnbElapsTime=" + browserElapsTime;
                 }
             }
         } catch (ex) { }
 
-        if (src == "")
+        if (src == "") {
+            setTimeout(function () {
+                ShowDimmer(false);
+            }, 0);
             return false;
+        }
         if (isMulDuplicateTab == "true") {
             return;
         }
@@ -1941,8 +2077,12 @@ function LoadIframe(src, isautoprocess = false) {
                     $(".htmlDomWrapper").addClass('col-lg-4 col-md-4 col-sm-12 col-xs-4');
                 }
                 resetMainPageUI();
+                setTimeout(function () {
+                    ShowDimmer(false);
+                }, 0);
                 return false;
             } else if ($.axpertUI && $.axpertUI.cardsPage && $.axpertUI.cardsPage.options.setCards) {
+                ShowDimmer(true);
                 $.axpertUI.cardsPage.activate(src);
                 if (isPEG == "true") {
                     try {
@@ -1953,6 +2093,9 @@ function LoadIframe(src, isautoprocess = false) {
                     document.querySelector("#Homepage_ActiveList")?.classList.add('d-none');
                     document.querySelector("#Homepage_CardsList")?.classList.remove('col-md-6');
                 }
+                setTimeout(function () {
+                    ShowDimmer(false);
+                }, 0);
                 resetMainPageUI();
                 return false;
             }
@@ -1965,6 +2108,9 @@ function LoadIframe(src, isautoprocess = false) {
                     $("#middle1").attr("src", $("#hdHomeUrl").val() + "&isDupTab=" + isDuplicateTab);
                 else
                     $("#middle1").attr("src", $("#hdHomeUrl").val());
+                setTimeout(function () {
+                    ShowDimmer(false);
+                }, 0);
                 return false;
             }
 
@@ -2054,10 +2200,15 @@ function LoadIframe(src, isautoprocess = false) {
             el = document.getElementById('middle1');
             // el.src = "";
             GetProcessTime();
-            if (src.indexOf('?') != -1)
-                el.src = src + "&hdnbElapsTime=" + browserElapsTime;
-            else
-                el.src = src + "?hdnbElapsTime=" + browserElapsTime;
+            //if (src.indexOf('?') != -1)
+            //    el.src = src + "&hdnbElapsTime=" + browserElapsTime;
+            //else
+            //    el.src = src + "?hdnbElapsTime=" + browserElapsTime;
+            if (src.includes("hdnbElapsTime=")) {
+                el.src = src.replace(/hdnbElapsTime=\d+/, "hdnbElapsTime=" + browserElapsTime);
+            } else {
+                el.src = src + (src.includes("?") ? "&" : "?") + "hdnbElapsTime=" + browserElapsTime;
+            }
         }
 
 
@@ -2066,11 +2217,27 @@ function LoadIframe(src, isautoprocess = false) {
         if (src.indexOf('ivname') > -1) {
             loadFrame();
         }
-        if (src.indexOf('tstruct.aspx') > -1) {
+        if (src.indexOf('tstruct.aspx') > -1 || src.toLowerCase().indexOf('entity.aspx') > -1 || src.toLowerCase().indexOf('entityform.aspx') > -1) {
             loadFrame();
         }
-        if (src.indexOf('htmlPages.aspx') > -1) {
+        if (src.toLowerCase().indexOf('htmlpages.aspx') > -1 || src.toLowerCase().indexOf('page.aspx?') > -1) {
             loadFrame();
+            try {
+                if (src.toLowerCase().indexOf('htmlpages.aspx') > -1) {
+                    let newLoadUrl = src;
+                    callParentNew("updateAppLinkObj")?.(newLoadUrl, 0, window?.frameElement?.id == "axpiframe", { ...window?.frameElement?.dataset });
+                }
+            } catch (ex) { }
+        }
+
+        if (src.indexOf('dashBoardTemplate.html') > -1 || src.indexOf('calendarTemplate.html') > -1 || src.indexOf('/HTMLPages/') > -1 || src.indexOf('processflow.aspx?calendar=t') > -1 || src.indexOf('processflow.aspx?dashboard=t') > -1) {
+            try {
+                callParentNew("ShowDimmer(false)", "function");
+                if (src.indexOf('/HTMLPages/') > -1 && src.indexOf(".html?") > -1) {
+                    let newLoadUrl = src;
+                    callParentNew("updateAppLinkObj")?.(newLoadUrl, 0, window?.frameElement?.id == "axpiframe", { ...window?.frameElement?.dataset });
+                }
+            } catch (ex) { }
         }
 
         if (!$("#inner-page").is(":visible"))
@@ -2086,6 +2253,23 @@ function LoadIframe(src, isautoprocess = false) {
         }
         return false;
     }, 0);
+}
+
+function removeLSKeyOnDateChange(_oepnTransid) {
+    let appSUrl = top.window.location.href.toLowerCase().substring(0, top.window.location.href.indexOf("/aspx/"));
+    let _thisKey = getKeysWithPrefix("tstHtml♠" + _oepnTransid + "-" + appSUrl + "♥");
+    var _time = new Date();
+    let _localDate = String(_time.getDate()).padStart(2, '0') + String(_time.getMonth() + 1).padStart(2, '0') + _time.getFullYear();
+        if (_thisKey.length > 0) {
+        let oldKey = _thisKey[0];
+        let keyParts = oldKey.split("♥");
+        let savedDate = keyParts[keyParts.length - 1]; 
+        if (savedDate !== _localDate) {
+            for (const val of _thisKey) {
+                localStorage.removeItem(val);
+            }
+        }
+    }
 }
 
 function LoadIframeOnline(src) {
@@ -2125,7 +2309,7 @@ function LoadIframeOnline(src) {
     $(".rightPartAC").addClass("middle1_isNotCloudApp");
 
     $(".ACmainwrapper").css("margin-top", "0px");
-   /* $("#exeiddownload").hide();*/
+    /* $("#exeiddownload").hide();*/
     $("#li_ConfigApp").hide();
     $("li2").hide();
     $("#wrapperForMainNewData").css("top", "109px");
@@ -2301,7 +2485,16 @@ function searchLoadIframe(type, src, getUrl = false) {
             loadurl = 'tstruct.aspx?transid=' + srcDtls[0] + `&openerIV=${srcDtls[0]}&isIV=false` + qstr + `&isDupTab=${callParentNew('isDuplicateTab')}`;
         }
     } else if (type.toLowerCase() == "page") {
-        loadurl = 'page.aspx?axpage_id=' + srcDtls[0];
+        //loadurl = 'page.aspx?axpage_id=' + srcDtls[0];
+        let _srcDtlsVal = srcDtls[0];
+        if (_srcDtlsVal.startsWith('HP'))
+            _srcDtlsVal = _srcDtlsVal.replace('HP', '');
+        let el = $('a.menu-link[title="' + _srcDtlsVal + '"], ' + 'a[onclick*="' + _srcDtlsVal + '"], ' + 'span.menu-link[title="' + _srcDtlsVal + '"]').first();
+        el = el.attr("onclick") || "";
+        if (el != "") {
+            loadurl = (el.match(/LoadIframe\('([^']+)'\)/) || [])[1] || 'page.aspx?axpage_id=' + srcDtls[0];
+        } else
+            loadurl = 'page.aspx?axpage_id=' + srcDtls[0];
     } else if (type.toLowerCase() == "htmlpages") {
         loadurl = 'htmlPages.aspx?load=' + srcDtls[0];
     }
@@ -2440,7 +2633,9 @@ function createAutoComplete(autoComStage) {
 
                         //$(autoComStage).parent().removeClass("gopened");
                         gloSrchPageNo = 0;
-                        if (data.d.indexOf("*♦*") != -1) {
+                        if (data.d != null && data.d.startsWith("error:"))
+                            showAlertDialog("error", data.d.replace(/^error:/, ''));
+                        else if (data.d.indexOf("*♦*") != -1) {
                             var srchData = data.d.split("*♦*");
                             gloSrchLimit = srchData[0];
                             console.log("GlobalSearch RowCount-" + srchData[0]);
@@ -2681,6 +2876,101 @@ function AssignGloSrchScroll() {
         console.log("Exception in AssignGloSrchScroll" + ex.message);
     }
 }
+function highlightParentMenus($menuItem) {
+    $menuItem.parents('.menu-item').each(function () {
+        $(this).addClass('hover show');
+        $(this).children('.menu-link').addClass('show');
+    });
+}
+function collapseAllMenus() {
+    $(".menu-item").removeClass("hover show");
+    $(".menu-sub").removeClass("show");
+    $(".menu-link").removeClass("show");
+}
+function selectGetsearch(viewName, isClick = false) {
+    if (!viewName) return;
+    let $found = $(
+        'a.menu-link[title="' + viewName + '"], ' +
+        'a[onclick*="' + viewName + '"], ' +
+        'span.menu-link[title="' + viewName + '"]'
+    ).closest(".menu-item").first();
+    if (!$found || $found.length === 0) {
+        if (viewName != "" && viewName.startsWith("transid=")) {
+            viewName = viewName.replace("transid=", "tstid=");
+            $found = $(
+                'a.menu-link[title="' + viewName + '"], ' +
+                'a[onclick*="' + viewName + '"], ' +
+                'span.menu-link[title="' + viewName + '"]'
+            ).closest(".menu-item").first();
+            if (!$found || $found.length === 0)
+                return;
+        } else if (viewName != "" && viewName.startsWith("tstid=")) {
+            viewName = viewName.replace("tstid=", "transid=");
+            $found = $(
+                'a.menu-link[title="' + viewName + '"], ' +
+                'a[onclick*="' + viewName + '"], ' +
+                'span.menu-link[title="' + viewName + '"]'
+            ).closest(".menu-item").first();
+            if (!$found || $found.length === 0)
+                return;
+        }
+        else
+            return;
+    }
+    if (!isClick) {
+        collapseAllMenus();
+        $found.parents('.menu-sub').each(function () {
+            $(this).prev('.menu-link')[0]?.click();
+        });
+    }
+
+    highlightParentMenus($found);
+
+    $found.addClass('hover show');
+    $found.children('.menu-link').addClass('show');
+
+    const el = $found.get(0);
+    if (el) {
+        el.focus({ preventScroll: true });
+        el.scrollIntoView({ behavior: "smooth", block: "center" });
+    }
+}
+$(document).on("click", ".menu-item > .menu-link, .menu-item > .menu-title, .menu-item > span.menu-link", function (e) {
+
+    let $menuItem = $(this).closest(".menu-item");
+    let isAnchor = $(this).is("a.menu-link");
+
+    if (isAnchor) {
+        $(".menu-item").removeClass("hover");
+        $menuItem.addClass("hover");
+
+        highlightParentMenus($menuItem);
+
+        let viewName = $(this).attr("title") || $(this).find(".menu-title").text().trim();
+        if (viewName) {
+            selectGetsearch(viewName, true);
+        }
+    } else {
+        let $submenu = $menuItem.children(".menu-sub");
+        if ($submenu.length === 0) {
+            $submenu = $menuItem.find("> .menu-sub");
+        }
+        if ($submenu.length) {
+            if ($submenu.hasClass("show")) {
+                $submenu.removeClass("show");
+                $submenu.find(".menu-sub").removeClass("show");
+                $submenu.prev(".menu-link").removeClass("show");
+                $menuItem.children(".menu-link").removeClass("show");
+            } else {
+                $submenu.addClass("show");
+                $submenu.prev(".menu-link").addClass("show");
+                $menuItem.children(".menu-link").addClass("show");
+            }
+        } else {
+            // No submenu found — nothing to expand/collapse
+        }
+    }
+});
 
 function GetGLoSrchItems(tblSearchData) {
     var gbSearch = [];
@@ -4055,7 +4345,7 @@ function showChangePasswordDialog() {
             window.frames[iFrameId].contentWindow.ConfirmLeave();
     } else {
         displayBootstrapModalDialog('Reset Password', 'md', '500px', true, '../aspx/cpwd.aspx?remark=chpwd', undefined, () => {
-            $("#iFrameChangePassword").css("height", `${Math.ceil($("#iFrameChangePassword")[0].contentWindow.$("form").height())}px`)
+            //$("#iFrameChangePassword").css("height", `${Math.ceil($("#iFrameChangePassword")[0].contentWindow.$("form").height())}px`)
         })
     }
     setTimeout(function () { removeUnclickableMenuCssClass() }, 100)
@@ -4180,6 +4470,7 @@ function isLatestSession() {
     });
     return result;
 }
+
 function updateSessionVar(key, val) {
     $.ajax({
         type: "POST",
@@ -4417,30 +4708,83 @@ function openUserPage({ id, template, title = "" }) {
     title = title.replace(/\+/g, '&#43').replace(/ /g, "+");
     LoadIframe(`page.aspx?axpage_id=${id}&axpage_t_id=${template}&axpage_title=${title}`);
 }
-
+let myImportModal = null;
+let switchingToAdvanced = false;
+function openAdvancedDataIngestion() {
+    const modal = new BSModal(
+        "AdvancedDataIngestion",
+        "Advanced Data Ingestion",
+        "<iframe src='../aspx/htmlPages.aspx?load=1794547992681&hdnbElapsTime=0' class='vw-100 vh-100' scrolling='no'></iframe>",
+        () => {
+            document.getElementById("closeAdvancedIngestion")?.focus();
+        },
+        () => { }
+    );
+    modal.changeSize("fullscreen");
+    modal.hideFooter();
+    modal.modalHeader.style.display = "none";
+    modal.modalBody.classList.add("p-0", "overflow-hidden", "position-relative");
+    const closeButton = document.createElement("button");
+    closeButton.id = "closeAdvancedIngestion";
+    closeButton.type = "button";
+    closeButton.className = "btn-close position-absolute top-0 end-0 m-3 bg-white rounded";
+    closeButton.style.zIndex = "10";
+    closeButton.setAttribute("aria-label", "Close");
+    closeButton.addEventListener("click", () => modal.close());
+    modal.modalBody.prepend(closeButton);
+    const modalElement = modal.modalBody.closest(".modal");
+    if (modalElement) {
+        modalElement.removeAttribute("aria-labelledby");
+        modalElement.setAttribute("aria-label", "Advanced Data Ingestion");
+    }
+}
 function DoUtilitiesEvent(type) {
     switch (type) {
         case "Responsibilities":
             splitfull();
             LoadIframe('Responsibilities.aspx')
             break;
-        case "ImportData":
-            let myImportModal = new BSModal("ImportData", "Import Data", "<iframe src='../aspx/ImportNew.aspx'  class='vw-100 vh-100' scrolling='no'></iframe>", () => {
-                //shown callback
-                $(".btn-close").focus();
-                // $("#btnClose").hide()
-            }, () => {
-                //hide callback
-            });
+        //case "ImportData":
+        //    let myImportModal = new BSModal("ImportData", "Import Data", "<iframe src='../aspx/ImportAll.aspx'  class='vw-100 vh-100' scrolling='no'></iframe>", () => {
+        //        //shown callback
+        //        $(".btn-close").focus();
+        //        // $("#btnClose").hide()
+        //    }, () => {
+        //        //hide callback
+        //    });
 
-            myImportModal.changeSize("fullscreen");
-            myImportModal.hideFooter();
-            myImportModal.modalBody.classList.add(..."p-0 overflow-hidden".split(" "));
+        //    myImportModal.changeSize("fullscreen");
+        //    myImportModal.hideFooter();
+        //    myImportModal.modalBody.classList.add(..."p-0 overflow-hidden".split(" "));
 
-            let _thismTitle = myImportModal.modalHeader.querySelector('h5.modal-title');
-            _thismTitle.classList.add('w-100', 'text-center', 'fs-2');
+        //    let _thismTitle = myImportModal.modalHeader.querySelector('h5.modal-title');
+        //    _thismTitle.classList.add('w-100', 'text-center', 'fs-2');
 
+        //    break;
+        case "ImportData": {
+            const modal = new BSModal("ImportData", "Import Data", "<iframe src='../aspx/ImportAll.aspx' class='vw-100 vh-100' scrolling='no'></iframe>",
+                () => {
+                    $(".btn-close").focus();
+                },
+                () => { }
+            );
+            myImportModal = modal;
+            const modalElement = modal.modalBody.closest(".modal");
+            if (!modalElement) {
+                throw new Error("Import Data modal element was not found.");
+            }
+            modalElement.addEventListener("hidden.bs.modal", () => {
+                if (myImportModal === modal) {
+                    myImportModal = null;
+                }
+            }, { once: true });
+            modal.changeSize("fullscreen");
+            modal.hideFooter();
+            modal.modalBody.classList.add("p-0", "overflow-hidden");
+            modal.modalHeader.querySelector("h5.modal-title")
+                .classList.add("w-100", "text-center", "fs-2");
             break;
+        }
         case "ExportData":
             //displayBootstrapModalDialog('Export Data', 'lg', '410px', true, '../aspx/ExportNew.aspx?action=export', true);
             let myModal = new BSModal("ExportData", "Export Data", "<iframe src='../aspx/ExportNew.aspx?action=export'   class='vw-100 vh-100'></iframe>", () => {
@@ -4478,6 +4822,25 @@ function DoUtilitiesEvent(type) {
             break;
         case "Complaint":
             displayBootstrapModalDialog('Complaint', 'lg', '430px', true, '../aspx/Complaint.aspx', true);
+            break;
+        case "AdvancedDataIngestion": 
+            if (switchingToAdvanced) {
+                break;
+            }
+            if (!myImportModal) {
+                openAdvancedDataIngestion();
+                break;
+            }
+            const modalElement = myImportModal.modalBody.closest(".modal");
+            if (!modalElement) {
+                throw new Error("Import Data modal element was not found.");
+            }
+            switchingToAdvanced = true;
+            modalElement.addEventListener("hidden.bs.modal", () => {
+                switchingToAdvanced = false;
+                openAdvancedDataIngestion();
+            }, { once: true });
+            myImportModal.close();
             break;
     }
 }
@@ -4679,103 +5042,95 @@ function splitfull() {
 };
 function refreshMenu() {
     try {
+        ShowDimmer(true);
         $.ajax({
             type: "POST",
             url: "../WebService.asmx/RefreshMenu",
             cache: false,
-            async: false,
+            async: true,
             contentType: "application/json;charset=utf-8",
             dataType: "json",
             success: function (data) {
-                if (data.d != "")
+                if (data.d != "") {
                     createMenu(data.d);
-
-
-            },
+                    ShowDimmer(false);
+                } else
+                    ShowDimmer(false);
+            }, error: function (error) {
+                ShowDimmer(false);
+            }
         });
 
-    } catch (ex) { }
+    } catch (ex) {
+        ShowDimmer(false);
+    }
 }
 
 function createMenu(xmlMenuData) {
-    if (xmlMenuData != "") {
-        xmlMenuData = xmlMenuData.replace(/&apos;/g, "'");
-        var xml = parseXml(xmlMenuData)
-        menuJson = JSON.parse(xml2json(xml, ""));
-        appGlobalVarsObject._CONSTANTS.menuConfiguration.menuJson = menuJson;
-        try {
-            appGlobalVarsObject._CONSTANTS.menuConfiguration.listviewAsDefault = JSON.parse(listviewAsDefault.value);
-        } catch (ex) {
-        }
-        if (!enableTemplatization) {
-            appGlobalVarsObject._CONSTANTS.menuConfiguration.menuTemplete = {
-                menuUl: {
-                    opener: `<ul class="treeview-menu">`,
-                    closer: `</ul>`
-                }, menuLi: {
-                    opener: `<li class="treeview">`,
-                    closer: `</li>`,
-                    anchorGenerator: function (childObj) {
-                        return `<a href="javascript:void(0)" title="${childObj.name}">
+    try {
+        if (xmlMenuData != "") {
+            xmlMenuData = xmlMenuData.replace(/&apos;/g, "'");
+            var xml = parseXml(xmlMenuData)
+            menuJson = JSON.parse(xml2json(xml, ""));
+            appGlobalVarsObject._CONSTANTS.menuConfiguration.menuJson = menuJson;
+            try {
+                appGlobalVarsObject._CONSTANTS.menuConfiguration.listviewAsDefault = JSON.parse(listviewAsDefault.value);
+            } catch (ex) {
+            }
+            if (!enableTemplatization) {
+                appGlobalVarsObject._CONSTANTS.menuConfiguration.menuTemplete = {
+                    menuUl: {
+                        opener: `<ul class="treeview-menu">`,
+                        closer: `</ul>`
+                    }, menuLi: {
+                        opener: `<li class="treeview">`,
+                        closer: `</li>`,
+                        anchorGenerator: function (childObj) {
+                            return `<a href="javascript:void(0)" title="${childObj.name}">
                                 <i class="icon-left-menu fa fa-folder" style="width:22px"></i>
                                 <span>${childObj.name}</span>
                                 <span class="pull-right-container">
                                 <i class="fa fa-angle-down pull-right"></i>
                                 </span>
                                 </a>`;
-                    }
-                }, functionalLi: {
-                    opener: `<li class="treeview">`,
-                    closer: `</li>`,
-                    anchorGenerator: function (childObj) {
-                        let iconClass = "";
-                        try {
-                            iconClass = AxCustomIcon(childObj)
                         }
-                        catch (ex) { }
-                        if (iconClass === "") {
-                            if (childObj.target != undefined && childObj.target != "") {
-                                if (childObj.target.indexOf("tstruct.aspx") > -1) {
-                                    iconClass = "fa fa-wpforms";
-                                } else if (childObj.target.indexOf("iview.aspx") > -1 || childObj.target.indexOf("iviewInteractive.aspx") > -1) {
-                                    iconClass = "fa fa-table";
+                    }, functionalLi: {
+                        opener: `<li class="treeview">`,
+                        closer: `</li>`,
+                        anchorGenerator: function (childObj) {
+                            let iconClass = "";
+                            try {
+                                iconClass = AxCustomIcon(childObj)
+                            }
+                            catch (ex) { }
+                            if (iconClass === "") {
+                                if (childObj.target != undefined && childObj.target != "") {
+                                    if (childObj.target.indexOf("tstruct.aspx") > -1) {
+                                        iconClass = "fa fa-wpforms";
+                                    } else if (childObj.target.indexOf("iview.aspx") > -1 || childObj.target.indexOf("iviewInteractive.aspx") > -1) {
+                                        iconClass = "fa fa-table";
+                                    }
+                                    else {
+                                        iconClass = "fa fa-file-text";
+                                    }
                                 }
                                 else {
                                     iconClass = "fa fa-file-text";
                                 }
                             }
-                            else {
-                                iconClass = "fa fa-file-text";
-                            }
-                        }
-                        return `<a class="menuList"  href="${childObj.target}" title=" ${childObj.name}" onclick="LoadIframe('${childObj.target}')">
+                            return `<a class="menuList"  href="${childObj.target}" title=" ${childObj.name}" onclick="LoadIframe('${childObj.target}')">
                                 <i class="icon-left-menu ${iconClass}" style="width:22px"></i>
                                 <span>${childObj.name}</span>
                                 </a>`;
+                        }
                     }
                 }
+                createNewLeftMenu(appGlobalVarsObject._CONSTANTS.menuConfiguration);
+            } else if (typeof $.axpertUI != "undefined" && appGlobalVarsObject._CONSTANTS.menuConfiguration.menuJson && appGlobalVarsObject._CONSTANTS.menuConfiguration.menuTemplete) {
+                $.axpertUI.leftSideBar.activate({ menuConfiguration: appGlobalVarsObject._CONSTANTS.menuConfiguration });
             }
-            createNewLeftMenu(appGlobalVarsObject._CONSTANTS.menuConfiguration);
-        } else if (typeof $.axpertUI != "undefined" && appGlobalVarsObject._CONSTANTS.menuConfiguration.menuJson && appGlobalVarsObject._CONSTANTS.menuConfiguration.menuTemplete) {
-            // debugger;
-            $.axpertUI.leftSideBar.activate({ menuConfiguration: appGlobalVarsObject._CONSTANTS.menuConfiguration });
         }
-        //if(appGlobalVarsObject._CONSTANTS.menuConfiguration.menuJson && appGlobalVarsObject._CONSTANTS.menuConfiguration.menuTemplete){
-        //createNewLeftMenu(appGlobalVarsObject._CONSTANTS.menuConfiguration);
-        // }
-    }
-    /*var i = 0;
-    $(".icon-left-menu").each(function () {
-        $(this).css('background-color', colorArray[i]);
-        i++;
-        if (i == 50) { i = 0 };
-    });*/
-    //var i = 0;
-    //$(".icon-left-menu").each(function () {
-    //    $(this).addClass('fa' + " " + iconArray[i]);
-    //    i++;
-    //    if (i == 16) { i = 0 };
-    //});
+    } catch (ex) { }
 }
 
 function OpenOnPropertyBase(UrlToOpen, iframeId = "#axpiframe") {
@@ -4968,7 +5323,7 @@ function updateAppLinkObj(url, forceUnBlock = 0, isSplitFrame = false, windowDat
     }
     else if (url.indexOf("/aspx/") > -1)
         url = url.substr(url.indexOf('/aspx/') + 6);
-    var blockHistory = ["mainnew.aspx", "ivtstload.aspx", "ivtoivload.aspx", "err.aspx", "adminconsole.aspx", "configurationStudio.aspx", "AutoComplete.aspx"];
+    var blockHistory = ["mainnew.aspx", "ivtstload.aspx", "ivtoivload.aspx", "err.aspx", "adminconsole.aspx", "configurationStudio.aspx", "AutoComplete.aspx", "PluginCustomCode.aspx", "aboutUs.aspx"];
     if (!forceUnBlock && blockHistory.filter((val) => (url.indexOf('/aspx/') > -1 ? (url.substr(url.indexOf('/aspx/') + 6) == val) : (url.indexOf(val) > -1))).length > 0) {
         if (appLinkHistory.length > 1 && (typeof navigationshow == "undefined" || navigationshow == "true")) {
             $(appGlobalVarsObject._CONSTANTS.navigation.backButton.div).show();
@@ -4978,7 +5333,13 @@ function updateAppLinkObj(url, forceUnBlock = 0, isSplitFrame = false, windowDat
     }
 
     // check the same url eg : page reload.
-    if (appLinkHistory[appLinkHistory.length - 1] == url) {
+    let _arrCurPage = appLinkHistory[appLinkHistory.length - 1];
+    if (typeof _arrCurPage != "undefined")
+        _arrCurPage = _arrCurPage.replace(/(&hdnbElapsTime=\d+)/g, "");
+    let _urlCurPage = url;
+    if (typeof _urlCurPage != "undefined")
+        _urlCurPage = _urlCurPage.replace(/(&hdnbElapsTime=\d+)/g, "");
+    if (appLinkHistory[appLinkHistory.length - 1] == url || (typeof _arrCurPage != "undefined" && typeof _urlCurPage != "undefined" && _arrCurPage == _urlCurPage)) {
         if (appLinkHistory.length > 1 && (typeof navigationshow == "undefined" || navigationshow == "true")) {
             $(appGlobalVarsObject._CONSTANTS.navigation.backButton.div).show();
         }
@@ -5122,6 +5483,8 @@ function updateHisLabel(url) {
         // For Iview  
 
         var childPT = $('#middle1').contents().find('div#breadcrumb-panel').find('.bcrumb').find('.tstivCaption').text();
+        if (typeof childPT != "undefined" && childPT == "")
+            childPT = $('#middle1').contents().find('div#breadcrumb-panel').find('.page-caption').text();
         if (findGetParameter("tstcaption", url) != null) {
             childPT += " - Listview";
         }
@@ -5232,6 +5595,10 @@ function updateLinks(that, calledFrom) {
     if (curPageIndex == 0) {
         $(appGlobalVarsObject._CONSTANTS.navigation.backButton.div).hide();
     }
+    setTimeout(function () {
+        if (typeof $($(that).find('button'))[0] != "undefined")
+            $($(that).find('button'))[0].style.pointerEvents = "auto";
+    }, 0);
 }
 
 $(document).on('click', 'li.clearHisItem', function () {
@@ -5421,6 +5788,40 @@ function OpenConfigurationStudio() {
 
     let myModal = new BSModal("configStudio", "Axpert Configuration Studio", "<iframe src='../aspx/configurationStudio.aspx' class='vw-100 vh-100' ></iframe>", () => {
         //shown callback
+    },
+        function () {
+            // hide callback
+            return configResetActions(this);
+        }
+    );
+
+    myModal.changeSize("fullscreen");
+    myModal.hideFooter();
+    myModal.hideHeader();
+    myModal.modalBody.classList.add(..."p-0 overflow-hidden".split(" "));
+    myModal.showFloatingClose();
+}
+
+function configResetActions(modalInstance) {
+    try {
+        if (typeof callParentNew("addFormRuntimeDcFlag") != "undefined" && callParentNew("addFormRuntimeDcFlag") != "") {
+            AddFormDcFieldAdded('frommain', modalInstance);
+            return false;
+        }
+    } catch (ex) {
+        callParentNew("addFormRuntimeDcFlag=", "");
+    }
+    try {
+        if (typeof callParentNew("formComponentsFlag") != "undefined" && callParentNew("formComponentsFlag") != "")
+            checkIsPageLocked();
+    } catch (ex) { }
+    return true;
+}
+
+function openPluginEditor() {
+
+    let myModal = new BSModal("pluginEditor", "Plugin Custom Code", "<iframe src='../aspx/PluginCustomCode.aspx' class='vw-100 vh-100' ></iframe>", () => {
+        //shown callback
     }, () => {
         //hide callback
     });
@@ -5431,7 +5832,136 @@ function OpenConfigurationStudio() {
     myModal.modalBody.classList.add(..."p-0 overflow-hidden".split(" "));
     myModal.showFloatingClose();
 }
+function openDeveloperStudio(ivtstName, structname = "", callFromAxi = false) {
+    if (ivtstName == "tstreact" || ivtstName == "ivreact") {
+        try {
+            let _adInfo = "";
+            let _defpType = "";
+            if (ivtstName == "tstreact") {
+                _adInfo = `?adInfo=${callParentNew("mainProject")}♦${callParentNew(
+                    "mainUserName"
+                )}♦tstruct♦${callParentNew("axTraceFlag")}`;
+                _defpType = "tstruct";
+            } else {
+                _adInfo = `?adInfo=${callParentNew("mainProject")}♦${callParentNew(
+                    "mainUserName"
+                )}♦iview♦${callParentNew("axTraceFlag")}`;
+                _defpType = "iview";
+            }
+            let _axstudioReactUri = axpertstudioReact;
+            if (_axstudioReactUri.endsWith("/")) {
+                _axstudioReactUri = _axstudioReactUri.slice(0, -1);
+            }
+            if (callFromAxi) {
+                _adInfo += `♦true`;
+                if (isStudioOpenedInIframe) {
+                    if (structname && structname != "") {
+                        _adInfo += `♦${structname}`;
+                        isStudioOpenedInIframe = true;
+                    }
+                    LoadIframe(_axstudioReactUri + _adInfo);
+                } else {
+                    try {
+                        ShowDimmer(true);
+                        ASB.WebService.openDevStudioRedis(_defpType, SuccOpenDevStudioRedis);
+                    } catch (exp) {
+                        isStudioOpenedInIframe = false;
+                    }
 
+                    function SuccOpenDevStudioRedis() {
+                        ShowDimmer(false);
+                        if (structname && structname != "") {
+                            _adInfo += `♦${structname}`;
+                            isStudioOpenedInIframe = true;
+                        }
+                        LoadIframe(_axstudioReactUri + _adInfo);
+                    }
+                }
+            } else {
+                _adInfo += `♦false`;
+                isStudioOpenedInIframe = false;
+                try {
+                    ShowDimmer(true);
+                    ASB.WebService.isDevStudioOpenedRedis(
+                        _defpType,
+                        SuccisDevStudioOpenedRedis
+                    );
+                } catch (exp) { }
+                function SuccisDevStudioOpenedRedis(resultStr, eventArgs) {
+                    ShowDimmer(false);
+                    if (typeof resultStr != "undefined" && resultStr == "defSiteOpend") {
+                        var msg = lcm[155];
+                        var glType = gllangType;
+                        var isRTL = false;
+                        if (glType == "ar") isRTL = true;
+                        else isRTL = false;
+                        var _oepnDefCB = $.confirm({
+                            theme: "modern",
+                            title: msg,
+                            onContentReady: function () {
+                                disableBackDrop("bind");
+                            },
+                            backgroundDismiss: "false",
+                            rtl: isRTL,
+                            escapeKey: "buttonaB",
+                            content:
+                                _defpType == "tstruct"
+                                    ? "Already opened Tstruct Definition page will get signed out automatically. Do you want to continue?"
+                                    : "Already opened Iview Definition page will get signed out automatically. Do you want to continue?",
+                            buttons: {
+                                buttonA: {
+                                    text: lcm[164],
+                                    btnClass: "btn btn-primary",
+                                    action: function () {
+                                        try {
+                                            ShowDimmer(true);
+                                            ASB.WebService.openDevStudioRedis(
+                                                _defpType,
+                                                SuccOpenDevStudioRedis
+                                            );
+                                        } catch (exp) { }
+                                    },
+                                },
+                                buttonaB: {
+                                    text: lcm[192],
+                                    btnClass:
+                                        "btn btn-bg-light btn-color-danger btn-active-light-danger",
+                                    action: function () {
+                                        disableBackDrop("destroy");
+                                    },
+                                },
+                            },
+                        });
+                    } else {
+                        try {
+                            ShowDimmer(true);
+                            ASB.WebService.openDevStudioRedis(
+                                _defpType,
+                                SuccOpenDevStudioRedis
+                            );
+                        } catch (exp) { }
+                    }
+                }
+
+                function SuccOpenDevStudioRedis() {
+                    ShowDimmer(false);
+                    newWindow = window.open(_axstudioReactUri + _adInfo);
+                }
+            }
+        } catch (ex) { }
+    } else {
+        let myModal = new BSModal("devStudioPopup", "Plugin Custom Code", "<iframe src='../aspx/DeveloperStudio.aspx?ivtstName=" + ivtstName + "' class='vw-100 vh-100' ></iframe>", () => {
+            //shown callback
+        }, () => {
+            //hide callback
+        });
+        myModal.changeSize("fullscreen");
+        myModal.hideFooter();
+        myModal.hideHeader();
+        myModal.modalBody.classList.add(..."p-0 overflow-hidden".split(" "));
+        myModal.showFloatingClose();
+    }
+}
 function AdminConsoleHidemenu() {
     $(callParentNew("mainNewPageBody")).removeClass("overlay-open");
     $(callParentNew("appBackBtn", "class")).hide();
@@ -5720,7 +6250,6 @@ function CheckNotificiationStringinRedis() {
     }
 }
 
-
 function ExecutionTraceInterval(isSignOut = false) {
     var ExecutionLongText = "";
     var keepAliveMS = "true";
@@ -5732,12 +6261,10 @@ function ExecutionTraceInterval(isSignOut = false) {
         currPageUrl = currPageUrl.substring(currPageUrl.length, currPageUrl.indexOf('/aspx/') + 6);
         currPageUrl = currPageUrl.substring(0, currPageUrl.indexOf("&hdnbElapsTime="));
     }
-
-    let appSUrl = top.window.location.href.toLowerCase().substring("0", top.window.location.href.indexOf("/aspx/"));
+    let appSUrl = top.window.location.href.toLowerCase().substring(0, top.window.location.href.indexOf("/aspx/"));
     if (typeof localStorage["ExecutionFullLog-" + appSUrl] != "undefined") {
         ExecutionLongText = localStorage["ExecutionFullLog-" + appSUrl];
         localStorage.setItem("ExecutionFullLog-" + appSUrl, '');
-
         ExecutionLongText = ExecutionLongText.replace(/♦/g, '\r\n');
     }
     if (ExecutionLongText != "") {
@@ -5757,36 +6284,47 @@ function ExecutionTraceInterval(isSignOut = false) {
                 }),
                 dataType: 'json',
                 contentType: "application/json",
-                success: function (data) {
+                success: function () {
                     if (isSignOut) {
                         SaveAxNotifyHistory();
-                        let appSessUrl = top.window.location.href.toLowerCase().substring("0", top.window.location.href.indexOf("/aspx/"));
+                        let appSessUrl = top.window.location.href.toLowerCase().substring(0, top.window.location.href.indexOf("/aspx/"));
+                        let logoutKey = "axpertLogoutLock-" + appSessUrl;
                         localStorage.setItem('logged_in-' + appSessUrl, 'no');
-                        ASB.WebService.SignOut();
+                        if (!localStorage.getItem(logoutKey)) {
+                            localStorage.setItem(logoutKey, "true");
+                            ASB.WebService.SignOut();
+                        }
                     }
                 },
-                error: function (error) {
+                error: function () {
                     if (isSignOut) {
-                        SaveAxNotifyHistory()
-                        let appSessUrl = top.window.location.href.toLowerCase().substring("0", top.window.location.href.indexOf("/aspx/"));
+                        SaveAxNotifyHistory();
+                        let appSessUrl = top.window.location.href.toLowerCase().substring(0, top.window.location.href.indexOf("/aspx/"));
+                        let logoutKey = "axpertLogoutLock-" + appSessUrl;
                         localStorage.setItem('logged_in-' + appSessUrl, 'no');
-                        ASB.WebService.SignOut();
+                        if (!localStorage.getItem(logoutKey)) {
+                            localStorage.setItem(logoutKey, "true");
+                            ASB.WebService.SignOut();
+                        }
                     }
                 }
             });
-        }
-        catch (exp) {
+        } catch (exp) {
             if (isSignOut) {
-                SaveAxNotifyHistory()
-                let appSessUrl = top.window.location.href.toLowerCase().substring("0", top.window.location.href.indexOf("/aspx/"));
+                SaveAxNotifyHistory();
+                let appSessUrl = top.window.location.href.toLowerCase().substring(0, top.window.location.href.indexOf("/aspx/"));
+                let logoutKey = "axpertLogoutLock-" + appSessUrl;
                 localStorage.setItem('logged_in-' + appSessUrl, 'no');
-                ASB.WebService.SignOut();
+                if (!localStorage.getItem(logoutKey)) {
+                    localStorage.setItem(logoutKey, "true");
+                    ASB.WebService.SignOut();
+                }
             }
         }
         return false;
-    }
-    else
+    } else {
         return true;
+    }
 }
 
 function ExecutionTraceExceededQuota(strMsg) {
@@ -5932,6 +6470,61 @@ function getParameterValue(url, paramName) {
     return params.get(paramName);
 }
 
+function showPwdExpiryAlert(pwdMsg) {
+
+    var glType = gllangType;
+    var isRTL = false;
+    if (glType == "ar")
+        isRTL = true;
+    else
+        isRTL = false;
+    var msg = lcm[541];//'<i class="fa fa-info-circle text-info" aria-hidden="true"></i>';//
+    var pwdExpiryCB = $.confirm({
+        theme: 'modern',
+        title: msg,
+        onContentReady: function () {
+            disableBackDrop('bind');
+        },
+        escapeKey: true,
+        backgroundDismiss: false,
+        rtl: isRTL,
+        content: pwdMsg,
+        buttons: {
+            buttonA: {
+                text: lcm[539],
+                btnClass: 'btn btn-primary',
+                action: function () {
+                    disableBackDrop('destroy');
+                    showChangePasswordDialog();
+                }
+            },
+            buttonB: {
+                text: lcm[540],
+                btnClass: 'btn btn-primary-white btn-bg-light',
+                action: function () {
+                    disableBackDrop('destroy');
+                }
+            }
+        }
+    });
+}
+function axpertDevOptAccess() {
+    try {
+        if (typeof axpertDevOpt !== "undefined") {
+            if (axpertDevOpt == "nooptions" || axpertDevOpt == "all")
+                return;
+            const allowedOpts = axpertDevOpt.split(',');
+            $(".DevOptions .row div").each(function () {
+                if (allowedOpts.indexOf(this.id) === -1) {
+                    $(this).remove();
+                }
+            });
+            if ($(".DevOptions .row div").length == 0)
+                $("#AllDevOptions").addClass('d-none');
+        }
+    } catch (ex) { }
+}
+
 /* Mainnew.aspx CSP-safe event wiring. Keep application behavior in main.js. */
 (function () {
     "use strict";
@@ -6005,8 +6598,8 @@ function getParameterValue(url, paramName) {
         }
     });
 
-    window.addEventListener("unload", function () {
-        if (typeof window.ClosePopUps === "function") window.ClosePopUps();
+    window.addEventListener("pagehide", function (event) {
+        if (!event.persisted && typeof window.ClosePopUps === "function") window.ClosePopUps();
     });
 
     // Existing Mainnew inline initialization moved here.

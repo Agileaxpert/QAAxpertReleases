@@ -803,10 +803,14 @@ function SetFieldValue(componentName, value, fromNumFocus, calledFrom) {
                         try {
                             let _thisfId = fld.attr("id");
                             if (typeof $("#dvgrdchkbox" + _thisfId) != "undefined") {
-                                if (value != "" && (value.toLowerCase() == "yes" || value.toLowerCase() == "t"))
+                                if (value != "" && (value.toLowerCase() == "yes" || value.toLowerCase() == "t")) {
                                     $("#dvgrdchkbox" + _thisfId + " input").prop("checked", true);
-                                else
+                                    fld.val(value);
+                                }
+                                else {
                                     $("#dvgrdchkbox" + _thisfId + " input").prop("checked", false);
+                                    fld.val(value);
+                                }
                             }
                         } catch (ex) { }
                     }
@@ -1948,8 +1952,15 @@ function UpdateChangedRows(fldName, dbRowNo) {
                     break;
                 }
             }
-            if (!rowExits)
-                ChangedDcRows[recIdx] = ChangedDcRows[recIdx] + "," + dbRowNo;
+            if (!rowExits) {
+                /* let arr = ChangedDcRows[recIdx].split(",");*/
+                let arr = String(ChangedDcRows[recIdx] || "").split(",").filter(x => x !== "");
+                let normalizedDbRowNo = parseInt(dbRowNo, 10);
+                if (!arr.some(x => parseInt(x, 10) === normalizedDbRowNo)) {
+                    ChangedDcRows[recIdx] += "," + dbRowNo;
+                }
+                //ChangedDcRows[recIdx] = ChangedDcRows[recIdx] + "," + dbRowNo;
+            }
         } else {
             ChangedDcs.push(chdRowStr);
             ChangedDcRows.push(dbRowNo);
@@ -2610,8 +2621,10 @@ function HideDialog() {
                         if (recordid != 0)
                             url += "&recordid=" + axSaveRecId;
                         if (Isaxpiframe.indexOf("axpfrm") != -1)
-                            url += "&axpfrm=t"
-
+                            url += "&axpfrm=t";
+                        let _thisTstURL = window.location.href;
+                        if (typeof _thisTstURL != "undefined" && (_thisTstURL.toLowerCase().indexOf("&axpop=true") || _thisTstURL.toLowerCase().indexOf("axpop=true&")))
+                            url += "&AxPop=true";
                         if (presentFrameObj.attr("id") !== "axpiframe") {
                             AvoidPostBackAfterSave(url);
                         }
@@ -3011,10 +3024,16 @@ function SetFocusOnField(tabNo, fldName) {
                         fld.focus();
                 }
             } else {
-                $("#tabsCont1 .tab-pane:not(.grid-icons)").removeClass("show active");
+                if ($("#tabsCont1 .tab-pane:not(.grid-icons)").length>0)
+                    $("#tabsCont1 .tab-pane:not(.grid-icons)").removeClass("show active");
+                else
+                    $("#tabsCont2 .tab-pane:not(.grid-icons)").removeClass("show active");
                 $("#myTab li.nav-item a").removeClass('active');
                 $("#myTab li#li" + tabNo + " a").addClass('active');
-                $("#tabsCont1 #tab-" + tabNo).addClass("show active");
+                if ($("#tabsCont1 #tab-" + tabNo).length>0)
+                    $("#tabsCont1 #tab-" + tabNo).addClass("show active");
+                else
+                    $("#tabsCont2 #tab-" + tabNo).addClass("show active");
 
                 $("#myTab li").removeClass("bg-white");
                 $("#myTab li").find(".form-check").addClass("d-none");
@@ -3977,6 +3996,8 @@ function tsddlRefreshSelect() {
             tmpSelVal = recordidax;
 
         if (tmpSelText != "") {
+            let appSUrl = top.window.location.href.toLowerCase().substring("0", top.window.location.href.indexOf("/aspx/"));
+            callParentNew("clearKeysByFormat(tstDDFVal♠" + parent.proj + "♦" + parent.transid + "♦" + axpRefSelectID + "♦♣♦" + appSUrl + "♥)", "function");
             var tmpSelFld = $j("#" + tmpRefSelId, window.parent.document);
 
             if (tmpSelFld.length > 0) {
@@ -4384,8 +4405,70 @@ function RevMaskCharacter(str, mask, n) {
         (i >= str.length - n) ? acc + mask : acc + x, '');
 }
 
+// Returns true when the field is masked through permission level (tstPermissions MaskedFields)
+function IsPermissionMaskedField(fieldName) {
+    try {
+        if (typeof tstPermissions === "undefined" || !tstPermissions || !fieldName)
+            return false;
+        let permMask = JSON.parse(tstPermissions).result?.MaskedFields;
+        if (!permMask)
+            return false;
+        return String(permMask)
+            .split(",")
+            .map(x => x.split("="))
+            .some(x => x[0].trim().toLowerCase() === fieldName.toLowerCase() && x[1] !== undefined);
+    } catch (ex) {
+        return false;
+    }
+}
+
 function ApplyFldMask(_thisId, _thisVal) {
     let fieldName = GetFieldsName(_thisId);
+    if (typeof tstPermissions !== "undefined" && tstPermissions == "" && $("#hdnTstPermission").length && $("#hdnTstPermission").val() != "") {
+        tstPermissions = $("#hdnTstPermission").val();
+    }
+    if (typeof tstPermissions !== "undefined" && tstPermissions) {
+        let permissions = JSON.parse(tstPermissions);
+        let permMask = permissions.result?.MaskedFields;
+        if (permMask) {
+            let permissionFieldMask = String(permMask)
+                .split(",")
+                .map(x => x.split("="))
+                .find(x =>
+                    x[0].trim().toLowerCase() === fieldName.toLowerCase() &&
+                    x[1] !== undefined
+                );
+
+            if (permissionFieldMask) {
+                let maskedValue = _thisVal;
+
+                if (_thisVal !== "" && _thisVal !== null && typeof _thisVal !== "undefined") {
+                    let format = permissionFieldMask[1].trim();
+                    let chars = [...format];
+
+                    // Digits other than 9 make the format invalid.
+                    if (!chars.some(ch => /\d/.test(ch) && ch !== "9")) {
+                        let visibleCount = chars.filter(ch => ch === "9").length;
+                        let maskSymbol = [...chars].reverse().find(ch => ch !== "9");
+
+                        // A format containing only 9s has no mask symbol.
+                        if (maskSymbol) {
+                            maskedValue = [...String(_thisVal)]
+                                .map((ch, i) => i < visibleCount ? ch : maskSymbol)
+                                .join("");
+                        }
+                    }
+                }
+
+                $("#" + _thisId).val(maskedValue);
+                $("#" + _thisId).attr("value", maskedValue);
+                return;
+            }
+        }
+    }
+    // Existing FldMaskType behavior, used when no permission mask matches.
+    if (typeof FldMaskType === "undefined")
+        return;
     let fldInd = GetFieldIndex(fieldName);
     if (typeof FldMaskType != "undefined") {
         let maskType = FldMaskType[fldInd];
@@ -4536,6 +4619,34 @@ function SetPositionfldDisplayTot() {
             }
         });
     } catch (ex) { }
+}
+
+function CheckBtnReadOnly(thisFunVal) {
+    try {
+        if (thisFunVal) {
+            if (thisFunVal == "SaveAsDraftNew()" || thisFunVal == "getDraftsListNew()")
+                thisFunVal = "btnAppsDraft";
+            function normalizeFn(str) {
+                //return str.replace(/"/g, "'").replace(/\s+/g, '');
+                if (!str)
+                    return '';
+                str = str.replace(/"/g, "'").trim();
+                if (str.startsWith("CallAction(")) {
+                    const match = str.match(/CallAction\(\s*'([^']+)'/);
+                    return match ? `CallAction('${match[1]}'` : str;
+                }
+                return str.replace(/\s+/g, '');
+            }
+            const index = AxFCBtnReadOnly.findIndex(x => normalizeFn(x) === normalizeFn(thisFunVal));
+            if (index !== -1) {
+                showAlertDialog("error", 'Invalid operation. Please try again.');
+                return true;
+            }
+        }
+        return false;
+    } catch (ex) {
+        return false;
+    }
 }
 
 function encryptTstDetails(thisVal) {

@@ -26,6 +26,10 @@ using System.Security.Cryptography;
 using System.Security;
 using System.Text.RegularExpressions;
 using Newtonsoft.Json;
+using Org.BouncyCastle.Crypto.Parameters;
+using Org.BouncyCastle.Math;
+using Org.BouncyCastle.OpenSsl;
+using System.Web.SessionState;
 
 public partial class Signin : System.Web.UI.Page
 {
@@ -45,6 +49,7 @@ public partial class Signin : System.Web.UI.Page
     public static string btforDupLogin = string.Empty;
     public static string timeZone = string.Empty;
     public static string staySignIn = "false";
+    public string staySignInOtp = "false";
     public string isOfficeSSO = string.Empty;
     string slproject = string.Empty;
     string proj = string.Empty;
@@ -79,16 +84,24 @@ public partial class Signin : System.Web.UI.Page
     string requestProcess_logtime = string.Empty;
     public string isPostback = "false";
     public string axThemeStyleFolder = string.Empty;
-
+    public string AxiProjectLogin = "false";
+    public string AxiIsPrimary = "false";
     string axOTPAuthCahrs = string.Empty;
     string axOTPAuthExpiry = string.Empty;
     string axOTPAuthFlag = string.Empty;
     string axOTPAuthDbFlag = "false";
     string axPwbAuthDbFlag = "false";
+    public string onlyssoKey = "";
+    public string multipleAccessCode = "false";
+    public string temploginPrivateKey = string.Empty;
+    public string axiLogin = string.Empty;
+    //public string AxiInfoLogin = string.Empty;
+    public string AxiLoginInfoKey = string.Empty;
+    public Dictionary<string, string> _jsoncontents = new Dictionary<string, string>();
     private const string LoginAttemptPrefix = "SigninAttempt-";
     private const string OtpLoginAttemptPrefix = "SigninOtpAttempt-";
 
-    private void SetLoginAttempt(string userName, string project, bool otpPending)
+    private void SetLoginAttempt(string userName, string project)
     {
         Guid previousToken;
         if (Guid.TryParseExact(hdnLoginAttempt.Value, "N", out previousToken))
@@ -107,8 +120,7 @@ public partial class Signin : System.Web.UI.Page
 
         string token = Guid.NewGuid().ToString("N");
         Session[LoginAttemptPrefix + token] = new string[] {
-            userName, project, otpPending ? "otp" : "password",
-            DateTime.UtcNow.AddHours(2).Ticks.ToString()
+            userName, project, "password", DateTime.UtcNow.AddHours(2).Ticks.ToString()
         };
         hdnLoginAttempt.Value = token;
     }
@@ -122,25 +134,24 @@ public partial class Signin : System.Web.UI.Page
             userName, project, "otp", DateTime.UtcNow.AddHours(2).Ticks.ToString(), sessionId
         };
         string value = JsonConvert.SerializeObject(attempt);
-        if (!FDW.Instance.WriteKeyNoSchema(key, value, 120))
+        if (!new FDW(project).WriteKeyNoSchema(key, value, 120))
             HttpContext.Current.Cache.Insert(key, value, null, DateTime.UtcNow.AddHours(2), Cache.NoSlidingExpiration);
-
         hdnLoginAttempt.Value = token;
-        RemoveOtpLoginAttempt(previousToken);
+        RemoveOtpLoginAttempt(previousToken, project);
     }
 
-    private static void RemoveOtpLoginAttempt(string token)
+    private static void RemoveOtpLoginAttempt(string token, string project)
     {
         Guid parsed;
         if (!string.IsNullOrEmpty(token) && Guid.TryParseExact(token, "N", out parsed))
         {
             string key = OtpLoginAttemptPrefix + token;
             HttpContext.Current.Cache.Remove(key);
-            FDW.Instance.DeleteKeys(new ArrayList { key });
+            new FDW(project).DeleteKeys(new ArrayList { key });
         }
     }
 
-    private static string[] GetLoginAttempt(string token, bool otpPending)
+    private static string[] GetLoginAttempt(string token, bool otpPending, string project = null)
     {
         Guid parsed;
         if (string.IsNullOrEmpty(token) || !Guid.TryParseExact(token, "N", out parsed))
@@ -148,40 +159,40 @@ public partial class Signin : System.Web.UI.Page
 
         if (otpPending)
         {
-            string otpKey = OtpLoginAttemptPrefix + token;
-            string value = new FDR().ReadKeyNoSchema(otpKey);
+            if (string.IsNullOrEmpty(project))
+                return null;
+            string key = OtpLoginAttemptPrefix + token;
+            string value = new FDR(project).ReadKeyNoSchema(key);
             if (string.IsNullOrEmpty(value))
-                value = HttpContext.Current.Cache[otpKey] as string;
+                value = HttpContext.Current.Cache[key] as string;
             if (string.IsNullOrEmpty(value))
                 return null;
-            string[] otpAttempt = JsonConvert.DeserializeObject<string[]>(value);
-            long otpExpires;
-            if (otpAttempt == null || otpAttempt.Length != 5 || otpAttempt[2] != "otp" ||
-                !long.TryParse(otpAttempt[3], out otpExpires) || otpExpires <= DateTime.UtcNow.Ticks ||
-                otpAttempt[4] != HttpContext.Current.Session.SessionID)
+            string[] attempt = JsonConvert.DeserializeObject<string[]>(value);
+            long expires;
+            if (attempt == null || attempt.Length != 5 || attempt[2] != "otp" ||
+                !string.Equals(attempt[1], project, StringComparison.OrdinalIgnoreCase) ||
+                !long.TryParse(attempt[3], out expires) || expires <= DateTime.UtcNow.Ticks ||
+                attempt[4] != HttpContext.Current.Session.SessionID)
                 return null;
-            return otpAttempt;
+            return attempt;
         }
 
-        string key = LoginAttemptPrefix + token;
-        string[] attempt = HttpContext.Current.Session[key] as string[];
-        long expires;
-        if (attempt == null || attempt.Length != 4 ||
-            !long.TryParse(attempt[3], out expires) || expires <= DateTime.UtcNow.Ticks)
+        string sessionKey = LoginAttemptPrefix + token;
+        string[] passwordAttempt = HttpContext.Current.Session[sessionKey] as string[];
+        long passwordExpires;
+        if (passwordAttempt == null || passwordAttempt.Length != 4 ||
+            !long.TryParse(passwordAttempt[3], out passwordExpires) || passwordExpires <= DateTime.UtcNow.Ticks)
         {
-            HttpContext.Current.Session.Remove(key);
+            HttpContext.Current.Session.Remove(sessionKey);
             return null;
         }
-        return attempt[2] == "password" ? attempt : null;
+        return passwordAttempt[2] == "password" ? passwordAttempt : null;
     }
 
-    private bool GetSubmittedLogin(out string userName, out string project)
+    private bool RestoreSubmittedLogin()
     {
-        userName = axUserName.Value;
-        project = hdnProjName.Value;
         if (string.IsNullOrEmpty(hdnLoginAttempt.Value))
             return true;
-
         string[] attempt = GetLoginAttempt(hdnLoginAttempt.Value, false);
         if (attempt == null)
         {
@@ -189,8 +200,8 @@ public partial class Signin : System.Web.UI.Page
                 "javascript:SetLoginErrorMsg('Login attempt expired. Please start again.');", true);
             return false;
         }
-        userName = attempt[0];
-        project = attempt[1];
+        axUserName.Value = attempt[0];
+        hdnProjName.Value = attempt[1];
         return true;
     }
 
@@ -235,6 +246,105 @@ public partial class Signin : System.Web.UI.Page
             ExecTraceOn = "true";
         else
             ExecTraceOn = "false";
+        if (ConfigurationManager.AppSettings["MultipleAccessCode"] != null && ConfigurationManager.AppSettings["MultipleAccessCode"].ToString() != string.Empty && ConfigurationManager.AppSettings["MultipleAccessCode"].ToString() == "true")
+            multipleAccessCode = "true";
+        else
+            multipleAccessCode = "false";
+        if (Session["CaptchaEnabled"] != null && Session["CaptchaEnabled"].ToString() == "true")
+        {
+            pnlCaptcha.Visible = Convert.ToBoolean(Session["CaptchaEnabled"].ToString());
+            DynamicCaptcha.CodeLength = Convert.ToInt32(Session["CaptchaLength"].ToString());
+            DynamicCaptcha.CodeStyle = (BotDetect.CodeStyle)Enum.Parse(typeof(BotDetect.CodeStyle), Session["CaptchaStyle"].ToString(), true);
+            Session["captchaenabledFlag"] = "true";
+            Session.Remove("CaptchaEnabled");
+            Session.Remove("CaptchaLength");
+            Session.Remove("CaptchaStyle");
+        }
+        else if (!IsPostBack || Session["captchaenabledFlag"] == null || Session["captchaenabledFlag"].ToString() == "false")
+        {
+            Session["captchaenabledFlag"] = "false";
+            pnlCaptcha.Visible = false;
+            Session.Remove("CaptchaEnabled");
+            Session.Remove("CaptchaLength");
+            Session.Remove("CaptchaStyle");
+        }
+
+        if (IsPostBack)
+        {
+            try
+            {
+                if (Session["loginPrivateKey-" + Session.SessionID] == null && ViewState["loginPrivateKey-Ecnrypt"] != null)
+                {
+                    Session["loginPrivateKey-" + Session.SessionID] = ViewState["loginPrivateKey-Ecnrypt"];
+                    temploginPrivateKey = ViewState["loginPrivateKey-Ecnrypt"].ToString();
+                    ViewState.Remove("loginPrivateKey-Ecnrypt");
+                }
+                if (hdnUserName.Value != "")
+                {
+                    var payload = Newtonsoft.Json.JsonConvert.DeserializeObject<dynamic>(hdnUserName.Value);
+                    string encryptedAesKey = payload.key;
+                    string aesEncryptedData = payload.data;
+
+                    using (RSA rsa = RSA.Create())
+                    {
+                        temploginPrivateKey = Session["loginPrivateKey-" + Session.SessionID].ToString();
+                        rsa.FromXmlString(temploginPrivateKey);
+                        byte[] encryptedKeyBytes = Convert.FromBase64String(encryptedAesKey);
+                        byte[] decryptedKeyBytes = rsa.Decrypt(encryptedKeyBytes, RSAEncryptionPadding.Pkcs1);
+                        string aesKeyBase64 = Encoding.UTF8.GetString(decryptedKeyBytes);
+                        byte[] keyBytes = Convert.FromBase64String(aesKeyBase64);
+
+                        // Decrypt AES data
+                        byte[] aesBytes = Convert.FromBase64String(aesEncryptedData);
+                        var decrypted = DecryptWithAesBase64(aesEncryptedData, keyBytes);
+                        axUserName.Value = decrypted;
+                        hdnUserName.Value = string.Empty;
+                    }
+                }
+                if (hdnPuser.Value != "")
+                {
+                    var payload = Newtonsoft.Json.JsonConvert.DeserializeObject<dynamic>(hdnPuser.Value);
+                    string encryptedAesKey = payload.key;
+                    string aesEncryptedData = payload.data;
+
+                    using (RSA rsa = RSA.Create())
+                    {
+                        temploginPrivateKey = Session["loginPrivateKey-" + Session.SessionID].ToString();
+                        rsa.FromXmlString(temploginPrivateKey);
+                        byte[] encryptedKeyBytes = Convert.FromBase64String(encryptedAesKey);
+                        byte[] decryptedKeyBytes = rsa.Decrypt(encryptedKeyBytes, RSAEncryptionPadding.Pkcs1);
+                        string aesKeyBase64 = Encoding.UTF8.GetString(decryptedKeyBytes);
+                        byte[] keyBytes = Convert.FromBase64String(aesKeyBase64);
+
+                        // Decrypt AES data
+                        byte[] aesBytes = Convert.FromBase64String(aesEncryptedData);
+                        var decrypted = DecryptWithAesBase64(aesEncryptedData, keyBytes);
+                        hdnPuser.Value = decrypted;
+                    }
+                }
+            }
+            catch (Exception)
+            {
+                hdnUserName.Value = string.Empty;
+                ViewState["StopProcessing"] = true;
+                string msg = "Could not process the request. Please try again.";
+                ClientScript.RegisterStartupScript(this.GetType(), "Javascript", "javascript:SetLoginErrorMsg(\"" + msg + "\");", true);
+                return;
+            }
+        }
+        else
+        {
+            if (ViewState["StopProcessing"] != null)
+                ViewState.Remove("StopProcessing");
+            var rsa = new RSACryptoServiceProvider(4096);
+            string xmlPublicKey = rsa.ToXmlString(false);
+            Session["loginPrivateKey-" + Session.SessionID] = rsa.ToXmlString(true);
+            temploginPrivateKey = rsa.ToXmlString(true);
+            ViewState["loginPrivateKey-Ecnrypt"] = temploginPrivateKey;
+            hdnEncKey.Value = ConvertXmlPublicKeyToPem(xmlPublicKey).Replace("\r", "").Replace("\n", "\\n");
+        }
+
+
         if (!IsPostBack)
         {
             if (Util.Util.CheckCrossScriptingInString(Request.QueryString.ToString()))
@@ -246,10 +356,11 @@ public partial class Signin : System.Web.UI.Page
             {
                 if (Session["Project"] != null && Session["Project"].ToString() != string.Empty && Session["username"] != null && Session["username"].ToString() != string.Empty)
                 {
-                    if (util.CheckLoggedUserDetails(Session["Project"].ToString(), Session.SessionID) == true)
+                    if (util.CheckLoggedUserDetails(Session["Project"].ToString(), Session.SessionID, Session["username"].ToString()) == true)
                     {
-                        ASB.WebService wsObj = new ASB.WebService();
-                        wsObj.SignOut();
+                        //ASB.WebService wsObj = new ASB.WebService();
+                        //wsObj.SignOut();
+                        hdnPrevTab.Value = Session["Project"].ToString() + "~" + Session.SessionID + "~" + Session["username"].ToString();
                     }
                 }
                 switch (Session["LoginWith"].ToString())
@@ -267,6 +378,12 @@ public partial class Signin : System.Web.UI.Page
                         FetchUserSocialDetail("openid");
                         break;
                 }
+            }
+            else if (Request.QueryString["axi"] != null && Request.QueryString["axi"] != "")
+            {
+                //AxiUserLogin();
+                axiLogin = "true";
+                panelAxiLogin.Visible = true;
             }
             else if (Request.QueryString["ssotype"] != null)
             {
@@ -291,17 +408,23 @@ public partial class Signin : System.Web.UI.Page
                 panelSignin.Visible = false;
                 isMobDevice = Request.QueryString["mobDevice"];
                 btforDupLogin = Request.QueryString["hbtforDupLogin"];
+                string hdnBwsridNew = Request.QueryString["hdnBwsridNew"];
                 string[] duplicateUser = Session["duplicateUser"].ToString().Split('♦');
                 Session["duplicateUser"] = null;
+                hdnBwsrid.Value = hdnBwsridNew;
                 hdnProjName.Value = duplicateUser[3];
                 hdnPuser.Value = duplicateUser[2];
                 hdnProjLang.Value = duplicateUser[4];
-                if (util.GetConfigAttrValue(duplicateUser[3], "AxOTPAuth") == "true")
+                if (util.GetOTPSettings(duplicateUser[3], "AxOTPAuth") == "true")
                 {
                     axOTPAuthFlag = "true";
-                    axOTPAuthCahrs = util.GetConfigAttrValue(duplicateUser[3], "AxOTPAuthCahrs");
-                    axOTPAuthExpiry = util.GetConfigAttrValue(duplicateUser[3], "AxOTPAuthExpiry");
-                    string _pwdAuth = GetPwdAuthLang(duplicateUser[1], duplicateUser[3]);
+                    axOTPAuthCahrs = util.GetOTPSettings(duplicateUser[3], "AxOTPAuthCahrs");
+                    axOTPAuthExpiry = util.GetOTPSettings(duplicateUser[3], "AxOTPAuthExpiry");
+                    string _pwdAuth = "";
+                    if (HttpContext.Current.Session != null && HttpContext.Current.Session["PwdAuthLang-" + duplicateUser[1]] != null)
+                        _pwdAuth = HttpContext.Current.Session["PwdAuthLang-" + duplicateUser[1]].ToString();
+                    else
+                        _pwdAuth = GetPwdAuthLang(duplicateUser[1], duplicateUser[3]);
                     if (_pwdAuth != "")
                     {
                         string _otpAuthflag = _pwdAuth.Split('♣')[2];
@@ -329,12 +452,13 @@ public partial class Signin : System.Web.UI.Page
                     Session["duplicateUser"] = null;
                     Session["loggedUserDetails"] = null;
                 }
-                if (Session["Project"] != null && Session["Project"].ToString() != string.Empty)
+                if (Session["Project"] != null && Session["Project"].ToString() != string.Empty && Session["username"] != null && Session["username"].ToString() != string.Empty)
                 {
-                    if (util.CheckLoggedUserDetails(Session["Project"].ToString(), Session.SessionID) == true)
+                    if (util.CheckLoggedUserDetails(Session["Project"].ToString(), Session.SessionID, Session["username"].ToString()) == true)
                     {
-                        ASB.WebService wsObj = new ASB.WebService();
-                        wsObj.SignOut();
+                        //ASB.WebService wsObj = new ASB.WebService();
+                        //wsObj.SignOut();
+                        hdnPrevTab.Value = Session["Project"].ToString() + "~" + Session.SessionID + "~" + Session["username"].ToString();
                     }
                 }
 
@@ -353,20 +477,26 @@ public partial class Signin : System.Web.UI.Page
 
                 SetAxpertLogo();
 
-                IsLicExist();
+                //IsLicExist();
 
                 if (ConfigurationManager.AppSettings["axThemeFolder"] != null && ConfigurationManager.AppSettings["axThemeFolder"].ToString() != "")
                     axThemeStyleFolder = ConfigurationManager.AppSettings["axThemeFolder"].ToString();
 
-                if (ConfigurationManager.AppSettings["staysignin"] != null && ConfigurationManager.AppSettings["staysignin"].ToString() == "true")
-                    axstaysignin.Visible = true;
+                //if (ConfigurationManager.AppSettings["staysignin"] != null && ConfigurationManager.AppSettings["staysignin"].ToString() == "true")
+                //    axstaysignin.Visible = true;
+                //else
+                //    axstaysignin.Visible = false;
+                if (Session["Project"] != null && Session["Project"].ToString() != string.Empty && Session["username"] != null && Session["username"].ToString() != string.Empty)
+                {
+                    //Donothing
+                }
                 else
-                    axstaysignin.Visible = false;
-
-                if (Session["Project"] != null)
-                    Session["Project"] = null;
-                if (Session["queryProj"] != null)
-                    Session["queryProj"] = null;
+                {
+                    if (Session["Project"] != null)
+                        Session["Project"] = null;
+                    if (Session["queryProj"] != null)
+                        Session["queryProj"] = null;
+                }
 
                 if (ConfigurationManager.AppSettings["proj"] != null && ConfigurationManager.AppSettings["proj"].ToString() != string.Empty)
                 {
@@ -374,6 +504,7 @@ public partial class Signin : System.Web.UI.Page
                     hdnAxProjs.Value = proj;
                     selectProj.Style.Add("display", "none");
                     axSelectProj.Value = proj;
+                    EnableCaptcha(proj);
                 }
                 else
                 {
@@ -383,23 +514,30 @@ public partial class Signin : System.Web.UI.Page
                         dProj = queryProj;
                     else if (queryProj != string.Empty && (queryProj.Contains("&") && !queryProj.Split('&')[0].Contains("=")))
                         dProj = queryProj.Split('&')[0];
-                    else
-                    {
-                        string subDomain = HttpContext.Current.Request.ApplicationPath;
-                        string urlDomain = HttpContext.Current.Request.Url.Host;
-                        if (subDomain != "/")
-                            dProj = subDomain.Split('/').Last();
-                        else if (urlDomain != string.Empty && urlDomain.ToLower() != "localhost")
-                            dProj = urlDomain;
-                    }
+                    //else
+                    //{
+                    //    string subDomain = HttpContext.Current.Request.ApplicationPath;
+                    //    string urlDomain = HttpContext.Current.Request.Url.Host;
+                    //    if (subDomain != "/")
+                    //        dProj = subDomain.Split('/').Last();
+                    //    else if (urlDomain != string.Empty && urlDomain.ToLower() != "localhost")
+                    //        dProj = urlDomain;
+                    //}
                     if (dProj != string.Empty)
+                    {
                         GetWebSiteProjectDetails(dProj);
+                        util.GetAxIniFileKeys(dProj);
+                        hdnKeepMeSigninFlag.Value = util.GetConfigAttrValue(dProj, "AxStaySignIn");
+                        EnableCaptcha(dProj);
+                    }
                     else
                         GetProjectDetails();
                 }
 
                 if (language != string.Empty)
                 {
+                    string[] _language = language.Split(',');
+                    language = _language[0];
                     Session["AxLanguages"] = language;
                     isUserLang = language;
                     hdnLangs.Value = language;
@@ -428,94 +566,108 @@ public partial class Signin : System.Web.UI.Page
                 if (proj != string.Empty)
                 {
                     copyRightTxt = util.GetConfigAttrValue(proj, "AxCopyRightText", language);
-                    isPowerBy = "true";
+                    if (copyRightTxt == string.Empty)
+                        isPowerBy = string.Empty;
+                    else
+                        isPowerBy = "true";
                     copyRightTxt = copyRightTxt.Replace("#br#", "<br/>");
                     if (copyRightTxt != string.Empty)
                         dvCopyRight.InnerText = copyRightTxt;
                 }
                 RenderLandingPage();
-                if (ConfigurationManager.AppSettings["ssoredirecturl"] != null && ConfigurationManager.AppSettings["ssoredirecturl"].ToString() != string.Empty)
-                {
-                    ssoredirecturl = ConfigurationManager.AppSettings["ssoredirecturl"].ToString();
-                }
-                if (ConfigurationManager.AppSettings["ssologin"] != null && ConfigurationManager.AppSettings["ssologin"].ToString() != string.Empty)
-                {
-                    string[] ssoclientKey = null;
-                    if (ConfigurationManager.AppSettings["ssoclientKey"] != null && ConfigurationManager.AppSettings["ssoclientKey"].ToString() != string.Empty)
-                    {
-                        string ssoclientKeys = ConfigurationManager.AppSettings["ssoclientKey"].ToString();
-                        ssoclientKey = ssoclientKeys.Split(',');
-                    }
-                    string[] ssoclientsecretKey = null;
-                    if (ConfigurationManager.AppSettings["ssoclientsecretKey"] != null && ConfigurationManager.AppSettings["ssoclientsecretKey"].ToString() != string.Empty)
-                    {
-                        string ssoclientsecretKeys = ConfigurationManager.AppSettings["ssoclientsecretKey"].ToString();
-                        ssoclientsecretKey = ssoclientsecretKeys.Split(',');
-                    }
-                    string ssologin = ConfigurationManager.AppSettings["ssologin"].ToString();
-                    string[] ssologinAcc = ssologin.Split(',');
+                //if (ConfigurationManager.AppSettings["ssoredirecturl"] != null && ConfigurationManager.AppSettings["ssoredirecturl"].ToString() != string.Empty)
+                //{
+                //    ssoredirecturl = ConfigurationManager.AppSettings["ssoredirecturl"].ToString();
+                //}
+                //if (ConfigurationManager.AppSettings["ssologin"] != null && ConfigurationManager.AppSettings["ssologin"].ToString() != string.Empty)
+                //{
+                //    string[] ssoclientKey = null;
+                //    if (ConfigurationManager.AppSettings["ssoclientKey"] != null && ConfigurationManager.AppSettings["ssoclientKey"].ToString() != string.Empty)
+                //    {
+                //        string ssoclientKeys = ConfigurationManager.AppSettings["ssoclientKey"].ToString();
+                //        ssoclientKey = ssoclientKeys.Split(',');
+                //    }
+                //    string[] ssoclientsecretKey = null;
+                //    if (ConfigurationManager.AppSettings["ssoclientsecretKey"] != null && ConfigurationManager.AppSettings["ssoclientsecretKey"].ToString() != string.Empty)
+                //    {
+                //        string ssoclientsecretKeys = ConfigurationManager.AppSettings["ssoclientsecretKey"].ToString();
+                //        ssoclientsecretKey = ssoclientsecretKeys.Split(',');
+                //    }
+                //    string ssologin = ConfigurationManager.AppSettings["ssologin"].ToString();
+                //    string[] ssologinAcc = ssologin.Split(',');
 
-                    for (int i = 0; i < ssologinAcc.Count(); i++)
-                    {
-                        if (ssologinAcc[i] == "office365")
-                        {
-                            Office365Btn.Visible = true;
-                            divsso.Attributes["class"] = divsso.Attributes["class"].Replace("d-none", "").Trim();
-                            if (ssoclientKey != null && ssoclientKey[i] != null)
-                                office365clientKey = ssoclientKey[i];
-                            if (ssoclientsecretKey != null && ssoclientsecretKey[i] != null)
-                                office365secretKey = ssoclientsecretKey[i];
-                        }
-                        else if (ssologinAcc[i] == "okta")
-                        {
-                            OktaBtn.Visible = true;
-                            divsso.Attributes["class"] = divsso.Attributes["class"].Replace("d-none", "").Trim();
-                            if (ssoclientKey != null && ssoclientKey[i] != null)
-                                oktaclientKey = ssoclientKey[i];
-                            if (ssoclientsecretKey != null && ssoclientsecretKey[i] != null)
-                                oktasecretKey = ssoclientsecretKey[i];
-                            if (ConfigurationManager.AppSettings["ssooktadomain"] != null && ConfigurationManager.AppSettings["ssooktadomain"].ToString() != string.Empty)
-                                oktadomain = ConfigurationManager.AppSettings["ssooktadomain"].ToString();
-                        }
-                        else if (ssologinAcc[i] == "google")
-                        {
-                            GoogleBtn.Visible = true;
-                            divsso.Attributes["class"] = divsso.Attributes["class"].Replace("d-none", "").Trim();
-                            if (ssoclientKey != null && ssoclientKey[i] != null)
-                                googleclientKey = ssoclientKey[i];
-                            if (ssoclientsecretKey != null && ssoclientsecretKey[i] != null)
-                                googlesecretKey = ssoclientsecretKey[i];
-                        }
-                        else if (ssologinAcc[i] == "facebook")
-                        {
-                            FacebookBtn.Visible = true;
-                            divsso.Attributes["class"] = divsso.Attributes["class"].Replace("d-none", "").Trim();
-                            if (ssoclientKey != null && ssoclientKey[i] != null)
-                                fbclientKey = ssoclientKey[i];
-                            if (ssoclientsecretKey != null && ssoclientsecretKey[i] != null)
-                                fbsecretKey = ssoclientsecretKey[i];
-                        }
-                        else if (ssologinAcc[i] == "openid")
-                        {
-                            OpenIdBtn.Visible = true;
-                            divsso.Attributes["class"] = divsso.Attributes["class"].Replace("d-none", "").Trim();
-                            if (ssoclientKey != null && ssoclientKey[i] != null)
-                                openIdclientKey = ssoclientKey[i];
-                            if (ssoclientsecretKey != null && ssoclientsecretKey[i] != null)
-                                openIdsecretKey = ssoclientsecretKey[i];
-                        }
-                        else if (ssologinAcc[i] == "windows")
-                        {
-                            WindowsBtn.Visible = true;
-                            divsso.Attributes["class"] = divsso.Attributes["class"].Replace("d-none", "").Trim();
-                        }
-                        else if (ssologinAcc[i] == "saml")
-                        {
-                            SamlBtn.Visible = true;
-                            divsso.Attributes["class"] = divsso.Attributes["class"].Replace("d-none", "").Trim();
-                        }
-                    }
+                //    for (int i = 0; i < ssologinAcc.Count(); i++)
+                //    {
+                //        if (ssologinAcc[i] == "office365")
+                //        {
+                //            Office365Btn.Visible = true;
+                //            divsso.Attributes["class"] = divsso.Attributes["class"].Replace("d-none", "").Trim();
+                //            if (ssoclientKey != null && ssoclientKey[i] != null)
+                //                office365clientKey = ssoclientKey[i];
+                //            if (ssoclientsecretKey != null && ssoclientsecretKey[i] != null)
+                //                office365secretKey = ssoclientsecretKey[i];
+
+                //            if (ConfigurationManager.AppSettings["ssoOptionWindow"] != null && ConfigurationManager.AppSettings["ssoOptionWindow"].ToString() == "onlysso")
+                //                onlyssoKey = "office365";
+                //        }
+                //        else if (ssologinAcc[i] == "okta")
+                //        {
+                //            OktaBtn.Visible = true;
+                //            divsso.Attributes["class"] = divsso.Attributes["class"].Replace("d-none", "").Trim();
+                //            if (ssoclientKey != null && ssoclientKey[i] != null)
+                //                oktaclientKey = ssoclientKey[i];
+                //            if (ssoclientsecretKey != null && ssoclientsecretKey[i] != null)
+                //                oktasecretKey = ssoclientsecretKey[i];
+                //            if (ConfigurationManager.AppSettings["ssooktadomain"] != null && ConfigurationManager.AppSettings["ssooktadomain"].ToString() != string.Empty)
+                //                oktadomain = ConfigurationManager.AppSettings["ssooktadomain"].ToString();
+                //        }
+                //        else if (ssologinAcc[i] == "google")
+                //        {
+                //            GoogleBtn.Visible = true;
+                //            divsso.Attributes["class"] = divsso.Attributes["class"].Replace("d-none", "").Trim();
+                //            if (ssoclientKey != null && ssoclientKey[i] != null)
+                //                googleclientKey = ssoclientKey[i];
+                //            if (ssoclientsecretKey != null && ssoclientsecretKey[i] != null)
+                //                googlesecretKey = ssoclientsecretKey[i];
+                //        }
+                //        else if (ssologinAcc[i] == "facebook")
+                //        {
+                //            FacebookBtn.Visible = true;
+                //            divsso.Attributes["class"] = divsso.Attributes["class"].Replace("d-none", "").Trim();
+                //            if (ssoclientKey != null && ssoclientKey[i] != null)
+                //                fbclientKey = ssoclientKey[i];
+                //            if (ssoclientsecretKey != null && ssoclientsecretKey[i] != null)
+                //                fbsecretKey = ssoclientsecretKey[i];
+                //        }
+                //        else if (ssologinAcc[i] == "openid")
+                //        {
+                //            OpenIdBtn.Visible = true;
+                //            divsso.Attributes["class"] = divsso.Attributes["class"].Replace("d-none", "").Trim();
+                //            if (ssoclientKey != null && ssoclientKey[i] != null)
+                //                openIdclientKey = ssoclientKey[i];
+                //            if (ssoclientsecretKey != null && ssoclientsecretKey[i] != null)
+                //                openIdsecretKey = ssoclientsecretKey[i];
+                //        }
+                //        else if (ssologinAcc[i] == "windows")
+                //        {
+                //            WindowsBtn.Visible = true;
+                //            divsso.Attributes["class"] = divsso.Attributes["class"].Replace("d-none", "").Trim();
+                //        }
+                //        else if (ssologinAcc[i] == "saml")
+                //        {
+                //            SamlBtn.Visible = true;
+                //            divsso.Attributes["class"] = divsso.Attributes["class"].Replace("d-none", "").Trim();
+                //        }
+                //    }
+                //}
+                if (Session["Project"] != null)
+                    SSOButtonsEnable(Session["Project"].ToString());
+
+                if (Request.QueryString["isforgot"] != null && Request.QueryString["isforgot"].ToString() == "true")
+                {
+                    onlyssoKey = "";
                 }
+
                 if (Request.QueryString["deviceid"] != null)
                 {
                     string projName = string.Empty;
@@ -538,19 +690,24 @@ public partial class Signin : System.Web.UI.Page
                     kmsin = Request.QueryString["keepmesignin"];
                 if (hybridDeviceId == string.Empty && (kmsin == "" || kmsin == "true"))
                     KeepMeAutoLoginWeb = "true";
-
-                try
+                if (Session["Project"] != null && Session["Project"].ToString() != string.Empty && Session["username"] != null && Session["username"].ToString() != string.Empty)
                 {
-                    var lstAutKeys = HttpContext.Current.Session.Keys.Cast<string>().Where(x => x.StartsWith("AxStrConfig-")).ToList();
-                    if (lstAutKeys.Count > 0)
-                    {
-                        foreach (string _key in lstAutKeys)
-                            HttpContext.Current.Session.Remove(_key);
-                    }
+                    //Donothing
                 }
-                catch (Exception ex) { }
-
-                Session.Remove("LoginWith");
+                else
+                {
+                    try
+                    {
+                        var lstAutKeys = HttpContext.Current.Session.Keys.Cast<string>().Where(x => x.StartsWith("AxStrConfig-")).ToList();
+                        if (lstAutKeys.Count > 0)
+                        {
+                            foreach (string _key in lstAutKeys)
+                                HttpContext.Current.Session.Remove(_key);
+                        }
+                    }
+                    catch (Exception ex) { }
+                    Session.Remove("LoginWith");
+                }
             }
             //StartTime = DateTime.Now.ToString();//.ToString("dd-MM-yyyy HH:mm:ss.fff");
             hdnSrtforLogin.Value = DateTime.Now.ToString();
@@ -567,6 +724,94 @@ public partial class Signin : System.Web.UI.Page
         AddCustomLinks();
     }
 
+    protected void EnableCaptcha(string _proj)
+    {
+        try
+        {
+            if (Session["captchaenabledFlag"] != null && Session["captchaenabledFlag"].ToString() == "false")
+            {
+                util.GetAxIniFileKeys(_proj);
+                string captcha = util.GetAllSettings(_proj, Constants.AXPCAPTCHA_CONN_KEY);
+                if (captcha != "" && captcha != "nooptions")
+                {
+                    JObject captchaJson = JObject.Parse(captcha);
+                    if (captchaJson["CaptchaEnabled"] != null && captchaJson["CaptchaEnabled"].ToString() == "true")
+                    {
+                        HttpContext.Current.Session["captchaenabledFlag"] = "true";
+                        pnlCaptcha.Visible = true;
+                        DynamicCaptcha.CodeLength = Convert.ToInt32(captchaJson["CaptchaLength"].ToString());
+                        DynamicCaptcha.CodeStyle = (BotDetect.CodeStyle)Enum.Parse(typeof(BotDetect.CodeStyle), captchaJson["CaptchaStyle"].ToString(), true);
+                    }
+                    else
+                    {
+                        pnlCaptcha.Visible = false;
+                        HttpContext.Current.Session["captchaenabledFlag"] = "false";
+                        HttpContext.Current.Session.Remove("CaptchaEnabled");
+                        HttpContext.Current.Session.Remove("CaptchaLength");
+                        HttpContext.Current.Session.Remove("CaptchaStyle");
+                    }
+                }
+                else
+                {
+                    pnlCaptcha.Visible = false;
+                    HttpContext.Current.Session["captchaenabledFlag"] = "false";
+                    HttpContext.Current.Session.Remove("CaptchaEnabled");
+                    HttpContext.Current.Session.Remove("CaptchaLength");
+                    HttpContext.Current.Session.Remove("CaptchaStyle");
+                }
+            }
+        }
+        catch (Exception ex) { }
+    }
+    public string ConvertXmlPublicKeyToPem(string xml)
+    {
+        var rsa = new RSACryptoServiceProvider();
+        rsa.FromXmlString(xml);
+        var parameters = rsa.ExportParameters(false);
+
+        var keyParam = new RsaKeyParameters(
+            false, // isPrivate = false
+            new BigInteger(1, parameters.Modulus),
+            new BigInteger(1, parameters.Exponent)
+        );
+
+        using (var sw = new StringWriter())
+        {
+            var pemWriter = new PemWriter(sw);
+            pemWriter.WriteObject(keyParam); // <-- This gives PKCS#8
+            pemWriter.Writer.Flush();
+            return sw.ToString(); // This can be safely embedded in JS
+        }
+    }
+    public static string DecryptWithAesBase64(string base64Cipher, byte[] keyBytes)
+    {
+        try
+        {
+            var cipherBytes = Convert.FromBase64String(base64Cipher);
+
+            using (var aes = Aes.Create())
+            {
+                aes.Key = keyBytes;
+                aes.Mode = CipherMode.CBC;
+                aes.Padding = PaddingMode.PKCS7;
+
+                byte[] iv = cipherBytes.Take(16).ToArray(); // First 16 bytes = IV
+                byte[] actualCipher = cipherBytes.Skip(16).ToArray();
+
+                aes.IV = iv;
+
+                using (var decryptor = aes.CreateDecryptor())
+                {
+                    var decryptedBytes = decryptor.TransformFinalBlock(actualCipher, 0, actualCipher.Length);
+                    return Encoding.UTF8.GetString(decryptedBytes);
+                }
+            }
+        }
+        catch (Exception)
+        {
+            throw new Exception("Could not process the request. Please try again.");
+        }
+    }
     protected void checkSecurityVal(string _curValue)
     {
         try
@@ -596,6 +841,290 @@ public partial class Signin : System.Web.UI.Page
         }
     }
 
+    protected void SSOButtonsEnable(string _strProj)
+    {
+        try
+        {
+            if (_strProj != string.Empty)
+            {
+                //FDR fdrObj = new FDR(_strProj);
+                //string SSOJsoncontent = fdrObj.StringFromRedis(Constants.AXSSO_CONN_KEY, _strProj);
+                string SSOJsoncontent = string.Empty;
+                if (_jsoncontents != null && _jsoncontents.ContainsKey(Constants.AXSSO_CONN_KEY))
+                    SSOJsoncontent = _jsoncontents[Constants.AXSSO_CONN_KEY];
+                else
+                {
+                    SSOJsoncontent = util.GetAllSettings(_strProj, Constants.AXSSO_CONN_KEY);
+                }
+                if (SSOJsoncontent == string.Empty)
+                {
+                    string ScriptsPath = HttpContext.Current.Application["ScriptsPath"].ToString();
+                    FileInfo fi = new FileInfo(ScriptsPath + "\\AppSettings.ini");
+                    if (fi.Exists)
+                    {
+                        string scriptsPathAxFile = ScriptsPath + "\\AppSettings.ini";
+                        string filePatharm = @" " + scriptsPathAxFile + "";
+                        string existingJsonAxFile = File.ReadAllText(filePatharm);
+                        JObject jsonAxFile = JObject.Parse(existingJsonAxFile);
+                        if (jsonAxFile["appsettings"] != null && jsonAxFile["appsettings"][_strProj] != null && jsonAxFile["appsettings"][_strProj]["SSO"] != null)
+                        {
+                            SSOJsoncontent = jsonAxFile["appsettings"][_strProj]["SSO"].ToString();
+                            enableSSOBtnsKeys(SSOJsoncontent);
+
+                            //FDW fdwObj = FDW.Instance;
+                            FDW fdwObj = new FDW(_strProj);
+                            //fdwObj.SaveInRedisServer(Constants.AXSSO_CONN_KEY, SSOJsoncontent, Constants.AXSSO_CONN_KEY, _strProj);
+                            fdwObj.HashSetKeyWithSchema(Constants.AX_COMMON_APPSETTING_KEY, Constants.AXSSO_CONN_KEY, SSOJsoncontent, _strProj);
+                        }
+                        else
+                        {
+                            //FDW fdwObj = FDW.Instance;
+                            FDW fdwObj = new FDW(_strProj);
+                            //fdwObj.SaveInRedisServer(Constants.AXSSO_CONN_KEY, "nossoconnection", Constants.AXSSO_CONN_KEY, _strProj);
+                            fdwObj.HashSetKeyWithSchema(Constants.AX_COMMON_APPSETTING_KEY, Constants.AXSSO_CONN_KEY, "nossoconnection", _strProj);
+                        }
+                    }
+                    else
+                    {
+                        //FDW fdwObj = FDW.Instance;
+                        FDW fdwObj = new FDW(_strProj);
+                        //fdwObj.SaveInRedisServer(Constants.AXSSO_CONN_KEY, "nossoconnection", Constants.AXSSO_CONN_KEY, _strProj);
+                        fdwObj.HashSetKeyWithSchema(Constants.AX_COMMON_APPSETTING_KEY, Constants.AXSSO_CONN_KEY, "nossoconnection", _strProj);
+                    }
+                }
+                else if (SSOJsoncontent != "nossoconnection")
+                {
+                    enableSSOBtnsKeys(SSOJsoncontent);
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            LogFile.Log logobj = new LogFile.Log();
+            logobj.CreateLog("Exception in GetAxConfigFileServer - util.cs-" + ex.Message, HttpContext.Current.Session["nsessionid"].ToString(), "GetAxConfigFileServer", "new");
+        }
+    }
+    protected void enableSSOBtnsKeys(string SSOJsoncontent)
+    {
+        JObject config = JObject.Parse(SSOJsoncontent);
+        foreach (var section in config)
+        {
+            if (section.Key == "windows")
+            {
+                JObject sectionObject = section.Value as JObject;
+                if (sectionObject != null)
+                {
+                    foreach (JProperty property in sectionObject.Properties())
+                    {
+                        switch (property.Name)
+                        {
+                            case "ssoType":
+                                WindowsBtn.Visible = true;
+                                divsso.Attributes["class"] = divsso.Attributes["class"].Replace("d-none", "").Trim();
+                                break;
+                            case "ssoWinDomain":
+                                Session["windDomain"] = property.Value.ToString();
+                                break; ;
+                            case "onlysso":
+                                if (onlyssoKey == "")
+                                    onlyssoKey = property.Value.ToString() == "true" ? "windows" : "";
+                                break;
+                        }
+                    }
+                }
+            }
+            else if (section.Key == "saml")
+            {
+                JObject sectionObject = section.Value as JObject;
+                if (sectionObject != null)
+                {
+                    foreach (JProperty property in sectionObject.Properties())
+                    {
+                        switch (property.Name)
+                        {
+                            case "ssoType":
+                                SamlBtn.Visible = true;
+                                divsso.Attributes["class"] = divsso.Attributes["class"].Replace("d-none", "").Trim();
+                                break;
+                            case "SamlPartnerIdP":
+                                Session["SamlPartnerIdP"] = property.Value.ToString();
+                                break;
+                            case "SamlIdentifier":
+                                Session["SamlIdentifier"] = property.Value.ToString();
+                                break;
+                            case "SamlCertificate":
+                                Session["SamlCertificate"] = property.Value.ToString();
+                                break;
+                            case "SamlRedirectUrl":
+                                ssoredirecturl = property.Value.ToString();
+                                Session["SamlRedirectUrl"] = property.Value.ToString();
+                                break;
+                            case "onlysso":
+                                if (onlyssoKey == "")
+                                    onlyssoKey = property.Value.ToString() == "true" ? "saml" : "";
+                                break;
+                        }
+                    }
+                }
+            }
+            else if (section.Key == "office365")
+            {
+                JObject sectionObject = section.Value as JObject;
+                if (sectionObject != null)
+                {
+                    foreach (JProperty property in sectionObject.Properties())
+                    {
+                        switch (property.Name)
+                        {
+                            case "ssoType":
+                                Office365Btn.Visible = true;
+                                divsso.Attributes["class"] = divsso.Attributes["class"].Replace("d-none", "").Trim();
+                                break;
+                            case "of365clientkey":
+                                office365clientKey = property.Value.ToString();
+                                break;
+                            case "of365secretkey":
+                                office365secretKey = property.Value.ToString();
+                                break;
+                            case "of365redirecturl":
+                                ssoredirecturl = property.Value.ToString();
+                                break;
+                            case "onlysso":
+                                if (onlyssoKey == "")
+                                    onlyssoKey = property.Value.ToString() == "true" ? "office365" : "";
+                                break;
+                        }
+                    }
+                }
+            }
+            else if (section.Key == "okta")
+            {
+                JObject sectionObject = section.Value as JObject;
+                if (sectionObject != null)
+                {
+                    foreach (JProperty property in sectionObject.Properties())
+                    {
+                        switch (property.Name)
+                        {
+                            case "ssoType":
+                                OktaBtn.Visible = true;
+                                divsso.Attributes["class"] = divsso.Attributes["class"].Replace("d-none", "").Trim();
+                                break;
+                            case "oktaclientkey":
+                                oktaclientKey = property.Value.ToString();
+                                break;
+                            case "oktasecretkey":
+                                oktasecretKey = property.Value.ToString();
+                                break;
+                            case "oktadomain":
+                                oktadomain = property.Value.ToString();
+                                break;
+                            case "oktaredirecturl":
+                                ssoredirecturl = property.Value.ToString();
+                                break;
+                            case "onlysso":
+                                if (onlyssoKey == "")
+                                    onlyssoKey = property.Value.ToString() == "true" ? "okta" : "";
+                                break;
+                        }
+                    }
+                }
+            }
+            else if (section.Key == "google")
+            {
+                JObject sectionObject = section.Value as JObject;
+                if (sectionObject != null)
+                {
+                    foreach (JProperty property in sectionObject.Properties())
+                    {
+                        switch (property.Name)
+                        {
+                            case "ssoType":
+                                GoogleBtn.Visible = true;
+                                divsso.Attributes["class"] = divsso.Attributes["class"].Replace("d-none", "").Trim();
+                                break;
+                            case "googleclientkey":
+                                googleclientKey = property.Value.ToString();
+                                break;
+                            case "googlesecretkey":
+                                googlesecretKey = property.Value.ToString();
+                                break;
+                            case "googleredirecturl":
+                                ssoredirecturl = property.Value.ToString();
+                                break;
+                            case "onlysso":
+                                if (onlyssoKey == "")
+                                    onlyssoKey = property.Value.ToString() == "true" ? "google" : "";
+                                break;
+                        }
+                    }
+                }
+            }
+            else if (section.Key == "facebook")
+            {
+                JObject sectionObject = section.Value as JObject;
+                if (sectionObject != null)
+                {
+                    foreach (JProperty property in sectionObject.Properties())
+                    {
+                        switch (property.Name)
+                        {
+                            case "ssoType":
+                                FacebookBtn.Visible = true;
+                                divsso.Attributes["class"] = divsso.Attributes["class"].Replace("d-none", "").Trim();
+                                break;
+                            case "fbclientkey":
+                                fbclientKey = property.Value.ToString();
+                                break;
+                            case "fbsecretkey":
+                                fbsecretKey = property.Value.ToString();
+                                break;
+                            case "fbredirecturl":
+                                ssoredirecturl = property.Value.ToString();
+                                break;
+                            case "onlysso":
+                                if (onlyssoKey == "")
+                                    onlyssoKey = property.Value.ToString() == "true" ? "facebook" : "";
+                                break;
+                        }
+                    }
+                }
+            }
+            else if (section.Key == "openid")
+            {
+                JObject sectionObject = section.Value as JObject;
+                if (sectionObject != null)
+                {
+                    foreach (JProperty property in sectionObject.Properties())
+                    {
+                        switch (property.Name)
+                        {
+                            case "ssoType":
+                                OpenIdBtn.Visible = true;
+                                divsso.Attributes["class"] = divsso.Attributes["class"].Replace("d-none", "").Trim();
+                                break;
+                            case "openidclientkey":
+                                openIdclientKey = property.Value.ToString();
+                                break;
+                            case "openidsecretkey":
+                                openIdsecretKey = property.Value.ToString();
+                                break;
+                            case "openiddomain":
+                                Session["openiddomain"] = property.Value.ToString();
+                                break;
+                            case "openidredirecturl":
+                                ssoredirecturl = property.Value.ToString();
+                                break;
+                            case "onlysso":
+                                if (onlyssoKey == "")
+                                    onlyssoKey = property.Value.ToString() == "true" ? "openid" : "";
+                                break;
+                        }
+                    }
+                }
+            }
+        }
+    }
     protected void SetAxpertLogo()
     {
 
@@ -718,6 +1247,18 @@ public partial class Signin : System.Web.UI.Page
                     ​​Thread.ResetAbort();
                 }
             }
+            else
+            {
+                string _tProj = axProjs;
+                _tProj = _tProj.Replace("Select Project,", "");
+                if (_tProj != "" && _tProj.IndexOf(',') == -1)
+                {
+                    GetWebSiteProjectDetails(_tProj);
+                    util.GetAxIniFileKeys(_tProj);
+                    hdnKeepMeSigninFlag.Value = util.GetConfigAttrValue(_tProj, "AxStaySignIn");
+                    EnableCaptcha(_tProj);
+                }
+            }
         }
         else
             ClientScript.RegisterStartupScript(this.GetType(), "Javascript", "showAlertDialog(\"error\", \"Connection details not available.\");", true);
@@ -751,6 +1292,7 @@ public partial class Signin : System.Web.UI.Page
                     selectProj.Style.Add("display", "none");
                     axSelectProj.Value = axProjs;
                     Session["queryProj"] = axProjs;
+                    proj = axProjs;
                 }
             }
             else
@@ -832,6 +1374,8 @@ public partial class Signin : System.Web.UI.Page
                             {
                                 var googleInfo = MakeWebRequest("https://www.googleapis.com/oauth2/v1/userinfo?access_token=" + tokenInfo.access_token, "GET");
                                 Google.Info profile = new JavaScriptSerializer().Deserialize<Google.Info>(googleInfo);
+                                if (Session["Project"] != null && Session["Project"].ToString() != "")
+                                    Session["queryProj"] = Session["Project"].ToString();
                                 CallLoginService(true, profile.email, hdnPuser.Value, Session["Project"].ToString(), Session["AxLanguages"].ToString(), profile.id);// tokenInfo.access_token);
                             }
                         }
@@ -853,6 +1397,8 @@ public partial class Signin : System.Web.UI.Page
                     //var facebookInfoJson = MakeWebRequest(ConfigurationManager.AppSettings["FacebookAccessUrl"] + tokenInfo.access_token, "GET");
                     var facebookInfoJson = MakeWebRequest(request.AccessUrl + tokenInfo.access_token, "GET");
                     Facebook.Info objUser = new JavaScriptSerializer().Deserialize<Facebook.Info>(facebookInfoJson);
+                    if (Session["Project"] != null && Session["Project"].ToString() != "")
+                        Session["queryProj"] = Session["Project"].ToString();
                     CallLoginService(true, objUser.email, hdnPuser.Value, Session["Project"].ToString(), Session["AxLanguages"].ToString(), tokenInfo.access_token);
                 }
                 Session.Remove("LoginWith");
@@ -874,7 +1420,7 @@ public partial class Signin : System.Web.UI.Page
                         request.clientSecret = openIdsecretKey;
                         request.redirectUrl = ssoredirecturl + "aspx/signin.aspx";
                         string parameters = request.GetParameters(Request["code"]);
-                        string ssoopeniddomain = ConfigurationManager.AppSettings["ssoopeniddomain"].ToString();
+                        string ssoopeniddomain = Session["openiddomain"].ToString();// ConfigurationManager.AppSettings["ssoopeniddomain"].ToString();
                         string tokenResponse = MakeWebRequest("https://" + ssoopeniddomain + "/token/", "POST", "application/x-www-form-urlencoded", parameters);
                         var tokenInfo = new JavaScriptSerializer().Deserialize<OpenId.Token>(tokenResponse);
                         string token = tokenInfo.id_token;
@@ -883,6 +1429,8 @@ public partial class Signin : System.Web.UI.Page
                         if (_email == string.Empty)
                             _email = handler.Claims.First(c => c.Type == "unique_name").Value;
                         string _sid = handler.Claims.First(c => c.Type == "sub").Value;
+                        if (Session["Project"] != null && Session["Project"].ToString() != "")
+                            Session["queryProj"] = Session["Project"].ToString();
                         CallLoginService(true, _email, "", Session["Project"].ToString(), Session["AxLanguages"].ToString(), _sid);
                     }
                 }
@@ -895,6 +1443,39 @@ public partial class Signin : System.Web.UI.Page
                 if (officeDetail != string.Empty)
                 {
                     string[] officeDetails = officeDetail.Split(new[] { "*$*" }, StringSplitOptions.None);
+                    if (Session["Project"] == null)
+                    {
+                        string dProj = string.Empty;
+                        string queryProj = Request.QueryString.ToString();
+                        if (queryProj != string.Empty && !queryProj.Contains("&") && !queryProj.Contains("="))
+                            dProj = queryProj;
+                        else if (queryProj != string.Empty && (queryProj.Contains("&") && !queryProj.Split('&')[0].Contains("=")))
+                            dProj = queryProj.Split('&')[0];
+                        //else
+                        //{
+                        //    string subDomain = HttpContext.Current.Request.ApplicationPath;
+                        //    string urlDomain = HttpContext.Current.Request.Url.Host;
+                        //    if (subDomain != "/")
+                        //        dProj = subDomain.Split('/').Last();
+                        //    else if (urlDomain != string.Empty && urlDomain.ToLower() != "localhost")
+                        //        dProj = urlDomain;
+                        //}
+                        if (dProj != string.Empty)
+                            GetWebSiteProjectDetails(dProj);
+                        else
+                            GetProjectDetails();
+                        if (Session["Project"] != null && Session["Project"].ToString() != "")
+                        {
+                            string _language = util.GetConfigAttrValue(Session["Project"].ToString(), "AxLanguages");
+                            if (_language != string.Empty)
+                            {
+                                string[] _thislanguage = _language.Split(',');
+                                _language = _thislanguage[0];
+                                Session["AxLanguages"] = _language;
+                            }
+                        }
+                    }
+
                     CallLoginService(true, officeDetails[1].ToString(), hdnPuser.Value, Session["Project"].ToString(), Session["AxLanguages"].ToString(), officeDetails[0].ToString());
                 }
                 Session.Remove("LoginWith");
@@ -905,6 +1486,8 @@ public partial class Signin : System.Web.UI.Page
                 if (officeDetail != string.Empty)
                 {
                     string[] officeDetails = officeDetail.Split(new[] { "*$*" }, StringSplitOptions.None);
+                    if (Session["Project"] != null && Session["Project"].ToString() != "")
+                        Session["queryProj"] = Session["Project"].ToString();
                     CallLoginService(true, officeDetails[1].ToString(), hdnPuser.Value, Session["Project"].ToString(), Session["AxLanguages"].ToString(), officeDetails[0].ToString());
                 }
                 Session.Remove("LoginWith");
@@ -920,7 +1503,10 @@ public partial class Signin : System.Web.UI.Page
                     {
                         string[] resStr = resVar.Split('=');
                         if (resStr[0] == "Project")
+                        {
                             Session["Project"] = resStr[1];
+                            Session["queryProj"] = resStr[1];
+                        }
                         else if (resStr[0] == "AxLanguages")
                             Session["AxLanguages"] = resStr[1];
                         else if (resStr[0] == "isMobDevice")
@@ -951,7 +1537,10 @@ public partial class Signin : System.Web.UI.Page
                     {
                         string[] resStr = resVar.Split('=');
                         if (resStr[0] == "proj")
+                        {
                             Session["Project"] = resStr[1];
+                            Session["queryProj"] = resStr[1];
+                        }
                         else if (resStr[0] == "username")
                             uName = resStr[1];
                         else if (resStr[0] == "uKey")
@@ -1020,38 +1609,33 @@ public partial class Signin : System.Web.UI.Page
 
     protected void btnSubmit_Click(object sender, EventArgs e)
     {
-        string userName;
-        string project;
-        if (!GetSubmittedLogin(out userName, out project))
+        if (ViewState["StopProcessing"] != null && (bool)ViewState["StopProcessing"])
+            return;
+        if (!RestoreSubmittedLogin())
             return;
         isMobDevice = hdnMobDevice.Value;
         hybridGUID = hdnHybridGUID.Value;
         hybridDeviceId = hdnHybridDeviceId.Value;
         timeZone = hdnTimeZone.Value;
-        if (signedin.Checked)
-            staySignIn = "true";
-        else
+        //if (signedin.Checked)
+        //    staySignIn = "true";
+        //else
+        //    staySignIn = "false";
+        staySignIn = hdnKeepMeSignin.Value;
+        if (staySignIn == "")
             staySignIn = "false";
         if (ConfigurationManager.AppSettings["axThemeFolder"] != null && ConfigurationManager.AppSettings["axThemeFolder"].ToString() != "")
             axThemeStyleFolder = ConfigurationManager.AppSettings["axThemeFolder"].ToString();
-        if (string.IsNullOrEmpty(userName))
-        {
-            string msg = "<error><msg>Please enter your username.</msg></error>";
-            ClientScript.RegisterStartupScript(this.GetType(), "Javascript", "javascript:SetLoginErrorMsg('" + msg + "');", true);
-            return;
-        }
-        else if (Util.Util.ContainsXSS(userName))
-            throw new SecurityException("Invalid format.");
-        else if (!Util.Util.IsValidUserName(userName))
-            throw new SecurityException("Invalid format.");
-
-        checkSecurityVal(project);
-        if (util.GetConfigAttrValue(project, "AxOTPAuth") == "true")
+        if (util.GetOTPSettings(hdnProjName.Value, "AxOTPAuth") == "true")
         {
             axOTPAuthFlag = "true";
-            axOTPAuthCahrs = util.GetConfigAttrValue(project, "AxOTPAuthCahrs");
-            axOTPAuthExpiry = util.GetConfigAttrValue(project, "AxOTPAuthExpiry");
-            string _pwdAuth = GetPwdAuthLang(userName, project);
+            axOTPAuthCahrs = util.GetOTPSettings(hdnProjName.Value, "AxOTPAuthCahrs");
+            axOTPAuthExpiry = util.GetOTPSettings(hdnProjName.Value, "AxOTPAuthExpiry");
+            string _pwdAuth = "";
+            if (HttpContext.Current.Session != null && HttpContext.Current.Session["PwdAuthLang-" + axUserName.Value] != null)
+                _pwdAuth = HttpContext.Current.Session["PwdAuthLang-" + axUserName.Value].ToString();
+            else
+                _pwdAuth = GetPwdAuthLang(axUserName.Value, hdnProjName.Value);
             if (_pwdAuth != "")
             {
                 string _otpAuthflag = _pwdAuth.Split('♣')[2];
@@ -1062,8 +1646,10 @@ public partial class Signin : System.Web.UI.Page
                     axPwbAuthDbFlag = "true";
             }
         }
+        //UserIsLoggedIn(false, axUserName.Value, axPassword.Value, hdnProjName.Value, hdnProjLang.Value, staySignIn);
+        checkSecurityVal(hdnProjName.Value);
         checkSecurityVal(hdnProjLang.Value);
-        UserIsLoggedIn(false, userName, hdnPuser.Value, project, hdnProjLang.Value, staySignIn);
+        UserIsLoggedIn(false, axUserName.Value, hdnPuser.Value, hdnProjName.Value, hdnProjLang.Value, staySignIn);
     }
 
     protected bool UserIsLoggedIn(bool isSSO, string userName, string password, string project, string language, string signedIn)
@@ -1122,19 +1708,14 @@ public partial class Signin : System.Web.UI.Page
         {
             string existSid = string.Empty, existUser = string.Empty, existLic = string.Empty;
             existUser = userName;
-            string checkValue = string.Empty;
-            var loggedUserList = new List<string>();
-            loggedUserList = util.GetUserList(project);
-            if (loggedUserList != null)
-                checkValue = string.Join(",", loggedUserList.Select(x => x.ToString()).ToList());
-            if (loggedUserList != null && checkValue.IndexOf(existUser + "♦") != -1 && Session["loggedUserDetails"] == null)
+            string checkValue = util.GetDupUserInfo(project, userName);
+            if (checkValue != null && checkValue != "" && checkValue.IndexOf(existUser + "♦") != -1 && Session["loggedUserDetails"] == null)
             {
-                var prevValue = loggedUserList.AsEnumerable().Where(x => x.Contains(existUser + "♦")).ToList();
-                Session["loggedUserDetails"] = prevValue[0];
+                Session["loggedUserDetails"] = checkValue;
                 Session["duplicateUser"] = isSSO + "♦" + userName + "♦" + password + "♦" + project + "♦" + language + "♦" + signedIn;
                 if (hybridDeviceId != string.Empty && Session["loggedUserDetails"] != null)
                 {
-                    HybridLogin(userName, project, loggedUserList);
+                    HybridLogin(userName, project, checkValue);
                     CallLoginService(isSSO, userName, password, project, language);
                     return false;
                 }
@@ -1155,40 +1736,28 @@ public partial class Signin : System.Web.UI.Page
                 string Svrlic_redis = string.Empty;
                 if (existLic == "limited")
                 {
-                    string redisLicDetails = GetServerLicDetails();
+                    string redisLicDetails = GetServerLicDetails("true");
                     if (redisLicDetails != string.Empty && !redisLicDetails.StartsWith("error:"))
                         Svrlic_redis = redisLicDetails;
                     if (Svrlic_redis == string.Empty)
                     {
-                        string errorLog = logobj.CreateLog("Calling Signout ws", existSid, "Signout", "new");
-                        string iXml = string.Empty;
-                        iXml = "<root axpapp='" + project + "' sessionid='" + existSid + "' " + Svrlic_redis + " trace='" + errorLog + "'>";
-                        if (Session["axApps"] != null && Session["axApps"].ToString() != "")
-                            iXml += Session["axApps"].ToString() + HttpContext.Current.Application["axProps"].ToString();
-                        iXml += "</root>";
+                        HttpContext.Current.Session["AxTrace"] = "true";
                         string result = string.Empty;
-                        ASBExt.WebServiceExt asbExt = new ASBExt.WebServiceExt();
-                        result = asbExt.CallLogoutNewWS("Signout", iXml);
-                        util.KillSession();
-                        string scriptsPath = HttpContext.Current.Application["ScriptsPath"].ToString();
-                        scriptsPath = scriptsPath + "Axpert\\" + existSid;
-                        if (Directory.Exists(scriptsPath) && existSid != "")
-                        {
-                            try
-                            {
-                                Directory.Delete(scriptsPath, true);
-                            }
-                            catch (Exception Ex)
-                            {
-                                //Do nothing
-                            }
-                        }
+                        string _axApps = Session["axApps"].ToString();
+                        string _axProps = HttpContext.Current.Application["axProps"].ToString();
+                        string errorLog = logobj.CreateLog("Calling Signout ws", existSid, "Signout", "new");
+                        if (errorLog != "")
+                            errorLog = errorLog.Replace("\\", "\\\\");
+                        _axApps = _axApps.Replace(@"\", "\\\\");
+                        string signOutJson = "{\"logout\":{\"axpapp\":\"" + project + "\",\"username\":\"" + existUser + "\",\"sessionid\":\"" + existSid + "\"," + Svrlic_redis + " \"trace\":\"" + errorLog + "\"},\"axapps\":\"" + _axApps + "\",\"axprops\":\"" + _axProps + "\"}";
+                        string clientIpAddress = string.Empty;
+                        if (Session["clientIpAddress"] != null)
+                            clientIpAddress = Session["clientIpAddress"].ToString();
+                        result = ALCClient.CallALCClientLogout(existUser, signOutJson);
+                        if (clientIpAddress != string.Empty)
+                            Session["clientIpAddress"] = clientIpAddress;
                     }
                 }
-                if (Svrlic_redis == string.Empty)
-                    loggedUserList.Remove(existUser + "♦" + existSid + "♣" + existLic);
-                util.SetUserList(project, loggedUserList);
-                Session["loggedUserDetails"] = null;
                 CallLoginService(isSSO, userName, password, project, language);
                 return false;
             }
@@ -1205,7 +1774,7 @@ public partial class Signin : System.Web.UI.Page
         }
     }
 
-    protected void HybridLogin(string existUser, string project, List<string> loggedUserList)
+    protected void HybridLogin(string existUser, string project, string loggedUserList)
     {
         string existSid = string.Empty, existLic = string.Empty;
         try
@@ -1219,40 +1788,23 @@ public partial class Signin : System.Web.UI.Page
             string Svrlic_redis = string.Empty;
             if (existLic == "limited")
             {
-                string redisLicDetails = GetServerLicDetails();
+                string redisLicDetails = GetServerLicDetails("true");
                 if (redisLicDetails != string.Empty && !redisLicDetails.StartsWith("error:"))
                     Svrlic_redis = redisLicDetails;
                 if (Svrlic_redis == string.Empty)
                 {
-                    string errorLog = logobj.CreateLog("Calling Signout ws", existSid, "Signout", "new");
-                    string iXml = string.Empty;
-                    iXml = "<root axpapp='" + project + "' sessionid='" + existSid + "' " + Svrlic_redis + " trace='" + errorLog + "'>";
-                    if (Session["axApps"] != null && Session["axApps"].ToString() != "")
-                        iXml += Session["axApps"].ToString() + HttpContext.Current.Application["axProps"].ToString();
-                    iXml += "</root>";
+                    HttpContext.Current.Session["AxTrace"] = "true";
                     string result = string.Empty;
-                    ASBExt.WebServiceExt asbExt = new ASBExt.WebServiceExt();
-                    result = asbExt.CallLogoutNewWS("Signout", iXml);
-                    util.KillSession();
-                    string scriptsPath = HttpContext.Current.Application["ScriptsPath"].ToString();
-                    scriptsPath = scriptsPath + "Axpert\\" + existSid;
-                    if (Directory.Exists(scriptsPath) && existSid != "")
-                    {
-                        try
-                        {
-                            Directory.Delete(scriptsPath, true);
-                        }
-                        catch (Exception Ex)
-                        {
-                            //Do nothing
-                        }
-                    }
+                    string _axApps = Session["axApps"].ToString();
+                    string _axProps = HttpContext.Current.Application["axProps"].ToString();
+                    string errorLog = logobj.CreateLog("Calling Signout ws", existSid, "Signout", "new");
+                    if (errorLog != "")
+                        errorLog = errorLog.Replace("\\", "\\\\");
+                    _axApps = _axApps.Replace(@"\", "\\\\");
+                    string signOutJson = "{\"logout\":{\"axpapp\":\"" + project + "\",\"username\":\"" + existUser + "\",\"sessionid\":\"" + existSid + "\"," + Svrlic_redis + " \"trace\":\"" + errorLog + "\"},\"axapps\":\"" + _axApps + "\",\"axprops\":\"" + _axProps + "\"}";
+                    result = ALCClient.CallALCClientLogout(existUser, signOutJson);
                 }
             }
-            if (Svrlic_redis == string.Empty)
-                loggedUserList.Remove(existUser + "♦" + existSid + "♣" + existLic);
-            util.SetUserList(project, loggedUserList);
-            Session["loggedUserDetails"] = null;
         }
         catch (Exception ex) { }
     }
@@ -1268,6 +1820,8 @@ public partial class Signin : System.Web.UI.Page
             ClientScript.RegisterStartupScript(this.GetType(), "Javascript", "javascript:SetLoginErrorMsg('" + redisLicDetails + "');", true);
             return;
         }
+        if (AxiProjectLogin == "true")
+            Session["AxiProjectFirst"] = "true";
         string proj = project;
         string browserDetails = GetBrowserDetails();
         LoginHelper login = new LoginHelper(proj, browserDetails);
@@ -1289,6 +1843,12 @@ public partial class Signin : System.Web.UI.Page
         login.loggedBroserId = hdnBwsrid.Value;
         login.diffTime = GetDiffTime();
         login.clientLocale = GetClientLocale(login.diffTime);
+        //login.IsAxi = AxiProjectLogin == "" ? "false" : AxiProjectLogin;
+        //login.AxiInfoLogin = AxiInfoLogin;
+        if (Session["AxiProjectFirst"] != null)
+            Session.Remove("AxiProjectFirst");
+        //login.axiPrimary = AxiIsPrimary;
+        login.IsAxi = AxiLoginInfoKey;
         isotp = isotp == "" ? axOTPAuthFlag : isotp;
         _otpauthDb = _otpauthDb == "" ? axOTPAuthDbFlag : _otpauthDb;
         _pwdAut = _pwdAut == "" ? axPwbAuthDbFlag : _pwdAut;
@@ -1296,13 +1856,27 @@ public partial class Signin : System.Web.UI.Page
         string jsoncontents = string.Empty;
         if (isotp == "true")
         {
-            FDR fdrObj = new FDR();
-            jsoncontents = fdrObj.StringFromRedis(Constants.AXEMAILSMTP_CONN_KEY, proj);
+            if (_jsoncontents != null && _jsoncontents.ContainsKey(Constants.AXEMAILSMTP_CONN_KEY))
+                jsoncontents = _jsoncontents[Constants.AXEMAILSMTP_CONN_KEY];
+            else
+            {
+                jsoncontents = util.GetAllSettings(proj, Constants.AXEMAILSMTP_CONN_KEY);
+            }
             if (jsoncontents != string.Empty && jsoncontents != "noemailsettings")
             {
                 JObject _jsonAxEmail = JObject.Parse(jsoncontents);
                 if (_jsonAxEmail["arm_url"] != null)
                     login.otpauth = "false";
+            }
+            else if (jsoncontents == string.Empty)
+            {
+                jsoncontents = util.GetAxEmailSettings(proj);
+                if (jsoncontents != string.Empty && jsoncontents != "noemailsettings")
+                {
+                    JObject _jsonAxEmail = JObject.Parse(jsoncontents);
+                    if (_jsonAxEmail["arm_url"] != null)
+                        login.otpauth = "false";
+                }
             }
         }
         login.otpAuthCahrs = axOTPAuthCahrs;
@@ -1340,6 +1914,7 @@ public partial class Signin : System.Web.UI.Page
             Session.Remove("LoginWith");
         }
         login.privateSsoToken = ssoKey;
+        login.ExecTraceOn = ExecTraceOn;
         try
         {
             bool allowLogin = true;
@@ -1382,7 +1957,7 @@ public partial class Signin : System.Web.UI.Page
         finally
         { }
 
-        if (login.result == string.Empty || login.result.StartsWith(Constants.ERROR) || login.result.Contains(Constants.ERROR))
+        if (login.result == string.Empty || login.result.StartsWith(Constants.ERROR) || login.result.Contains(Constants.ERROR) || login.result.EndsWith(Constants.ERRORCLOSE) || login.result.Contains(Constants.ERRORCLOSE))
         {
             XmlDocument xmldoc = new XmlDocument();
             xmldoc.LoadXml(login.result);
@@ -1403,7 +1978,7 @@ public partial class Signin : System.Web.UI.Page
             if (msg == string.Empty && errorNode.InnerText != string.Empty)
                 msg = errorNode.InnerText;
             if (msg != string.Empty && msg.Contains("\n"))
-                msg = msg.Replace("\n", "");
+                msg = msg.Replace("\n", "").Replace("\r", "");
             string loginPath = Application["LoginPath"].ToString();
             string queryProj = string.Empty;
             if (Session["queryProj"] != null)
@@ -1435,7 +2010,17 @@ public partial class Signin : System.Web.UI.Page
         }
         else if ((isotp == "true" && _otpauthDb == "true" && (login.result.IndexOf(" firsttime=\"1\"") == -1 && login.result.IndexOf(" firsttime=\"2\"") == -1 && login.result.IndexOf(" firsttime=\"3\"") == -1)) || (isotp == "true" && _otpauthDb == "true" && (login.result.IndexOf(" firsttime=\"1\"") > -1 || login.result.IndexOf(" firsttime=\"2\"") > -1 || login.result.IndexOf(" firsttime=\"3\"") > -1) && _pwdAut == "false"))
         {
+            if (Session["loginPrivateKey-" + Session.SessionID] != null && Session["loginPrivateKey-" + Session.SessionID].ToString() != string.Empty)
+                ViewState["loginPrivateKey-Ecnrypt"] = Session["loginPrivateKey-" + Session.SessionID].ToString();
+            else
+                ViewState["loginPrivateKey-Ecnrypt"] = temploginPrivateKey;
             login.otpauthlogin = "T";
+            Dictionary<string, string> iniInfo = new Dictionary<string, string>();
+            if (HttpContext.Current != null && HttpContext.Current.Session != null && HttpContext.Current.Session["AppAllSettingsKey-" + project] != null)
+            {
+                iniInfo = (Dictionary<string, string>)HttpContext.Current.Session["AppAllSettingsKey-" + project];
+            }
+            login.IniInfo = iniInfo;
             foreach (var item in Session)
             {
                 if (!item.ToString().StartsWith(LoginAttemptPrefix, StringComparison.Ordinal) && item.ToString() != "FDR" && item.ToString() != "allUrls" && item.ToString() != "urlIndex" && item.ToString() != "kernelTime")
@@ -1447,7 +2032,8 @@ public partial class Signin : System.Web.UI.Page
             string guidVal = project + "-" + userName + "-" + guid.ToString();
             try
             {
-                FDW fdwObj = FDW.Instance;
+                //FDW fdwObj = FDW.Instance;
+                FDW fdwObj = new FDW(project);
                 bool added = fdwObj.WriteKeyNoSchema(guidVal, Newtonsoft.Json.JsonConvert.SerializeObject(login), 5);
                 if (added == false)
                     HttpContext.Current.Cache.Insert(guidVal, Newtonsoft.Json.JsonConvert.SerializeObject(login));
@@ -1463,13 +2049,19 @@ public partial class Signin : System.Web.UI.Page
                 {
                     string _otpAuth = HttpContext.Current.Session["_otpAuth"].ToString();
                     _otpAuth += "♣" + guidVal + "♣" + login.selectedLanguage + "♣" + login.sid + "♣" + project;
-                    util.SaveOTPAuth(_otpAuth, userName, axOTPAuthExpiry);
+                    util.SaveOTPAuth(_otpAuth, userName, axOTPAuthExpiry, project);
                     panelUser.Visible = false;
                     StringBuilder sb = new StringBuilder();
                     sb.Append("<div class=\"control-group\">");
-                    sb.Append("<div class=\"fv-row mb-4 fv-plugins-icon-container\"><div class=\"input-icon left\"><div class=\"d-flex flex-stack mb-2\"><label ID=\"lblotp\" for=\"axOTPpwd\" class=\"form-label fw-boldest text-dark fs-6 mb-0\" meta:resourcekey=\"lblotp\">Enter OTP</label></div><input id=\"axOTPpwd\" aria-describedby=\"lblotpexpiry\" runat=\"server\" class=\"m-wrap placeholder-no-fix form-control form-control-solid\" tabindex=\"0\" type=\"text\" autocomplete=\"off\" placeholder=\"\" maxlength=\"" + axOTPAuthCahrs + "\" name=\"axOTPpwd\" title=\"Enter OTP\" required /></div></div>");
-                    sb.Append("<div class=\"fv-row mb-4 fv-plugins-icon-container\"><div class=\"input-icon left\"><div class=\"d-flex flex-stack mb-2\"><label ID=\"lblotpexpiry\" class=\"form-label fw-boldest text-dark fs-6 mb-0\"><label></div></div></div>");
-                    sb.Append("<div class=\"form-actions d-flex flex-row flex-column-fluid\"><div class=\"d-flex flex-row-fluid justify-content-between\"><a href=\"javascript:void(0)\" tabindex=\"0\" id=\"btnBackLink\" class=\"text-gray-600 d-flex my-auto fs-4 mt-4\" onclick=\"backToMainDiv()\"><span class=\"material-icons material-icons-style\">chevron_left</span>Back</a><a href=\"javascript:void(0)\" tabindex=\"0\" id=\"btnResendotp\" class=\"text-gray-600 d-flex my-auto fs-4 mt-4 d-none\" onclick=\"btnResendOTP();\">Resend OTP</a><input type=\"button\" value=\"Login\" title=\"Login\" TabIndex=\"0\" ID=\"btnOtpAuth\" data-type=\"otp\" class=\"btn btn-lg btn-primary mb-5 w-50\" onclick=\"return chkoptauth();\" /></div></div>");
+                    sb.Append("<div class=\"fv-row mb-4 fv-plugins-icon-container\"><div class=\"input-icon left\"><div class=\"d-flex flex-stack mb-2\"><label ID=\"lblotp\" for=\"axOTPpwd\" class=\"form-label fw-boldest text-dark fs-6 mb-0\" meta:resourcekey=\"lblotp\">Enter OTP</label></div><input id=\"axOTPpwd\" aria-describedby=\"lblotpexpiry\" runat=\"server\" class=\"m-wrap placeholder-no-fix form-control form-control-solid\" tabindex=\"0\" type=\"text\" autocomplete=\"off\" placeholder=\"\" maxlength=\"" + axOTPAuthCahrs + "\" name=\"axOTPpwd\" aria-describedby=\"lblotpexpiry\" title=\"Enter OTP\" required /></div></div>");
+                    sb.Append("<div class=\"fv-row mb-4 fv-plugins-icon-container\"><div class=\"input-icon left\"><div class=\"d-flex flex-stack mb-2\"><label ID=\"lblotpexpiry\" class=\"form-label fw-boldest text-dark fs-6 mb-0\"></label></div></div></div>");
+
+                    if (staySignInOtp == "true")
+                    {
+                        sb.Append("<div class=\"control-group\"><div class=\"agform form-check form-switch form-check-custom form-check-solid px-1 align-self-end mb-4\" id=\"axstaysignin\" runat=\"server\" visible=\"false\"><div class=\"controls my-2\"><div class=\"input-icon left\"><input type=\"checkbox\" id=\"signedin\" runat=\"server\" class=\"m-wrap placeholder-no-fix form-check-input h-25px w-45px\" tabindex=\"0\" title=\"Keep me sign in?\" /><asp:Label runat=\"server\" ID=\"lblstaysin\" meta:resourcekey=\"lblstaysin\" class=\"form-check-label form-label col-form-label pb-1 fw-boldest text-dark fs-6 mb-0\" for=\"signedin\">Keep me sign in?</asp:Label></div></div></div></div>");
+                    }
+
+                    sb.Append("<div class=\"form-actions d-flex flex-row flex-column-fluid\"><div class=\"d-flex flex-row-fluid justify-content-between\"><a href=\"javascript:void(0)\" tabindex=\"0\" id=\"btnBackLink\" class=\"text-gray-600 d-flex my-auto fs-4 mt-4\" onclick=\"backToMainDiv()\"><span class=\"material-icons material-icons-style\">chevron_left</span>Back</a><a href=\"javascript:void(0)\" tabindex=\"0\" id=\"btnResendotp\" class=\"text-gray-600 d-flex my-auto fs-4 mt-4 d-none\" onclick=\"btnResendOTP();\">Resend OTP</a><input type=\"button\" value=\"Sign In\" title=\"Sign In\" TabIndex=\"0\" ID=\"btnOtpAuth\" data-type=\"otp\" class=\"btn btn-lg btn-primary mb-5 w-50\" onclick=\"return chkoptauth();\" /></div></div>");
                     sb.Append("</div>");
                     panelSignin.Visible = true;
                     panelUser.Visible = false;
@@ -1482,8 +2074,14 @@ public partial class Signin : System.Web.UI.Page
                     if (_emailId != string.Empty && _mobileNo != string.Empty)
                     {
                         _emailId = MaskEmail(_emailId);
-                        _mobileNo = MaskMobileNumber(_mobileNo);
-                        _otpsuccmsg = "An OTP has been sent to your mobile number " + _mobileNo + " and email id " + _emailId + "";
+                        _mobileNo = MaskMobileNumber(_mobileNo.Trim());
+                        if (_mobileNo != string.Empty && _mobileNo.StartsWith("error:"))
+                        {
+                            ClientScript.RegisterStartupScript(this.GetType(), "Javascript", "javascript:SetLoginErrorMsg(\"" + _mobileNo + "\");", true);
+                            return;
+                        }
+                        else
+                            _otpsuccmsg = "An OTP has been sent to your mobile number " + _mobileNo + " and email id " + _emailId + "";
                     }
                     else if (_emailId != string.Empty && _mobileNo == string.Empty)
                     {
@@ -1492,8 +2090,14 @@ public partial class Signin : System.Web.UI.Page
                     }
                     else if (_emailId == string.Empty && _mobileNo != string.Empty)
                     {
-                        _mobileNo = MaskMobileNumber(_mobileNo);
-                        _otpsuccmsg = "An OTP has been sent to your mobile number " + _mobileNo + "";
+                        _mobileNo = MaskMobileNumber(_mobileNo.Trim());
+                        if (_mobileNo != string.Empty && _mobileNo.StartsWith("error:"))
+                        {
+                            ClientScript.RegisterStartupScript(this.GetType(), "Javascript", "javascript:SetLoginErrorMsg(\"" + _mobileNo + "\");", true);
+                            return;
+                        }
+                        else
+                            _otpsuccmsg = "An OTP has been sent to your mobile number " + _mobileNo + "";
                     }
                     string setIns = "javascript:otpExpires('" + axOTPAuthExpiry + "','" + _otpsuccmsg + "');";
                     ClientScript.RegisterStartupScript(this.GetType(), "Javascript", setIns, true);
@@ -1507,13 +2111,19 @@ public partial class Signin : System.Web.UI.Page
             {
                 string _otpAuth = HttpContext.Current.Session["_otpAuth"].ToString();
                 _otpAuth += "♣" + guidVal + "♣" + login.selectedLanguage + "♣" + login.sid + "♣" + project;
-                util.SaveOTPAuth(_otpAuth, userName, axOTPAuthExpiry);
+                util.SaveOTPAuth(_otpAuth, userName, axOTPAuthExpiry, project);
                 panelUser.Visible = false;
                 StringBuilder sb = new StringBuilder();
                 sb.Append("<div class=\"control-group\">");
-                sb.Append("<div class=\"fv-row mb-4 fv-plugins-icon-container\"><div class=\"input-icon left\"><div class=\"d-flex flex-stack mb-2\"><label ID=\"lblotp\" for=\"axOTPpwd\" class=\"form-label fw-boldest text-dark fs-6 mb-0\" meta:resourcekey=\"lblotp\">Enter OTP</label></div><input id=\"axOTPpwd\" aria-describedby=\"lblotpexpiry\" runat=\"server\" class=\"m-wrap placeholder-no-fix form-control form-control-solid\" tabindex=\"0\" type=\"text\" autocomplete=\"off\" placeholder=\"\" maxlength=\"" + axOTPAuthCahrs + "\" name=\"axOTPpwd\" title=\"Enter OTP\" required /></div></div>");
-                sb.Append("<div class=\"fv-row mb-4 fv-plugins-icon-container\"><div class=\"input-icon left\"><div class=\"d-flex flex-stack mb-2\"><label ID=\"lblotpexpiry\" class=\"form-label fw-boldest text-dark fs-6 mb-0\"></asp:Label></div></div></div>");
-                sb.Append("<div class=\"form-actions d-flex flex-row flex-column-fluid\"><div class=\"d-flex flex-row-fluid justify-content-between\"><a href=\"javascript:void(0)\" tabindex=\"0\" id=\"btnBackLink\" class=\"text-gray-600 d-flex my-auto fs-4 mt-4\" onclick=\"backToMainDiv()\"><span class=\"material-icons material-icons-style\">chevron_left</span>Back</a><a href=\"javascript:void(0)\" tabindex=\"0\" id=\"btnResendotp\" class=\"text-gray-600 d-flex my-auto fs-4 mt-4 d-none\" onclick=\"btnResendOTP();\">Resend OTP</a><input type=\"button\" value=\"Login\" title=\"Login\" TabIndex=\"0\" ID=\"btnOtpAuth\" data-type=\"otp\" class=\"btn btn-lg btn-primary mb-5 w-50\" onclick=\"return chkoptauth();\" /></div></div>");
+                sb.Append("<div class=\"fv-row mb-4 fv-plugins-icon-container\"><div class=\"input-icon left\"><div class=\"d-flex flex-stack mb-2\"><label ID=\"lblotp\" for=\"axOTPpwd\" class=\"form-label fw-boldest text-dark fs-6 mb-0\" meta:resourcekey=\"lblotp\">Enter OTP</label></div><input id=\"axOTPpwd\" aria-describedby=\"lblotpexpiry\" runat=\"server\" class=\"m-wrap placeholder-no-fix form-control form-control-solid\" tabindex=\"0\" type=\"text\" autocomplete=\"off\" placeholder=\"\" maxlength=\"" + axOTPAuthCahrs + "\" name=\"axOTPpwd\" aria-describedby=\"lblotpexpiry\" title=\"Enter OTP\" required /></div></div>");
+                sb.Append("<div class=\"fv-row mb-4 fv-plugins-icon-container\"><div class=\"input-icon left\"><div class=\"d-flex flex-stack mb-2\"><label ID=\"lblotpexpiry\" class=\"form-label fw-boldest text-dark fs-6 mb-0\"></label></div></div></div>");
+
+                if (staySignInOtp == "true")
+                {
+                    sb.Append("<div class=\"control-group\"><div class=\"agform form-check form-switch form-check-custom form-check-solid px-1 align-self-end mb-4\" id=\"axstaysignin\" runat=\"server\" visible=\"false\"><div class=\"controls my-2\"><div class=\"input-icon left\"><input type=\"checkbox\" id=\"signedin\" runat=\"server\" class=\"m-wrap placeholder-no-fix form-check-input h-25px w-45px\" tabindex=\"0\" title=\"Keep me sign in?\" /><asp:Label runat=\"server\" ID=\"lblstaysin\" meta:resourcekey=\"lblstaysin\" class=\"form-check-label form-label col-form-label pb-1 fw-boldest text-dark fs-6 mb-0\" for=\"signedin\">Keep me sign in?</asp:Label></div></div></div></div>");
+                }
+
+                sb.Append("<div class=\"form-actions d-flex flex-row flex-column-fluid\"><div class=\"d-flex flex-row-fluid justify-content-between\"><a href=\"javascript:void(0)\" tabindex=\"0\" id=\"btnBackLink\" class=\"text-gray-600 d-flex my-auto fs-4 mt-4\" onclick=\"backToMainDiv()\"><span class=\"material-icons material-icons-style\">chevron_left</span>Back</a><a href=\"javascript:void(0)\" tabindex=\"0\" id=\"btnResendotp\" class=\"text-gray-600 d-flex my-auto fs-4 mt-4 d-none\" onclick=\"btnResendOTP();\">Resend OTP</a><input type=\"button\" value=\"Sign In\" title=\"Sign In\" TabIndex=\"0\" ID=\"btnOtpAuth\" data-type=\"otp\" class=\"btn btn-lg btn-primary mb-5 w-50\" onclick=\"return chkoptauth();\" /></div></div>");
                 sb.Append("</div>");
                 panelSignin.Visible = true;
                 panelUser.Visible = false;
@@ -1534,9 +2144,11 @@ public partial class Signin : System.Web.UI.Page
         }
         else
         {
-            Guid completedAttempt;
-            if (Guid.TryParseExact(hdnLoginAttempt.Value, "N", out completedAttempt))
-                RemoveOtpLoginAttempt(hdnLoginAttempt.Value);
+            Dictionary<string, string> iniInfo = new Dictionary<string, string>();
+            if (HttpContext.Current != null && HttpContext.Current.Session != null && HttpContext.Current.Session["AppAllSettingsKey-" + project] != null)
+            {
+                iniInfo = (Dictionary<string, string>)HttpContext.Current.Session["AppAllSettingsKey-" + project];
+            }
             foreach (var item in Session)
             {
                 if (!item.ToString().StartsWith(LoginAttemptPrefix, StringComparison.Ordinal) && item.ToString() != "FDR" && item.ToString() != "allUrls" && item.ToString() != "urlIndex" && item.ToString() != "kernelTime")
@@ -1548,7 +2160,9 @@ public partial class Signin : System.Web.UI.Page
             string guidVal = project + "-" + userName + "-" + guid.ToString();
             try
             {
-                FDW fdwObj = FDW.Instance;
+                //FDW fdwObj = FDW.Instance;
+                login.IniInfo = iniInfo;
+                FDW fdwObj = new FDW(project);
                 bool added = fdwObj.WriteKeyNoSchema(guidVal, Newtonsoft.Json.JsonConvert.SerializeObject(login), 5);
                 if (added == false)
                     HttpContext.Current.Cache.Insert(guidVal, Newtonsoft.Json.JsonConvert.SerializeObject(login));
@@ -1559,11 +2173,6 @@ public partial class Signin : System.Web.UI.Page
             checkSecurityVal(hdnSrtforLogin.Value);
             strParams.Append("<input type=hidden name=\"hdnSSTime\" value=\"" + hdnSrtforLogin.Value + "\">");
 
-            if (project == "bafco")//temporary code added to analyse the issue duplicate user issue in BACFO
-            {
-                string AxLoggedUser = userName + "~" + login.oldsid + "~" + login.sid + "~" + guidVal;
-                strParams.Append("<input type=hidden name=\"hdnAxLoggedUser\" value=\"" + AxLoggedUser + "\">");
-            }
             requestProcess_logtime += ObjExecTr.RequestProcessTime("Response");
 
             string setIns = string.Empty;
@@ -1577,35 +2186,61 @@ public partial class Signin : System.Web.UI.Page
 
     protected string MaskEmail(string email)
     {
-        if (email != string.Empty)
+        try
         {
-            int atIndex = email.IndexOf('@');
-            if (atIndex > 0)
+            if (email != string.Empty)
             {
-                string localPart = email.Substring(0, atIndex);
-                string domainPart = email.Substring(atIndex);
-
-                if (localPart.Length > 2)
+                int atIndex = email.IndexOf('@');
+                if (atIndex > 0)
                 {
-                    string maskedLocalPart = localPart.Substring(0, 2) + new string('*', localPart.Length - 2);
-                    return maskedLocalPart + domainPart;
+                    string localPart = email.Substring(0, atIndex);
+                    string domainPart = email.Substring(atIndex);
+
+                    if (localPart.Length > 2)
+                    {
+                        string maskedLocalPart = localPart.Substring(0, 2) + new string('*', localPart.Length - 2);
+                        return maskedLocalPart + domainPart;
+                    }
                 }
+                return email;
             }
-            return email;
+            else
+                return string.Empty;
         }
-        else
+        catch (Exception ex)
+        {
+            LogFile.Log logObj = new LogFile.Log();
+            logObj.CreateLog("MaskEmail - EmailID- " + email + "\n\tError - " + ex.Message, HttpContext.Current.Session.SessionID, "Login-MaskEmail", "new", "true");
             return string.Empty;
+        }
     }
+
     protected string MaskMobileNumber(string mobileNo)
     {
-        if (mobileNo != string.Empty)
+        try
         {
-            int lastFourStartIndex = mobileNo.Length - 4;
-            string maskedPart = new string('*', lastFourStartIndex - 3);
-            return mobileNo.Substring(0, 3) + maskedPart + mobileNo.Substring(lastFourStartIndex);
+            if (mobileNo != string.Empty)
+            {
+                if (mobileNo.Length >= 4)
+                {
+                    string lastFour = mobileNo.Substring(mobileNo.Length - 4);
+                    if (!lastFour.All(char.IsDigit))
+                        return "error: Invalid mobile number to send OTP : " + mobileNo;
+                }
+
+                int lastFourStartIndex = mobileNo.Length - 4;
+                string maskedPart = new string('*', lastFourStartIndex - 3);
+                return mobileNo.Substring(0, 3) + maskedPart + mobileNo.Substring(lastFourStartIndex);
+            }
+            else
+                return string.Empty;
         }
-        else
-            return string.Empty;
+        catch (Exception ex)
+        {
+            LogFile.Log logObj = new LogFile.Log();
+            logObj.CreateLog("MaskMobileNumber - MobileNo- " + mobileNo + "\n\tError - " + ex.Message, HttpContext.Current.Session.SessionID, "Login-MaskMobileNumber", "new", "true");
+            return "error: Invalid mobile number to send OTP : " + mobileNo;
+        }
     }
 
     private void SecurityCrossScripting(string _isMobDevice, string _hybridGUID, string _hybridDeviceId, string _hybridDefaultPage, string _hdnBwsrid)
@@ -1647,7 +2282,7 @@ public partial class Signin : System.Web.UI.Page
             }
         }
     }
-    private string GetServerLicDetails()
+    private string GetServerLicDetails(string isRest = "")
     {
         string licdetails = string.Empty;
         try
@@ -1692,7 +2327,10 @@ public partial class Signin : System.Web.UI.Page
                     case "keyExists":
                         if (redisPwd != string.Empty)
                             redisPwd = util.EncryptPWD(redisPwd);
-                        licdetails = "lic_redis='" + redisIp + "~" + redisPwd + "'";
+                        if (isRest == "true")
+                            licdetails = "lic_redis='" + redisIp + "~" + redisPwd + "'";
+                        else
+                            licdetails = " \"lic_redis\":\"" + redisIp + "~" + redisPwd + "\",";
                         break;
                 }
             }
@@ -1714,11 +2352,48 @@ public partial class Signin : System.Web.UI.Page
     public static string GetCurrLang(string name)
     {
         Util.Util utilObj = new Util.Util();
-
-        string _axlangsetting = utilObj.GetConfigAttrValue(name, "AxUserLevelLang");
-        string _axlanglist = utilObj.GetConfigAttrValue(name, "AxLanguages");
-        _axlanglist += "♣" + _axlangsetting;
-        return _axlanglist;
+        utilObj.GetAxIniFileKeys(name, "true");
+        string AxStaySignIn = utilObj.GetConfigAttrValue(name, "AxStaySignIn");
+        //return utilObj.GetConfigLangInfo(name);
+        string uLang = utilObj.GetConfigLangInfo(name);
+        string isCaptchaEnabled = "false";
+        try
+        {
+            string captcha = utilObj.GetAllSettings(name, Constants.AXPCAPTCHA_CONN_KEY);
+            if (captcha != "" && captcha != "nooptions")
+            {
+                JObject captchaJson = JObject.Parse(captcha);
+                if (captchaJson["CaptchaEnabled"] != null && captchaJson["CaptchaEnabled"].ToString() == "true")
+                {
+                    isCaptchaEnabled = "true";
+                    HttpContext.Current.Session["captchaenabledFlag"] = "true";
+                    HttpContext.Current.Session["CaptchaEnabled"] = captchaJson["CaptchaEnabled"].ToString();
+                    HttpContext.Current.Session["CaptchaLength"] = captchaJson["CaptchaLength"].ToString();
+                    HttpContext.Current.Session["CaptchaStyle"] = captchaJson["CaptchaStyle"].ToString();
+                }
+                else
+                {
+                    isCaptchaEnabled = "false";
+                    HttpContext.Current.Session["captchaenabledFlag"] = "false";
+                    HttpContext.Current.Session.Remove("CaptchaEnabled");
+                    HttpContext.Current.Session.Remove("CaptchaLength");
+                    HttpContext.Current.Session.Remove("CaptchaStyle");
+                }
+            }
+            else
+            {
+                isCaptchaEnabled = "false";
+                HttpContext.Current.Session["captchaenabledFlag"] = "false";
+                HttpContext.Current.Session.Remove("CaptchaEnabled");
+                HttpContext.Current.Session.Remove("CaptchaLength");
+                HttpContext.Current.Session.Remove("CaptchaStyle");
+            }
+        }
+        catch (Exception ex)
+        {
+            isCaptchaEnabled = "false";
+        }
+        return uLang + "♣" + AxStaySignIn + "♥" + isCaptchaEnabled;
     }
 
     [WebMethod]
@@ -1734,9 +2409,12 @@ public partial class Signin : System.Web.UI.Page
         hybridGUID = hdnHybridGUID.Value;
         hybridDeviceId = hdnHybridDeviceId.Value;
         timeZone = hdnTimeZone.Value;
-        if (signedin.Checked)
-            staySignIn = "true";
-        else
+        //if (signedin.Checked)
+        //    staySignIn = "true";
+        //else
+        //    staySignIn = "false";
+        staySignIn = hdnKeepMeSignin.Value;
+        if (staySignIn == "")
             staySignIn = "false";
         if (ConfigurationManager.AppSettings["axThemeFolder"] != null && ConfigurationManager.AppSettings["axThemeFolder"].ToString() != "")
             axThemeStyleFolder = ConfigurationManager.AppSettings["axThemeFolder"].ToString();
@@ -1749,9 +2427,12 @@ public partial class Signin : System.Web.UI.Page
         hybridGUID = hdnHybridGUID.Value;
         hybridDeviceId = hdnHybridDeviceId.Value;
         timeZone = hdnTimeZone.Value;
-        if (signedin.Checked)
-            staySignIn = "true";
-        else
+        //if (signedin.Checked)
+        //    staySignIn = "true";
+        //else
+        //    staySignIn = "false";
+        staySignIn = hdnKeepMeSignin.Value;
+        if (staySignIn == "")
             staySignIn = "false";
         if (ConfigurationManager.AppSettings["axThemeFolder"] != null && ConfigurationManager.AppSettings["axThemeFolder"].ToString() != "")
             axThemeStyleFolder = ConfigurationManager.AppSettings["axThemeFolder"].ToString();
@@ -1846,10 +2527,17 @@ public partial class Signin : System.Web.UI.Page
         }
         else
         {
-            browserDetails = timeZone + "¿" + browser.Type + "¿" + browser.Browser + "¿"
-                + browser.Version + "¿" + browser.MajorVersion + "¿"
-                + browser.MinorVersion + "¿" + browser.Platform + "¿"
-                + HttpContext.Current.Request.ServerVariables["HTTP_ACCEPT_LANGUAGE"];
+            if (Session["clientBrInfo"] != null)
+            {
+                browserDetails = Session["clientBrInfo"].ToString();
+            }
+            else
+            {
+                browserDetails = timeZone + "¿" + browser.Type + "¿" + browser.Browser + "¿"
+                    + browser.Version + "¿" + browser.MajorVersion + "¿"
+                    + browser.MinorVersion + "¿" + browser.Platform + "¿"
+                    + HttpContext.Current.Request.ServerVariables["HTTP_ACCEPT_LANGUAGE"];
+            }
         }
 
         if (browserDetails.Length > 200)
@@ -1860,17 +2548,19 @@ public partial class Signin : System.Web.UI.Page
 
     protected void WindowsBtn_Click(object sender, EventArgs e)
     {
-        string userName;
-        string project;
-        if (!GetSubmittedLogin(out userName, out project))
+        if (ViewState["StopProcessing"] != null && (bool)ViewState["StopProcessing"])
+            return;
+        if (!RestoreSubmittedLogin())
             return;
         checkSecurityVal(hdnProjLang.Value);
-        checkSecurityVal(project);
+        checkSecurityVal(hdnProjName.Value);
         if (ConfigurationManager.AppSettings["axThemeFolder"] != null && ConfigurationManager.AppSettings["axThemeFolder"].ToString() != "")
             axThemeStyleFolder = ConfigurationManager.AppSettings["axThemeFolder"].ToString();
-        if (ConfigurationManager.AppSettings["ssowindowsdomain"] != null && ConfigurationManager.AppSettings["ssowindowsdomain"].ToString() != string.Empty)
+        //if (ConfigurationManager.AppSettings["ssowindowsdomain"] != null && ConfigurationManager.AppSettings["ssowindowsdomain"].ToString() != string.Empty)
+        //{
+        if (Session["windDomain"] != null && Session["windDomain"].ToString() != "")
         {
-            string domainName = ConfigurationManager.AppSettings["ssowindowsdomain"].ToString();
+            string domainName = Session["windDomain"].ToString();// ConfigurationManager.AppSettings["ssowindowsdomain"].ToString();
             string[] dname = domainName.Split('.');
             string adPath = string.Empty;
             if (dname.Length > 0)
@@ -1886,11 +2576,11 @@ public partial class Signin : System.Web.UI.Page
             try
             {
                 Session["LoginWith"] = "windows";
-                if (true == adAuth.IsAuthenticated(domainName, userName, hdnPuser.Value))
+                if (true == adAuth.IsAuthenticated(domainName, axUserName.Value, hdnPuser.Value))
                 {
                     string SSOKey = adAuth._guid;
                     string groups = adAuth.GetGroups();
-                    FormsAuthenticationTicket authTicket = new FormsAuthenticationTicket(1, userName, DateTime.Now, DateTime.Now.AddMinutes(60), false, groups);
+                    FormsAuthenticationTicket authTicket = new FormsAuthenticationTicket(1, axUserName.Value, DateTime.Now, DateTime.Now.AddMinutes(60), false, groups);
                     string encryptedTicket = FormsAuthentication.Encrypt(authTicket);
                     HttpCookie authCookie = new HttpCookie(FormsAuthentication.FormsCookieName, encryptedTicket);
                     Response.Cookies.Add(authCookie);
@@ -1900,14 +2590,16 @@ public partial class Signin : System.Web.UI.Page
                     hybridGUID = hdnHybridGUID.Value;
                     hybridDeviceId = hdnHybridDeviceId.Value;
                     timeZone = hdnTimeZone.Value;
-                    if (signedin.Checked)
-                        staySignIn = "true";
-                    else
+                    //if (signedin.Checked)
+                    //    staySignIn = "true";
+                    //else
+                    //    staySignIn = "false";
+                    staySignIn = hdnKeepMeSignin.Value;
+                    if (staySignIn == "")
                         staySignIn = "false";
-
                     string thisProj = string.Empty;
                     if (!string.IsNullOrEmpty(hdnLoginAttempt.Value))
-                        thisProj = project;
+                        thisProj = hdnProjName.Value;
                     else if (Session["Project"] != null)
                         thisProj = Session["Project"].ToString();
                     else
@@ -1918,7 +2610,7 @@ public partial class Signin : System.Web.UI.Page
                         thisLang = Session["AxLanguages"].ToString();
                     else
                         thisLang = hdnProjLang.Value;
-                    CallLoginService(true, userName, hdnPuser.Value, thisProj, thisLang, SSOKey);
+                    CallLoginService(true, axUserName.Value, hdnPuser.Value, thisProj, thisLang, SSOKey);
                 }
                 else
                 {
@@ -1964,7 +2656,8 @@ public partial class Signin : System.Web.UI.Page
                 string prjName = hybridDetails.Split('~')[0];
                 if (savedUrl == urlDomain && prjName == projName)
                 {
-                    signedin.Checked = true;
+                    //signedin.Checked = true;
+                    hdnKeepMeSignin.Value = "true";
                     axSelectProj.Value = hybridDetails.Split('~')[0];
                     axUserName.Value = hybridDetails.Split('~')[1];
                     KeepMeAutoPwd = hybridDetails.Split('~')[2];
@@ -1974,13 +2667,15 @@ public partial class Signin : System.Web.UI.Page
                 else
                 {
                     KeepMeAutoLogin = "false";
-                    signedin.Checked = true;
+                    //signedin.Checked = true;
+                    hdnKeepMeSignin.Value = "true";
                 }
             }
             else
             {
                 KeepMeAutoLogin = "false";
-                signedin.Checked = true;
+                //signedin.Checked = true;
+                hdnKeepMeSignin.Value = "true";
             }
         }
         catch (Exception ex) { }
@@ -2027,7 +2722,7 @@ public partial class Signin : System.Web.UI.Page
             if (licExist == false)
             {
                 if (ConfigurationManager.AppSettings["EnableAxpertConfiguration"] != null && ConfigurationManager.AppSettings["EnableAxpertConfiguration"].ToString() == "true")
-                    Response.Redirect("config.aspx", true);
+                    Response.Redirect("AxpertAdmin.aspx", true);
             }
         }
         catch (Exception ex) { }
@@ -2044,19 +2739,22 @@ public partial class Signin : System.Web.UI.Page
             hybridGUID = hdnHybridGUID.Value;
             hybridDeviceId = hdnHybridDeviceId.Value;
             timeZone = hdnTimeZone.Value;
-            if (signedin.Checked)
-                staySignIn = "true";
-            else
+            //if (signedin.Checked)
+            //    staySignIn = "true";
+            //else
+            //    staySignIn = "false";
+            staySignIn = hdnKeepMeSignin.Value;
+            if (staySignIn == "")
                 staySignIn = "false";
             checkSecurityVal(hdnProjLang.Value);
-            Session["Project"] = axSelectProj.Value;
+            Session["Project"] = axSelectProj.Value == "" ? hdnProjName.Value : axSelectProj.Value;
             Session["AxLanguages"] = hdnProjLang.Value;
 
             //TODO: specify the SAML provider url here, aka "Endpoint"
-            var samlEndpoint = ConfigurationManager.AppSettings["SamlPartnerIdP"].ToString();
-            string returnUrl = ConfigurationManager.AppSettings["ssoredirecturl"].ToString();
+            var samlEndpoint = Session["SamlPartnerIdP"].ToString();// ConfigurationManager.AppSettings["SamlPartnerIdP"].ToString();
+            string returnUrl = Session["SamlRedirectUrl"].ToString();// ConfigurationManager.AppSettings["ssoredirecturl"].ToString();
             returnUrl += "aspx/samlresponse.aspx?Project=" + Session["Project"].ToString() + "&AxLanguages=" + Session["AxLanguages"].ToString() + "&isMobDevice=" + isMobDevice + "&staySignIn=" + staySignIn;
-            string SamlIdentifier = ConfigurationManager.AppSettings["SamlIdentifier"].ToString();
+            string SamlIdentifier = Session["SamlIdentifier"].ToString();// ConfigurationManager.AppSettings["SamlIdentifier"].ToString();
             var request = new AuthRequest(SamlIdentifier, returnUrl);
 
             //redirect the user to the SAML provider
@@ -2070,6 +2768,7 @@ public partial class Signin : System.Web.UI.Page
             return;
         }
     }
+
 
     [WebMethod]
     public static string KeepSigninWebDetailsNew(string jsonData)
@@ -2108,9 +2807,12 @@ public partial class Signin : System.Web.UI.Page
             string urlDomain = HttpContext.Current.Request.Url.ToString();
             urlDomain = urlDomain.Substring(0, urlDomain.ToLower().IndexOf("/aspx/"));
             ipad += "-" + brOwner + "-" + urlDomain;
-            FDR fObj = HttpContext.Current.Session["FDR"] as FDR;
+            FDR fObj = (FDR)HttpContext.Current.Session["FDR"];
             if (fObj == null)
-                fObj = new FDR();
+            {
+                fObj = new FDR(request.projVal);
+            }
+
             string rsKey = fObj.MakeKeyName(Constants.REDISKEEPWEBINFO, ipad);
             var KeysList = fObj.GetAllKeys(rsKey, false);
             if (KeysList.Count > 0)
@@ -2137,7 +2839,7 @@ public partial class Signin : System.Web.UI.Page
     }
 
     [WebMethod]
-    public static string loginKeepSigninUser(string usrName, string hdnBwsrid, string csrfToken)
+    public static string loginKeepSigninUser(string usrName, string hdnBwsrid, string csrfToken, string projVal)
     {
         string result = "";
         try
@@ -2162,7 +2864,7 @@ public partial class Signin : System.Web.UI.Page
             FDR fObj = (FDR)HttpContext.Current.Session["FDR"];
             if (fObj == null)
             {
-                fObj = new FDR();
+                fObj = new FDR(projVal);
             }
 
             string rsKey = fObj.MakeKeyName(Constants.REDISKEEPWEBINFO, ipad) + "-" + usrName;
@@ -2183,12 +2885,22 @@ public partial class Signin : System.Web.UI.Page
 
     protected void btnNext_Click(object sender, EventArgs e)
     {
+        if (ViewState["StopProcessing"] != null && (bool)ViewState["StopProcessing"])
+            return;
         bool allowLogin = true;
 
         axOTPAuthCahrs = string.Empty;
         axOTPAuthExpiry = string.Empty;
-        if (IsPostBack && ConfigurationManager.AppSettings["enableCaptcha"] != null && ConfigurationManager.AppSettings["enableCaptcha"].ToString() == "true")
+        //if (IsPostBack && ConfigurationManager.AppSettings["enableCaptcha"] != null && ConfigurationManager.AppSettings["enableCaptcha"].ToString() == "true")
+        if (IsPostBack && Session["captchaenabledFlag"] != null && Session["captchaenabledFlag"].ToString() == "true")
         {
+            string captcha = CaptchaCodeTextBox.Text;
+            if (!Regex.IsMatch(captcha, "^[A-Za-z0-9]{1,8}$"))
+            {
+                string msg = "<error><msg>Invalid captcha.</msg></error>";
+                ClientScript.RegisterStartupScript(this.GetType(), "Javascript", "javascript:SetLoginErrorMsg('" + msg + "');", true);
+                return;
+            }
             allowLogin = DynamicCaptcha.Validate();
         }
 
@@ -2226,12 +2938,13 @@ public partial class Signin : System.Web.UI.Page
                     }
                     else
                     {
-                        SetLoginAttempt(axUserName.Value, hdnProjName.Value, false);
+                        SetLoginAttempt(axUserName.Value, hdnProjName.Value);
                         Util.Util utils = new Util.Util();
                         utils.GetAxApps(hdnProjName.Value);
 
                         string AxUserLevelLang = util.GetConfigAttrValue(hdnProjName.Value, "AxUserLevelLang");
-                        string AxOTPAuth = util.GetConfigAttrValue(hdnProjName.Value, "AxOTPAuth");
+                        string AxOTPAuth = util.GetOTPSettings(hdnProjName.Value, "AxOTPAuth");
+                        string AxStaySignIn = util.GetConfigAttrValue(hdnProjName.Value, "AxStaySignIn");
                         string _pwdAuth = string.Empty;
                         if (AxOTPAuth == "true" || AxUserLevelLang == "true")
                             _pwdAuth = GetPwdAuthLang(axUserName.Value, hdnProjName.Value);
@@ -2252,7 +2965,7 @@ public partial class Signin : System.Web.UI.Page
                             else
                             {
                                 string ulLang = util.GetUserLevelLangFromDB(axUserName.Value);
-                                if (ulLang != string.Empty)
+                                if (ulLang != string.Empty && !ulLang.StartsWith("error:"))
                                 {
                                     SavePwdAuthLangfromDB(ulLang, axUserName.Value, hdnProjName.Value);
                                     string _ulLang = ulLang.Split('♣')[0];
@@ -2260,6 +2973,12 @@ public partial class Signin : System.Web.UI.Page
                                         hdnLangs.Value = ulLang;
                                     else
                                         hdnLangs.Value = util.GetConfigAttrValue(hdnProjName.Value, "AxLanguages");
+                                }
+                                if (ulLang.StartsWith("error:"))
+                                {
+                                    ulLang = ulLang.Replace("\"", "'").Replace("error:", "");
+                                    ClientScript.RegisterStartupScript(this.GetType(), "Javascript", "javascript:SetLoginErrorMsg(\"" + ulLang + "\");", true);
+                                    return;
                                 }
                                 else
                                     hdnLangs.Value = util.GetConfigAttrValue(hdnProjName.Value, "AxLanguages");
@@ -2270,13 +2989,14 @@ public partial class Signin : System.Web.UI.Page
 
                         if (AxOTPAuth == "true")
                         {
-                            axOTPAuthCahrs = util.GetConfigAttrValue(hdnProjName.Value, "AxOTPAuthCahrs");
-                            axOTPAuthExpiry = util.GetConfigAttrValue(hdnProjName.Value, "AxOTPAuthExpiry");
+                            axOTPAuthCahrs = util.GetOTPSettings(hdnProjName.Value, "AxOTPAuthCahrs");
+                            axOTPAuthExpiry = util.GetOTPSettings(hdnProjName.Value, "AxOTPAuthExpiry");
                             //string _pwdAuth = GetPwdAuthLang(axUserName.Value, hdnProjName.Value);
                             if (_pwdAuth != "")
                             {
                                 string _pwdAuthflag = _pwdAuth.Split('♣')[1];
                                 string _otpAuthflag = _pwdAuth.Split('♣')[2];
+                                string _keepMeSignin = _pwdAuth.Split('♣')[6];
                                 string usrErrorMessage = checkOtpUserInfo(_pwdAuth, axUserName.Value, "");
                                 if (usrErrorMessage != string.Empty)
                                 {
@@ -2289,7 +3009,10 @@ public partial class Signin : System.Web.UI.Page
                                     StringBuilder sb = new StringBuilder();
                                     sb.Append("<div class=\"control-group\"><div class=\"fv-row mb-4 fv-plugins-icon-container\"><div class=\"input-icon left\"><div class=\"d-flex flex-stack mb-2\"><asp:Label ID=\"lblpwd\" class=\"form-label fw-boldest text-dark fs-6 mb-0\" runat=\"server\" meta:resourcekey=\"lblpwd\">Password</asp:Label></div><input id=\"axPassword\" runat=\"server\" class=\"m-wrap placeholder-no-fix form-control form-control-solid\" tabindex=\"0\" type=\"password\" autocomplete=\"off\" placeholder=\"\" name=\"axPassword\" title=\"Password\" required /><div class=\"fv-plugins-message-container invalid-feedback\"></div></div></div></div>");
                                     sb.Append("<div class=\"control-group my-8 mb-12\"><a href=\"javascript:void(0)\" class=\"link-primary fs-6 fw-boldest\" tabindex=\"0\" onclick=\"OpenForgotPwdNew()\"><asp:label id=\"lblForgot\" runat=\"server\" meta:resourcekey=\"lblForgot\">Forgot password?</asp:label></a></div>");
-                                    sb.Append("<div class=\"form-actions d-flex flex-row flex-column-fluid\"><div class=\"d-flex flex-row-fluid justify-content-between\"><a href=\"javascript:void(0)\" tabindex=\"0\" id=\"btnBackLink\" class=\"text-gray-600 d-flex my-auto fs-4 mt-4\" onclick=\"backToMainDiv()\"><span class=\"material-icons material-icons-style\">chevron_left</span>Back</a><input type=\"button\" value=\"Login\" title=\"Login\" TabIndex=\"0\" ID=\"btnSubmitNew\" class=\"btn btn-lg btn-primary mb-5 w-50\" onclick=\"return chkLoginFormHiden();\" /></div></div>");
+                                    if (_keepMeSignin == "T" && AxStaySignIn == "true")
+                                        sb.Append("<div class=\"control-group\"><div class=\"agform form-check form-switch form-check-custom form-check-solid px-1 align-self-end mb-4\" id=\"axstaysignin\" runat=\"server\" visible=\"false\"><div class=\"controls my-2\"><div class=\"input-icon left\"><input type=\"checkbox\" id=\"signedin\" runat=\"server\" class=\"m-wrap placeholder-no-fix form-check-input h-25px w-45px\" tabindex=\"0\" title=\"Keep me sign in?\" /><asp:Label runat=\"server\" ID=\"lblstaysin\" meta:resourcekey=\"lblstaysin\" class=\"form-check-label form-label col-form-label pb-1 fw-boldest text-dark fs-6 mb-0\" for=\"signedin\">Keep me sign in?</asp:Label></div></div></div></div>");
+
+                                    sb.Append("<div class=\"form-actions d-flex flex-row flex-column-fluid\"><div class=\"d-flex flex-row-fluid justify-content-between\"><a href=\"javascript:void(0)\" tabindex=\"0\" id=\"btnBackLink\" class=\"text-gray-600 d-flex my-auto fs-4 mt-4\" onclick=\"backToMainDiv()\"><span class=\"material-icons material-icons-style\">chevron_left</span>Back</a><input type=\"button\" value=\"Sign In\" title=\"Sign In\" TabIndex=\"0\" ID=\"btnSubmitNew\" class=\"btn btn-lg btn-primary mb-5 w-50\" onclick=\"return chkLoginFormHiden();\" /></div></div>");
                                     panelSignin.Visible = true;
                                     panelUser.Visible = false;
                                     panelPwd.Text = sb.ToString();
@@ -2298,18 +3021,21 @@ public partial class Signin : System.Web.UI.Page
                                 {
                                     checkSecurityVal(hdnProjLang.Value);
                                     checkSecurityVal(hdnProjName.Value);
+                                    if (_keepMeSignin == "T" && AxStaySignIn == "true")
+                                        staySignInOtp = "true";
                                     CallLoginService(false, axUserName.Value, hdnPuser.Value, hdnProjName.Value, hdnProjLang.Value, "", "true", "true", "false");
                                 }
                             }
                             else
                             {
                                 string _pwdotpdetails = util.GetUserLevelLangFromDB(axUserName.Value);
-                                if (_pwdotpdetails != string.Empty)
+                                if (_pwdotpdetails != string.Empty && !_pwdotpdetails.StartsWith("error:"))
                                 {
                                     checkSecurityVal(hdnProjLang.Value);
                                     checkSecurityVal(hdnProjName.Value);
                                     string _pwdAuthflag = _pwdotpdetails.Split('♣')[1];
                                     string _otpAuthflag = _pwdotpdetails.Split('♣')[2];
+                                    string _keepMeSignin = _pwdotpdetails.Split('♣')[6];
                                     string usrErrorMessage = checkOtpUserInfo(_pwdotpdetails, axUserName.Value, "");
                                     if (usrErrorMessage != string.Empty)
                                     {
@@ -2326,28 +3052,45 @@ public partial class Signin : System.Web.UI.Page
                                         StringBuilder sb = new StringBuilder();
                                         sb.Append("<div class=\"control-group\"><div class=\"fv-row mb-4 fv-plugins-icon-container\"><div class=\"input-icon left\"><div class=\"d-flex flex-stack mb-2\"><asp:Label ID=\"lblpwd\" class=\"form-label fw-boldest text-dark fs-6 mb-0\" runat=\"server\" meta:resourcekey=\"lblpwd\">Password</asp:Label></div><input id=\"axPassword\" runat=\"server\" class=\"m-wrap placeholder-no-fix form-control form-control-solid\" tabindex=\"0\" type=\"password\" autocomplete=\"off\" placeholder=\"\" name=\"axPassword\" title=\"Password\" required /><div class=\"fv-plugins-message-container invalid-feedback\"></div></div></div></div>");
                                         sb.Append("<div class=\"control-group my-8 mb-12\"><a href=\"javascript:void(0)\" class=\"link-primary fs-6 fw-boldest\" tabindex=\"0\" onclick=\"OpenForgotPwdNew()\"><asp:label id=\"lblForgot\" runat=\"server\" meta:resourcekey=\"lblForgot\">Forgot password?</asp:label></a></div>");
-                                        sb.Append("<div class=\"form-actions d-flex flex-row flex-column-fluid\"><div class=\"d-flex flex-row-fluid justify-content-between\"><a href=\"javascript:void(0)\" tabindex=\"0\" id=\"btnBackLink\" class=\"text-gray-600 d-flex my-auto fs-4 mt-4\" onclick=\"backToMainDiv()\"><span class=\"material-icons material-icons-style\">chevron_left</span>Back</a><input type=\"button\" value=\"Login\" title=\"Login\" TabIndex=\"0\" ID=\"btnSubmitNew\" class=\"btn btn-lg btn-primary mb-5 w-50\" onclick=\"return chkLoginFormHiden();\" /></div></div>");
+
+                                        if (_keepMeSignin == "T" && AxStaySignIn == "true")
+                                            sb.Append("<div class=\"control-group\"><div class=\"agform form-check form-switch form-check-custom form-check-solid px-1 align-self-end mb-4\" id=\"axstaysignin\" runat=\"server\" visible=\"false\"><div class=\"controls my-2\"><div class=\"input-icon left\"><input type=\"checkbox\" id=\"signedin\" runat=\"server\" class=\"m-wrap placeholder-no-fix form-check-input h-25px w-45px\" tabindex=\"0\" title=\"Keep me sign in?\" /><asp:Label runat=\"server\" ID=\"lblstaysin\" meta:resourcekey=\"lblstaysin\" class=\"form-check-label form-label col-form-label pb-1 fw-boldest text-dark fs-6 mb-0\" for=\"signedin\">Keep me sign in?</asp:Label></div></div></div></div>");
+
+                                        sb.Append("<div class=\"form-actions d-flex flex-row flex-column-fluid\"><div class=\"d-flex flex-row-fluid justify-content-between\"><a href=\"javascript:void(0)\" tabindex=\"0\" id=\"btnBackLink\" class=\"text-gray-600 d-flex my-auto fs-4 mt-4\" onclick=\"backToMainDiv()\"><span class=\"material-icons material-icons-style\">chevron_left</span>Back</a><input type=\"button\" value=\"Sign In\" title=\"Sign In\" TabIndex=\"0\" ID=\"btnSubmitNew\" class=\"btn btn-lg btn-primary mb-5 w-50\" onclick=\"return chkLoginFormHiden();\" /></div></div>");
                                         panelSignin.Visible = true;
                                         panelUser.Visible = false;
                                         panelPwd.Text = sb.ToString();
                                     }
                                     else if (_pwdAuthflag != string.Empty && _pwdAuthflag.ToLower() == "f" && _otpAuthflag != string.Empty && _otpAuthflag.ToLower() == "t")
                                     {
+                                        if (_keepMeSignin == "T" && AxStaySignIn == "true")
+                                            staySignInOtp = "true";
                                         CallLoginService(false, axUserName.Value, hdnPuser.Value, hdnProjName.Value, hdnProjLang.Value, "", "true", "true", "false");
                                     }
                                 }
                                 else
                                 {
-                                    if (_pwdotpdetails == string.Empty)
+                                    if (_pwdotpdetails.StartsWith("error:"))
+                                    {
+                                        _pwdotpdetails = _pwdotpdetails.Replace("\"", "'").Replace("error:", "");
+                                        ClientScript.RegisterStartupScript(this.GetType(), "Javascript", "javascript:SetLoginErrorMsg(\"" + _pwdotpdetails + "\");", true);
+                                        return;
+                                    }
+                                    else if (_pwdotpdetails == string.Empty)
                                     {
                                         ClientScript.RegisterStartupScript(this.GetType(), "Javascript", "javascript:SetLoginErrorMsg(\"Invalid User Name.\");", true);
                                         return;
                                     }
+                                    string _keepMeSignin = _pwdotpdetails.Split('♣')[6];
                                     panelUser.Visible = false;
                                     StringBuilder sb = new StringBuilder();
                                     sb.Append("<div class=\"control-group\"><div class=\"fv-row mb-4 fv-plugins-icon-container\"><div class=\"input-icon left\"><div class=\"d-flex flex-stack mb-2\"><asp:Label ID=\"lblpwd\" class=\"form-label fw-boldest text-dark fs-6 mb-0\" runat=\"server\" meta:resourcekey=\"lblpwd\">Password</asp:Label></div><input id=\"axPassword\" runat=\"server\" class=\"m-wrap placeholder-no-fix form-control form-control-solid\" tabindex=\"0\" type=\"password\" autocomplete=\"off\" placeholder=\"\" name=\"axPassword\" title=\"Password\" required /><div class=\"fv-plugins-message-container invalid-feedback\"></div></div></div></div>");
                                     sb.Append("<div class=\"control-group my-8 mb-12\"><a href=\"javascript:void(0)\" class=\"link-primary fs-6 fw-boldest\" tabindex=\"0\" onclick=\"OpenForgotPwdNew()\"><asp:label id=\"lblForgot\" runat=\"server\" meta:resourcekey=\"lblForgot\">Forgot password?</asp:label></a></div>");
-                                    sb.Append("<div class=\"form-actions d-flex flex-row flex-column-fluid\"><div class=\"d-flex flex-row-fluid justify-content-between\"><a href=\"javascript:void(0)\" tabindex=\"0\" id=\"btnBackLink\" class=\"text-gray-600 d-flex my-auto fs-4 mt-4\" onclick=\"backToMainDiv()\"><span class=\"material-icons material-icons-style\">chevron_left</span>Back</a><input type=\"button\" value=\"Login\" title=\"Login\" TabIndex=\"0\" ID=\"btnSubmitNew\" class=\"btn btn-lg btn-primary mb-5 w-50\" onclick=\"return chkLoginFormHiden();\" /></div></div>");
+
+                                    if (_keepMeSignin == "T" && AxStaySignIn == "true")
+                                        sb.Append("<div class=\"control-group\"><div class=\"agform form-check form-switch form-check-custom form-check-solid px-1 align-self-end mb-4\" id=\"axstaysignin\" runat=\"server\" visible=\"false\"><div class=\"controls my-2\"><div class=\"input-icon left\"><input type=\"checkbox\" id=\"signedin\" runat=\"server\" class=\"m-wrap placeholder-no-fix form-check-input h-25px w-45px\" tabindex=\"0\" title=\"Keep me sign in?\" /><asp:Label runat=\"server\" ID=\"lblstaysin\" meta:resourcekey=\"lblstaysin\" class=\"form-check-label form-label col-form-label pb-1 fw-boldest text-dark fs-6 mb-0\" for=\"signedin\">Keep me sign in?</asp:Label></div></div></div></div>");
+
+                                    sb.Append("<div class=\"form-actions d-flex flex-row flex-column-fluid\"><div class=\"d-flex flex-row-fluid justify-content-between\"><a href=\"javascript:void(0)\" tabindex=\"0\" id=\"btnBackLink\" class=\"text-gray-600 d-flex my-auto fs-4 mt-4\" onclick=\"backToMainDiv()\"><span class=\"material-icons material-icons-style\">chevron_left</span>Back</a><input type=\"button\" value=\"Sign In\" title=\"Sign In\" TabIndex=\"0\" ID=\"btnSubmitNew\" class=\"btn btn-lg btn-primary mb-5 w-50\" onclick=\"return chkLoginFormHiden();\" /></div></div>");
                                     panelSignin.Visible = true;
                                     panelUser.Visible = false;
                                     panelPwd.Text = sb.ToString();
@@ -2356,6 +3099,7 @@ public partial class Signin : System.Web.UI.Page
                         }
                         else
                         {
+                            string _keepMeSignin = "";
                             string _nonOtpuser = GetPwdAuthLang(axUserName.Value, hdnProjName.Value);
                             if (_nonOtpuser != "")
                             {
@@ -2365,11 +3109,15 @@ public partial class Signin : System.Web.UI.Page
                                     ClientScript.RegisterStartupScript(this.GetType(), "Javascript", "javascript:SetLoginErrorMsg(\"" + usrErrorMessage + "\");", true);
                                     return;
                                 }
+                                else
+                                {
+                                    _keepMeSignin = _nonOtpuser.Split('♣')[6];
+                                }
                             }
                             else
                             {
                                 string _UserDetails = util.GetUserLevelLangFromDB(axUserName.Value);
-                                if (_UserDetails != string.Empty)
+                                if (_UserDetails != string.Empty && !_UserDetails.StartsWith("error:"))
                                 {
                                     string usrErrorMessage = checkOtpUserInfo(_UserDetails, axUserName.Value, "nonotp");
                                     if (usrErrorMessage != string.Empty)
@@ -2380,7 +3128,14 @@ public partial class Signin : System.Web.UI.Page
                                     else
                                     {
                                         SavePwdAuthLangfromDB(_UserDetails, axUserName.Value, hdnProjName.Value);
+                                        _keepMeSignin = _UserDetails.Split('♣')[6];
                                     }
+                                }
+                                else if (_UserDetails.StartsWith("error:"))
+                                {
+                                    _UserDetails = _UserDetails.Replace("\"", "'").Replace("error:", "");
+                                    ClientScript.RegisterStartupScript(this.GetType(), "Javascript", "javascript:SetLoginErrorMsg(\"" + _UserDetails + "\");", true);
+                                    return;
                                 }
                                 else if (_UserDetails == string.Empty)
                                 {
@@ -2396,7 +3151,10 @@ public partial class Signin : System.Web.UI.Page
 
                             sb.Append("<div class=\"control-group my-8 mb-12\"><a href=\"javascript:void(0)\" class=\"link-primary fs-6 fw-boldest\" tabindex=\"0\" onclick=\"OpenForgotPwdNew()\"><asp:label id=\"lblForgot\" runat=\"server\" meta:resourcekey=\"lblForgot\">Forgot password?</asp:label></a></div>");
 
-                            sb.Append("<div class=\"form-actions d-flex flex-row flex-column-fluid\"><div class=\"d-flex flex-row-fluid justify-content-between\"><a href=\"javascript:void(0)\" tabindex=\"0\" id=\"btnBackLink\" class=\"text-gray-600 d-flex my-auto fs-4 mt-4\" onclick=\"backToMainDiv()\"><span class=\"material-icons material-icons-style\">chevron_left</span>Back</a><input type=\"button\" value=\"Login\" title=\"Login\" TabIndex=\"0\" ID=\"btnSubmitNew\" class=\"btn btn-lg btn-primary mb-5 w-50\" onclick=\"return chkLoginFormHiden();\" /></div></div>");
+                            if (_keepMeSignin == "T" && AxStaySignIn == "true")
+                                sb.Append("<div class=\"control-group\"><div class=\"agform form-check form-switch form-check-custom form-check-solid px-1 align-self-end mb-4\" id=\"axstaysignin\" runat=\"server\" visible=\"false\"><div class=\"controls my-2\"><div class=\"input-icon left\"><input type=\"checkbox\" id=\"signedin\" runat=\"server\" class=\"m-wrap placeholder-no-fix form-check-input h-25px w-45px\" tabindex=\"0\" title=\"Keep me sign in?\" /><asp:Label runat=\"server\" ID=\"lblstaysin\" meta:resourcekey=\"lblstaysin\" class=\"form-check-label form-label col-form-label pb-1 fw-boldest text-dark fs-6 mb-0\" for=\"signedin\">Keep me sign in?</asp:Label></div></div></div></div>");
+
+                            sb.Append("<div class=\"form-actions d-flex flex-row flex-column-fluid\"><div class=\"d-flex flex-row-fluid justify-content-between\"><a href=\"javascript:void(0)\" tabindex=\"0\" id=\"btnBackLink\" class=\"text-gray-600 d-flex my-auto fs-4 mt-4\" onclick=\"backToMainDiv()\"><span class=\"material-icons material-icons-style\">chevron_left</span>Back</a><input type=\"button\" value=\"Sign In\" title=\"Sign In\" TabIndex=\"0\" ID=\"btnSubmitNew\" class=\"btn btn-lg btn-primary mb-5 w-50\" onclick=\"return chkLoginFormHiden();\" /></div></div>");
                             panelSignin.Visible = true;
                             panelUser.Visible = false;
                             panelPwd.Text = sb.ToString();
@@ -2426,6 +3184,11 @@ public partial class Signin : System.Web.UI.Page
             if (_isUserActive == "F")
             {
                 msg = "Inactive User.";
+                return msg;
+            }
+            else if (_isUserActive == "ET")
+            {
+                msg = "Username: " + _thisUser + " is not activated.";
                 return msg;
             }
             if (noOtp == "")
@@ -2466,9 +3229,12 @@ public partial class Signin : System.Web.UI.Page
         hybridGUID = hdnHybridGUID.Value;
         hybridDeviceId = hdnHybridDeviceId.Value;
         timeZone = hdnTimeZone.Value;
-        if (signedin.Checked)
-            staySignIn = "true";
-        else
+        //if (signedin.Checked)
+        //    staySignIn = "true";
+        //else
+        //    staySignIn = "false";
+        staySignIn = hdnKeepMeSignin.Value;
+        if (staySignIn == "")
             staySignIn = "false";
         string _thisKeys = GetSSOClientKeys("openid");
         if (_thisKeys != "")
@@ -2484,30 +3250,47 @@ public partial class Signin : System.Web.UI.Page
         string keys = string.Empty;
         try
         {
-            string[] ssoclientKey = null;
-            if (ConfigurationManager.AppSettings["ssoclientKey"] != null && ConfigurationManager.AppSettings["ssoclientKey"].ToString() != string.Empty)
-            {
-                string ssoclientKeys = ConfigurationManager.AppSettings["ssoclientKey"].ToString();
-                ssoclientKey = ssoclientKeys.Split(',');
-            }
-            string[] ssoclientsecretKey = null;
-            if (ConfigurationManager.AppSettings["ssoclientsecretKey"] != null && ConfigurationManager.AppSettings["ssoclientsecretKey"].ToString() != string.Empty)
-            {
-                string ssoclientsecretKeys = ConfigurationManager.AppSettings["ssoclientsecretKey"].ToString();
-                ssoclientsecretKey = ssoclientsecretKeys.Split(',');
-            }
-            string ssologin = ConfigurationManager.AppSettings["ssologin"].ToString();
-            string[] ssologinAcc = ssologin.Split(',');
             string _thisclientKey = string.Empty;
             string _thisosecretKey = string.Empty;
-            for (int i = 0; i < ssologinAcc.Count(); i++)
+            string _strProj = Session["Project"].ToString();
+            string SSOJsoncontent = string.Empty;
+            if (_jsoncontents != null && _jsoncontents.ContainsKey(Constants.AXSSO_CONN_KEY))
+                SSOJsoncontent = _jsoncontents[Constants.AXSSO_CONN_KEY];
+            else
             {
-                if (ssologinAcc[i] == ssotype)
+                SSOJsoncontent = util.GetAllSettings(_strProj, Constants.AXSSO_CONN_KEY);
+            }
+            if (SSOJsoncontent != string.Empty)
+            {
+                JObject config = JObject.Parse(SSOJsoncontent);
+                foreach (var section in config)
                 {
-                    if (ssoclientKey != null && ssoclientKey[i] != null)
-                        _thisclientKey = ssoclientKey[i];
-                    if (ssoclientsecretKey != null && ssoclientsecretKey[i] != null)
-                        _thisosecretKey = ssoclientsecretKey[i];
+                    if (section.Key == "openid")
+                    {
+                        JObject sectionObject = section.Value as JObject;
+                        if (sectionObject != null)
+                        {
+                            foreach (JProperty property in sectionObject.Properties())
+                            {
+                                switch (property.Name)
+                                {
+                                    case "openidclientkey":
+                                        _thisclientKey = property.Value.ToString();
+                                        break;
+                                    case "openidsecretkey":
+                                        _thisosecretKey = property.Value.ToString();
+                                        break;
+                                    case "openiddomain":
+                                        Session["openiddomain"] = property.Value.ToString();
+                                        break;
+                                    case "openidredirecturl":
+                                        ssoredirecturl = property.Value.ToString();
+                                        Session["OpenIdssoredirecturl"] = property.Value.ToString();
+                                        break;
+                                }
+                            }
+                        }
+                    }
                 }
             }
             keys = _thisclientKey + '♦' + _thisosecretKey;
@@ -2521,7 +3304,9 @@ public partial class Signin : System.Web.UI.Page
 
     protected void btnOTPLogin_Click(object sender, EventArgs e)
     {
-        string[] attempt = GetLoginAttempt(hdnLoginAttempt.Value, true);
+        if (ViewState["StopProcessing"] != null && (bool)ViewState["StopProcessing"])
+            return;
+        string[] attempt = GetLoginAttempt(hdnLoginAttempt.Value, true, hdnProjName.Value);
         if (attempt == null)
         {
             ClientScript.RegisterStartupScript(this.GetType(), "Javascript",
@@ -2532,20 +3317,25 @@ public partial class Signin : System.Web.UI.Page
         {
             Util.Util utils = new Util.Util();
             if (Session["axApps"] == null || Session["axApps"].ToString() == "")
+            {
                 utils.GetAxApps(attempt[1]);
-            string _otpAuth = utils.GetOTPAuth(attempt[0]);
+            }
+            string _otpAuth = utils.GetOTPAuth(attempt[0], attempt[1]);
             if (_otpAuth != string.Empty)
             {
                 string[] _thisDetails = _otpAuth.Split('♣');
                 checkSecurityVal(hdnOtpauth.Value);
                 if (_thisDetails[0] == hdnOtpauth.Value)
                 {
-                    Session.Remove(LoginAttemptPrefix + hdnLoginAttempt.Value);
+                    RemoveOtpLoginAttempt(hdnLoginAttempt.Value, attempt[1]);
                     strParams.Append("<input type=hidden name=\"hdnAxGKey\" value=\"" + _thisDetails[1] + "\">");
                     strParams.Append("<input type=hidden name=\"hdnLanguage\" value=\"" + _thisDetails[2] + "\">");
                     checkSecurityVal(hdnSrtforLogin.Value);
                     strParams.Append("<input type=hidden name=\"hdnSSTime\" value=\"" + hdnSrtforLogin.Value + "\">");
-
+                    if (hdnKeepMeSignin.Value == "true")
+                    {
+                        strParams.Append("<input type=hidden name=\"hdnKeepMeSignin\" value=\"" + hdnKeepMeSignin.Value + "\">");
+                    }
                     requestProcess_logtime += ObjExecTr.RequestProcessTime("Response");
 
                     string setIns = string.Empty;
@@ -2580,33 +3370,65 @@ public partial class Signin : System.Web.UI.Page
         }
     }
 
-    [WebMethod]
-    public static string chkOtp(string stsotpauth, string proj, string username, string csrfToken)
-    {
-        if (csrfToken == "" || Util.Util.CheckCrossScriptingInString(csrfToken) || Util.Util.CheckCrossScriptingInString(stsotpauth) || Util.Util.CheckCrossScriptingInString(proj) || Util.Util.CheckCrossScriptingInString(username))
-            throw new SecurityException("Invalid format.");
-        if (csrfToken == "" || Util.Util.ContainsXSS(csrfToken) || Util.Util.ContainsXSS(stsotpauth) || Util.Util.ContainsXSS(proj) || Util.Util.ContainsXSS(username))
-            throw new SecurityException("Invalid format.");
-
-        if (string.IsNullOrEmpty(stsotpauth))
-            return "PleaseenterOTP";
-
-        Util.Util utils = new Util.Util();
-        if (HttpContext.Current.Session["axApps"] == null || HttpContext.Current.Session["axApps"].ToString() == "")
-            utils.GetAxApps(proj);
-        string otpAuth = utils.GetOTPAuth(username);
-        if (string.IsNullOrEmpty(otpAuth))
-            return "OTPexpired";
-        return otpAuth.Split('♣')[0] == stsotpauth ? "success" : "InvalidOTP";
-    }
-
     [WebMethod(EnableSession = true)]
-    public static string chkPendingOtp(string stsotpauth, string loginAttempt, string csrfToken)
+    public static string chkPendingOtp(string stsotpauth, string loginAttempt, string project, string csrfToken)
     {
-        string[] attempt = GetLoginAttempt(loginAttempt, true);
+        if (HttpContext.Current.Session["AntiforgeryToken"] == null ||
+            csrfToken != HttpContext.Current.Session["AntiforgeryToken"].ToString())
+            throw new SecurityException("CSRF Attack Detected!");
+        if (Util.Util.CheckCrossScriptingInString(project) || Util.Util.ContainsXSS(project))
+            throw new SecurityException("Invalid format.");
+        string[] attempt = GetLoginAttempt(loginAttempt, true, project);
         if (attempt == null)
             return "LoginExpired";
         return chkOtp(stsotpauth, attempt[1], attempt[0], csrfToken);
+    }
+
+    [WebMethod]
+    public static string chkOtp(string stsotpauth, string proj, string username, string csrfToken)
+    {
+        string res = string.Empty;
+        try
+        {
+        if (csrfToken == "" || Util.Util.CheckCrossScriptingInString(csrfToken) || Util.Util.CheckCrossScriptingInString(stsotpauth) || Util.Util.CheckCrossScriptingInString(proj) || Util.Util.CheckCrossScriptingInString(username))
+            throw new SecurityException("Invalid format.");
+
+        if (csrfToken == "" || Util.Util.ContainsXSS(csrfToken) || Util.Util.ContainsXSS(stsotpauth) || Util.Util.ContainsXSS(proj) || Util.Util.ContainsXSS(username))
+            throw new SecurityException("Invalid format.");
+
+            if (stsotpauth != null && stsotpauth != string.Empty)
+            {
+        Util.Util utils = new Util.Util();
+        if (HttpContext.Current.Session["axApps"] == null || HttpContext.Current.Session["axApps"].ToString() == "")
+                {
+            utils.GetAxApps(proj);
+    }
+                string _otpAuth = utils.GetOTPAuth(username, proj);
+                if (_otpAuth != string.Empty)
+    {
+                    string[] _thisDetails = _otpAuth.Split('♣');
+                    if (_thisDetails[0] == stsotpauth)
+                    {
+                        res = "success";
+    }
+                    else
+                    {
+                        res = "InvalidOTP";
+                    }
+                }
+                else
+                {
+                    res = "OTPexpired";
+                }
+            }
+            else
+            {
+                res = "PleaseenterOTP";
+            }
+        }
+        catch (Exception ex) { }
+
+        return res;
     }
 
     [WebMethod]
@@ -2637,7 +3459,7 @@ public partial class Signin : System.Web.UI.Page
         else
         {
             string ulLang = utils.GetUserLevelLangFromDB(username);
-            if (ulLang != string.Empty)
+            if (ulLang != string.Empty && !ulLang.StartsWith("error:"))
             {
                 SavePwdAuthLangfromDB(ulLang, username, proj);
                 string _ulLang = ulLang.Split('♣')[0];
@@ -2646,6 +3468,11 @@ public partial class Signin : System.Web.UI.Page
                 else
                     res = utils.GetConfigAttrValue(proj, "AxLanguages");
             }
+            else if (ulLang.StartsWith("error:"))
+            {
+                ulLang = ulLang.Replace("\"", "'");
+                res = ulLang;
+            }
             else
                 res = utils.GetConfigAttrValue(proj, "AxLanguages");
         }
@@ -2653,7 +3480,9 @@ public partial class Signin : System.Web.UI.Page
     }
     protected void btnResendOtp_Click(object sender, EventArgs e)
     {
-        string[] attempt = GetLoginAttempt(hdnLoginAttempt.Value, true);
+        if (ViewState["StopProcessing"] != null && (bool)ViewState["StopProcessing"])
+            return;
+        string[] attempt = GetLoginAttempt(hdnLoginAttempt.Value, true, hdnProjName.Value);
         if (attempt == null)
         {
             ClientScript.RegisterStartupScript(this.GetType(), "Javascript",
@@ -2661,14 +3490,18 @@ public partial class Signin : System.Web.UI.Page
             return;
         }
         string userName = attempt[0];
-        string project = attempt[1];
+        hdnProjName.Value = attempt[1];
         checkSecurityVal(hdnProjLang.Value);
-        checkSecurityVal(project);
+        checkSecurityVal(hdnProjName.Value);
         if (ConfigurationManager.AppSettings["axThemeFolder"] != null && ConfigurationManager.AppSettings["axThemeFolder"].ToString() != "")
             axThemeStyleFolder = ConfigurationManager.AppSettings["axThemeFolder"].ToString();
-        axOTPAuthCahrs = util.GetConfigAttrValue(project, "AxOTPAuthCahrs");
-        axOTPAuthExpiry = util.GetConfigAttrValue(project, "AxOTPAuthExpiry");
-        string _pwdAuth = GetPwdAuthLang(userName, project);
+        axOTPAuthCahrs = util.GetOTPSettings(hdnProjName.Value, "AxOTPAuthCahrs");
+        axOTPAuthExpiry = util.GetOTPSettings(hdnProjName.Value, "AxOTPAuthExpiry");
+        string _pwdAuth = "";
+        if (HttpContext.Current.Session != null && HttpContext.Current.Session["PwdAuthLang-" + userName] != null)
+            _pwdAuth = HttpContext.Current.Session["PwdAuthLang-" + userName].ToString();
+        else
+            _pwdAuth = GetPwdAuthLang(userName, hdnProjName.Value);
         if (_pwdAuth != "")
         {
             string _otpAuthflag = _pwdAuth.Split('♣')[2];
@@ -2677,7 +3510,7 @@ public partial class Signin : System.Web.UI.Page
                 axOTPAuthDbFlag = "true";
             if (_pwdAuthflag != string.Empty && _pwdAuthflag.ToLower() == "t")
                 axPwbAuthDbFlag = "true";
-            CallLoginService(false, userName, hdnPuser.Value, project, hdnProjLang.Value, "", "true", axOTPAuthDbFlag, axPwbAuthDbFlag);
+            CallLoginService(false, userName, hdnPuser.Value, hdnProjName.Value, hdnProjLang.Value, "", "true", axOTPAuthDbFlag, axPwbAuthDbFlag);
         }
         else
         {
@@ -2701,8 +3534,10 @@ public partial class Signin : System.Web.UI.Page
                 utils.GetAxApps(proj);
                 schemaName = HttpContext.Current.Session["dbuser"].ToString();
             }
-            FDW fdwObj = FDW.Instance;
+            //FDW fdwObj = FDW.Instance;
+            FDW fdwObj = new FDW(proj);
             fdwObj.SaveInRedisServer(utils.GetRedisServerkey(fdKeypwdOtpAuth, username), strpwdlang, fdKeypwdOtpAuth);
+            HttpContext.Current.Session["PwdAuthLang-" + username] = strpwdlang;
         }
         catch (Exception ex)
         { }
@@ -2725,15 +3560,314 @@ public partial class Signin : System.Web.UI.Page
                 utils.GetAxApps(proj);
                 schemaName = HttpContext.Current.Session["dbuser"].ToString();
             }
-            FDR fObj = (FDR)HttpContext.Current.Session["FDR"];
-            if (fObj == null)
-                fObj = new FDR();
+            //FDR fObj = (FDR)HttpContext.Current.Session["FDR"];
+            //if (fObj == null)
+            FDR fObj = new FDR(proj);
             if (fObj != null)
+            {
                 res = fObj.StringFromRedis(utils.GetRedisServerkey(fdKeypwdOtpAuth, username), schemaName);
+                if (res != string.Empty)
+                    HttpContext.Current.Session["PwdAuthLang-" + username] = res;
+            }
         }
         catch (Exception ex)
         { }
         return res;
+    }
+    [WebMethod]
+    public static void browserInfo(string brInfo)
+    {
+        try
+        {
+            if (!string.IsNullOrEmpty(brInfo) && HttpContext.Current.Session["loginPrivateKey-" + HttpContext.Current.Session.SessionID] != null)
+            {
+                var payload = Newtonsoft.Json.JsonConvert.DeserializeObject<dynamic>(brInfo);
+                string encryptedAesKey = payload.key;
+                string aesEncryptedData = payload.data;
+
+                using (RSA rsa = RSA.Create())
+                {
+                    rsa.FromXmlString(HttpContext.Current.Session["loginPrivateKey-" + HttpContext.Current.Session.SessionID].ToString());
+                    byte[] encryptedKeyBytes = Convert.FromBase64String(encryptedAesKey);
+                    byte[] decryptedKeyBytes = rsa.Decrypt(encryptedKeyBytes, RSAEncryptionPadding.Pkcs1);
+                    string aesKeyBase64 = Encoding.UTF8.GetString(decryptedKeyBytes);
+                    byte[] keyBytes = Convert.FromBase64String(aesKeyBase64);
+
+                    // Decrypt AES data
+                    byte[] aesBytes = Convert.FromBase64String(aesEncryptedData);
+                    var decrypted = DecryptWithAesBase64(aesEncryptedData, keyBytes);
+                    string browserInfo = decrypted;
+
+                    HttpContext.Current.Session["clientIpAddress"] = browserInfo.Split('♣')[0];
+                    HttpContext.Current.Session["clientBrInfo"] = browserInfo.Split('♣')[1];
+                }
+            }
+        }
+        catch (Exception ex)
+        { }
+    }
+
+    [WebMethod]
+    public static void LoggedPreviTab(string uInfo)
+    {
+        try
+        {
+            string project = uInfo.Split('~')[0];
+            string existSid = uInfo.Split('~')[1];
+            string existUser = uInfo.Split('~')[2];
+            HttpContext.Current.Session["AxTrace"] = "true";
+            string result = string.Empty;
+            string _axApps = HttpContext.Current.Session["axApps"].ToString();
+            string _axProps = HttpContext.Current.Application["axProps"].ToString();
+            LogFile.Log logobj = new LogFile.Log();
+            string errorLog = logobj.CreateLog("Calling Signout ws", existSid, "Signout", "new");
+            if (errorLog != "")
+                errorLog = errorLog.Replace("\\", "\\\\");
+            _axApps = _axApps.Replace(@"\", "\\\\");
+            string signOutJson = "{\"logout\":{\"axpapp\":\"" + project + "\",\"username\":\"" + existUser + "\",\"sessionid\":\"" + existSid + "\",\"trace\":\"" + errorLog + "\"},\"axapps\":\"" + _axApps + "\",\"axprops\":\"" + _axProps + "\"}";
+            string clientIpAddress = string.Empty;
+            result = ALCClient.CallALCClientLogout(existUser, signOutJson);
+            try
+            {
+                Util.Util util = new Util.Util();
+                util.RemoveLoggedUserDetails(project, existSid, existUser);
+            }
+            catch (Exception ex) { }
+            if (HttpContext.Current.Session["Project"] != null)
+                HttpContext.Current.Session["Project"] = null;
+            try
+            {
+                var lstAutKeys = HttpContext.Current.Session.Keys.Cast<string>().Where(x => x.StartsWith("AxStrConfig-")).ToList();
+                if (lstAutKeys.Count > 0)
+                {
+                    foreach (string _key in lstAutKeys)
+                        HttpContext.Current.Session.Remove(_key);
+                }
+            }
+            catch (Exception ex) { }
+            HttpContext.Current.Session.Remove("LoginWith");
+        }
+        catch (Exception ex) { }
+    }
+
+    private void AxiUserLogin()
+    {
+        try
+        {
+            if (Request.QueryString["axi"] != null && Request.QueryString["axi"] != "")
+            {
+                System.Web.Configuration.SessionStateSection sessionStateSection = (System.Web.Configuration.SessionStateSection)ConfigurationManager.GetSection("system.web/sessionState");
+                string cookieName = sessionStateSection.CookieName;
+                HttpCookie mycookie = new HttpCookie(cookieName);
+                mycookie.Expires = DateTime.Now.AddDays(-1);
+                HttpContext.Current.Response.Cookies.Add(mycookie);
+                System.Web.HttpContext.Current.Session.Abandon();
+                SessionIDManager manager = new SessionIDManager();
+                manager.RemoveSessionID(System.Web.HttpContext.Current);
+                var newId = manager.CreateSessionID(System.Web.HttpContext.Current);
+                var isRedirected = true;
+                var isAdded = true;
+                manager.SaveSessionID(System.Web.HttpContext.Current, newId, out isRedirected, out isAdded);
+                string axiinfo = "";
+                string axiinfoKey = Request.QueryString["axi"].ToString();
+                if (axiinfoKey != "")
+                {
+                    axiinfoKey = util.encrtptDecryptAES(axiinfoKey, false);
+                    string schema = axiinfoKey.Split('-')[0];
+                    Util.Util utils = new Util.Util();
+                    //logobj.CreateLog("Exception in AxiUserLogin - axiinfoKey:" + axiinfoKey, HttpContext.Current.Session.SessionID, "AxiUserLogin", "", "true");
+                    try
+                    {
+                        HttpContext.Current.Session.Remove("AppAllSettingsKey-" + schema);
+                    }
+                    catch (Exception) { }
+                    Session["AxiProjectFirst"] = "true";
+                    utils.GetAxApps(schema);
+                    //logobj.CreateLog("Exception in AxiUserLogin - after GetAxApps schema:" + schema, HttpContext.Current.Session.SessionID, "AxiUserLogin", "", "true");
+                    FDR fObj = new FDR(schema);
+                    if (fObj != null)
+                    {
+                        //logobj.CreateLog("Exception in AxiUserLogin - before ReadKeyStringValueNoSchema:", HttpContext.Current.Session.SessionID, "AxiUserLogin", "", "true");
+                        string res = fObj.ReadKeyStringValueNoSchema(axiinfoKey);
+                        //logobj.CreateLog("Exception in AxiUserLogin - after ReadKeyStringValueNoSchema:" + res, HttpContext.Current.Session.SessionID, "AxiUserLogin", "", "true");
+                        if (res != string.Empty)
+                        {
+                            AxiLoginInfoKey = axiinfoKey;
+                            Session["AxiInfoLogin"] = res;
+                            axiinfo = util.encrtptDecryptAES(res, false);
+                            //logobj.CreateLog("Exception in AxiUserLogin - after axiinfo:" + axiinfo, HttpContext.Current.Session.SessionID, "AxiUserLogin", "", "true");
+                            //FDW fdwObj = new FDW(schema);
+                            //ArrayList raxiKey = new ArrayList();
+                            //raxiKey.Add(axiinfoKey);
+                            //fdwObj.DeleteKeys(raxiKey);
+                        }
+                    }
+                }
+                //string axiinfo = Request.QueryString["axi"].ToString();
+                //axiinfo = util.encrtptDecryptAES(axiinfo, false);
+                if (axiinfo != "")
+                {
+                    string _SchemaName = axiinfo.Split('~')[0];
+                    _SchemaName = _SchemaName.Split('=')[1];
+                    string _UName = axiinfo.Split('~')[1];
+                    _UName = _UName.Split('=')[1];
+                    string _Email = axiinfo.Split('~')[2];
+                    _Email = _Email.Split('=')[1];
+                    AxiProjectLogin = "true";
+                    string isprimary = axiinfo.Split('~')[3];
+                    isprimary = isprimary.Split('=')[1];
+                    if (isprimary == "T")
+                        AxiIsPrimary = "true";
+                    else
+                        AxiIsPrimary = "false";
+
+                    string _password = axiinfo.Split('~')[4];
+                    _password = _password.Split('=')[1];
+
+                    string _keepMeSignin = axiinfo.Split('~')[5];
+                    _keepMeSignin = _keepMeSignin.Split('=')[1];
+                    if (_keepMeSignin == "true")
+                        staySignIn = _keepMeSignin;
+
+                    string _brId = axiinfo.Split('~')[6];
+                    _brId = _brId.Split('=')[1];
+                    if (_brId != "")
+                        hdnBwsrid.Value = _brId;
+                    //logobj.CreateLog("Exception in AxiUserLogin - before CallLoginService:", HttpContext.Current.Session.SessionID, "AxiUserLogin", "", "true");
+                    try
+                    {
+                        HttpContext.Current.Session.Remove("AppAllSettingsKey-" + _SchemaName);
+                    }
+                    catch (Exception) { }
+                    CallLoginService(false, _UName, _password, _SchemaName, "English", "");
+                }
+                else
+                {
+                    //logobj.CreateLog("Exception in AxiUserLogin - else ", HttpContext.Current.Session.SessionID, "AxiUserLogin", "", "true");
+                    string loginPath = util.LOGINPATH;
+                    loginPath = loginPath.Substring(3);
+                    Response.Redirect(loginPath + "?error=Query string in not valid.");
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            //logobj.CreateLog("Exception in AxiUserLogin - " + ex.Message, HttpContext.Current.Session.SessionID, "AxiUserLogin", "", "true");
+
+            string loginPath = util.LOGINPATH;
+            loginPath = loginPath.Substring(3);
+            Response.Redirect(loginPath + "?error=" + ex.Message);
+        }
+    }
+
+    protected void btnAxiLogin_Click(object sender, EventArgs e)
+    {
+        try
+        {
+            if (Request.QueryString["axi"] != null && Request.QueryString["axi"] != "")
+            {
+                System.Web.Configuration.SessionStateSection sessionStateSection = (System.Web.Configuration.SessionStateSection)ConfigurationManager.GetSection("system.web/sessionState");
+                string cookieName = sessionStateSection.CookieName;
+                HttpCookie mycookie = new HttpCookie(cookieName);
+                mycookie.Expires = DateTime.Now.AddDays(-1);
+                HttpContext.Current.Response.Cookies.Add(mycookie);
+                System.Web.HttpContext.Current.Session.Abandon();
+                SessionIDManager manager = new SessionIDManager();
+                manager.RemoveSessionID(System.Web.HttpContext.Current);
+                var newId = manager.CreateSessionID(System.Web.HttpContext.Current);
+                var isRedirected = true;
+                var isAdded = true;
+                manager.SaveSessionID(System.Web.HttpContext.Current, newId, out isRedirected, out isAdded);
+                string axiinfo = "";
+                string axiinfoKey = Request.QueryString["axi"].ToString();
+                if (axiinfoKey != "")
+                {
+                    axiinfoKey = util.encrtptDecryptAES(axiinfoKey, false);
+                    string schema = axiinfoKey.Split('-')[0];
+                    Util.Util utils = new Util.Util();
+                    //logobj.CreateLog("Exception in AxiUserLogin - axiinfoKey:" + axiinfoKey, HttpContext.Current.Session.SessionID, "AxiUserLogin", "", "true");
+                    try
+                    {
+                        HttpContext.Current.Session.Remove("AppAllSettingsKey-" + schema);
+                    }
+                    catch (Exception) { }
+                    Session["AxiProjectFirst"] = "true";
+                    utils.GetAxApps(schema);
+                    //logobj.CreateLog("Exception in AxiUserLogin - after GetAxApps schema:" + schema, HttpContext.Current.Session.SessionID, "AxiUserLogin", "", "true");
+                    FDR fObj = new FDR(schema);
+                    if (fObj != null)
+                    {
+                        //logobj.CreateLog("Exception in AxiUserLogin - before ReadKeyStringValueNoSchema:", HttpContext.Current.Session.SessionID, "AxiUserLogin", "", "true");
+                        string res = fObj.ReadKeyStringValueNoSchema(axiinfoKey);
+                        //logobj.CreateLog("Exception in AxiUserLogin - after ReadKeyStringValueNoSchema:" + res, HttpContext.Current.Session.SessionID, "AxiUserLogin", "", "true");
+                        if (res != string.Empty)
+                        {
+                            AxiLoginInfoKey = axiinfoKey;
+                            Session["AxiInfoLogin"] = res;
+                            axiinfo = util.encrtptDecryptAES(res, false);
+                            //logobj.CreateLog("Exception in AxiUserLogin - after axiinfo:" + axiinfo, HttpContext.Current.Session.SessionID, "AxiUserLogin", "", "true");
+                            //FDW fdwObj = new FDW(schema);
+                            //ArrayList raxiKey = new ArrayList();
+                            //raxiKey.Add(axiinfoKey);
+                            //fdwObj.DeleteKeys(raxiKey);
+                        }
+                    }
+                }
+                //string axiinfo = Request.QueryString["axi"].ToString();
+                //axiinfo = util.encrtptDecryptAES(axiinfo, false);
+                if (axiinfo != "")
+                {
+                    string _SchemaName = axiinfo.Split('~')[0];
+                    _SchemaName = _SchemaName.Split('=')[1];
+                    string _UName = axiinfo.Split('~')[1];
+                    _UName = _UName.Split('=')[1];
+                    string _Email = axiinfo.Split('~')[2];
+                    _Email = _Email.Split('=')[1];
+                    AxiProjectLogin = "true";
+                    string isprimary = axiinfo.Split('~')[3];
+                    isprimary = isprimary.Split('=')[1];
+                    if (isprimary == "T")
+                        AxiIsPrimary = "true";
+                    else
+                        AxiIsPrimary = "false";
+
+                    string _password = axiinfo.Split('~')[4];
+                    _password = _password.Split('=')[1];
+
+                    string _keepMeSignin = axiinfo.Split('~')[5];
+                    _keepMeSignin = _keepMeSignin.Split('=')[1];
+                    if (_keepMeSignin == "true")
+                        staySignIn = _keepMeSignin;
+
+                    string _brId = axiinfo.Split('~')[6];
+                    _brId = _brId.Split('=')[1];
+                    if (_brId != "")
+                        hdnBwsrid.Value = _brId;
+                    //logobj.CreateLog("Exception in AxiUserLogin - before CallLoginService:", HttpContext.Current.Session.SessionID, "AxiUserLogin", "", "true");
+                    try
+                    {
+                        HttpContext.Current.Session.Remove("AppAllSettingsKey-" + _SchemaName);
+                    }
+                    catch (Exception) { }
+                    CallLoginService(false, _UName, _password, _SchemaName, "English", "");
+                }
+                else
+                {
+                    //logobj.CreateLog("Exception in AxiUserLogin - else ", HttpContext.Current.Session.SessionID, "AxiUserLogin", "", "true");
+                    string loginPath = util.LOGINPATH;
+                    loginPath = loginPath.Substring(3);
+                    Response.Redirect(loginPath + "?error=Query string in not valid.");
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            //logobj.CreateLog("Exception in AxiUserLogin - " + ex.Message, HttpContext.Current.Session.SessionID, "AxiUserLogin", "", "true");
+
+            string loginPath = util.LOGINPATH;
+            loginPath = loginPath.Substring(3);
+            Response.Redirect(loginPath + "?error=" + ex.Message);
+        }
     }
 }
 
@@ -2741,4 +3875,5 @@ public class SignInRequest
 {
     public string hdnBwsrid { get; set; }
     public string csrfToken { get; set; }
+    public string projVal { get; set; }
 }

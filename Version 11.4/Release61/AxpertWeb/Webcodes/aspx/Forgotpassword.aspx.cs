@@ -14,6 +14,7 @@ using System.Configuration;
 
 using BotDetect;
 using BotDetect.Web;
+using Newtonsoft.Json.Linq;
 
 public partial class aspx_Forgotpassword : System.Web.UI.Page
 {
@@ -139,6 +140,12 @@ public partial class aspx_Forgotpassword : System.Web.UI.Page
                         "$j(function(){ showAlertDialog('error', 'Login attempt expired. Please enter your username.'); });", true);
                 }
             }
+            EnableCaptcha(proj);
+        }
+        else if (!IsPostBack || Session["captchaenabledFlagForgot"] == null || Session["captchaenabledFlagForgot"].ToString() == "false")
+        {
+            Session["captchaenabledFlagForgot"] = "false";
+            pnlCaptcha.Visible = false;
         }
 
         if (Session["projTitle"] != null)
@@ -172,14 +179,14 @@ public partial class aspx_Forgotpassword : System.Web.UI.Page
         string custommoblogoexist = "false";
         string customlogoexist = "false";
 
-    //    foreach (var file in diFileinfo)
-    //    {
-    //        if (file.Length > 0 && file.Name.Contains("homelogo_mob"))
-    //        {
-    //            strFileinfo = file.Name;
-				//return;
-    //        }
-    //    }
+        //    foreach (var file in diFileinfo)
+        //    {
+        //        if (file.Length > 0 && file.Name.Contains("homelogo_mob"))
+        //        {
+        //            strFileinfo = file.Name;
+        //return;
+        //        }
+        //    }
         //if (Ismobile)
         //{
         //    foreach (var file in diFileinfo)
@@ -248,18 +255,21 @@ public partial class aspx_Forgotpassword : System.Web.UI.Page
             return;
         }
 
-        if (IsPostBack && ConfigurationManager.AppSettings["enableCaptcha"] != null && ConfigurationManager.AppSettings["enableCaptcha"].ToString() == "true")
+        //if (IsPostBack && ConfigurationManager.AppSettings["enableCaptcha"] != null && ConfigurationManager.AppSettings["enableCaptcha"].ToString() == "true")
+        if (IsPostBack && Session["captchaenabledFlagForgot"] != null && Session["captchaenabledFlagForgot"].ToString() == "true")
         {
             bool allowChange = DynamicCaptcha.Validate();
 
-            if (!allowChange) {
+            if (!allowChange)
+            {
                 errMsg = "Wrong Captcha, Please Try Again.";
-                Page.ClientScript.RegisterStartupScript(this.GetType(), "CallShowAlertDialog", "showAlertDialog(\"error\", \""+ errMsg + "\");", true);
+                //Page.ClientScript.RegisterStartupScript(this.GetType(), "CallShowAlertDialog", "showAlertDialog(\"error\", \"" + errMsg + "\");", true);
+                Page.ClientScript.RegisterStartupScript(this.GetType(), "CallShowAlertDialog", "SetForgorErrorMsg(\"" + errMsg + "\");", true);
                 return;
             }
         }
 
-       // string pwd = Convert.ToString(ViewState["RandNo"]);
+        // string pwd = Convert.ToString(ViewState["RandNo"]);
         Random r = new Random();
         int randNum = r.Next(1000000);
         string sixDigitPwd = randNum.ToString("D6");
@@ -268,7 +278,7 @@ public partial class aspx_Forgotpassword : System.Web.UI.Page
         aesPwd = objWebServiceExt.GetEncryptedValue(sixDigitPwd);
         MD5 md5Hash = MD5.Create();
         byte[] data = md5Hash.ComputeHash(Encoding.UTF8.GetBytes(sixDigitPwd));
-        string msgTosend =  string.Empty;
+        string msgTosend = string.Empty;
 
         StringBuilder sBuilder = new StringBuilder();
         for (int i = 0; i < data.Length; i++)
@@ -286,8 +296,8 @@ public partial class aspx_Forgotpassword : System.Web.UI.Page
             msgTosend = hdnNickname.Value;
         else
             msgTosend = hdnUsrName.Value;
-            
-       
+
+
 
         string result = string.Empty;
         string inputQuery = string.Empty;
@@ -320,14 +330,14 @@ public partial class aspx_Forgotpassword : System.Web.UI.Page
         strContent.Append("<l3>Regards</l3><l4>Support Team.</l4></body>");
         strContent.Append("<pwd>" + aesPwd + "</pwd>");
         strContent.Append("<md5pwd>" + sixDigitPwd + "</md5pwd><changebyadmin>yes</changebyadmin>");
-        
+
         string inputXML = "<root trace='" + errlog + "' direct='t' axpapp='" + proj + "' username='" + hdnUsrName.Value + "' service='f' user='" + hdnUsrName.Value + "'>" + strContent.ToString() +
             axApps + axProps + "</root>";
 
         try
         {
             result = objWebServiceExt.CallChangePassword(inputXML);
-            errlog = logobj.CreateLog("Call to Change Password Web Service"+ result +"inputxml" + inputXML, sid, "Forgot Password", "", "true");
+            errlog = logobj.CreateLog("Call to Change Password Web Service" + result + "inputxml" + inputXML, sid, "Forgot Password", "", "true");
         }
         catch (Exception ex)
         {
@@ -427,5 +437,36 @@ public partial class aspx_Forgotpassword : System.Web.UI.Page
         {
             logobj.CreateLog(ex.Message, Session.SessionID, "UpdatePwdbySMS_" + sid, "new", "true");
         }
+    }
+
+    protected void EnableCaptcha(string _proj)
+    {
+        try
+        {
+            util.GetAxIniFileKeys(_proj);
+            string captcha = util.GetAllSettings(_proj, Constants.AXPCAPTCHA_CONN_KEY);
+            if (captcha != "" && captcha != "nooptions")
+            {
+                JObject captchaJson = JObject.Parse(captcha);
+                if (captchaJson["CaptchaEnabled"] != null && captchaJson["CaptchaEnabled"].ToString() == "true")
+                {
+                    HttpContext.Current.Session["captchaenabledFlagForgot"] = "true";
+                    pnlCaptcha.Visible = true;
+                    DynamicCaptcha.CodeLength = Convert.ToInt32(captchaJson["CaptchaLength"].ToString());
+                    DynamicCaptcha.CodeStyle = (BotDetect.CodeStyle)Enum.Parse(typeof(BotDetect.CodeStyle), captchaJson["CaptchaStyle"].ToString(), true);
+                }
+                else
+                {
+                    pnlCaptcha.Visible = false;
+                    HttpContext.Current.Session["captchaenabledFlagForgot"] = "false";
+                }
+            }
+            else
+            {
+                pnlCaptcha.Visible = false;
+                HttpContext.Current.Session["captchaenabledFlagForgot"] = "false";
+            }
+        }
+        catch (Exception ex) { }
     }
 }

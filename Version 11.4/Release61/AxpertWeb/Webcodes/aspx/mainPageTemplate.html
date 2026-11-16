@@ -978,12 +978,12 @@ Main Page Templete
         files.js.push("/Js/handlebars.min.js?v=3");
         files.js.push("/Js/handleBarsHelpers.min.js");
 
-        files.js.push("/Js/AxInterface.min.js?v=13");//min
+        files.js.push("/Js/AxInterface.min.js?v=24");//min
         files.js.push("/ThirdParty/Highcharts/highcharts.js");
         files.js.push("/ThirdParty/Highcharts/highcharts-3d.js");
         files.js.push("/ThirdParty/Highcharts/highcharts-more.js");
         files.js.push("/ThirdParty/Highcharts/highcharts-exporting.js");
-        files.js.push("/Js/high-charts-functions.min.js?v=23");//min
+        files.js.push("/Js/high-charts-functions.min.js?v=24");//min
 
         files.js.push("/ThirdParty/DataTables-1.10.13/media/js/jquery.dataTables.js");
         files.js.push("/ThirdParty/DataTables-1.10.13/media/js/dataTables.bootstrap.js");
@@ -1001,7 +1001,7 @@ Main Page Templete
         }
         files.js.push("/Js/AxHtml.min.js?v=2");
         files.css.push("/Css/ActiveList_MainPage.min.css?v=3");
-        files.js.push("/Js/ActiveList_mainpage.min.js?v=3");
+        files.js.push("/Js/ActiveList_mainpage.min.js?v=5");
     }
 
     let customStyleApplied = false;
@@ -1021,10 +1021,10 @@ Main Page Templete
     if (!customStyleApplied) {
         // files.css.push("/Css/axpertUI.min.css?v=50");
     }
-    files.css.push("/Css/AxNotifications.min.css?v=1");
+    files.css.push("/Css/AxNotifications.min.css?v=2");
     files.js.push("/Js/signalr.min.js");
-    files.js.push("/Js/axpertUI.min.js?v=118");
-    files.js.push("/Js/AxNotifications.min.js?v=5");
+    files.js.push("/Js/axpertUI.min.js?v=120");
+    files.js.push("/Js/AxNotifications.min.js?v=19");
 
     var dirLeft = true;
 
@@ -1042,6 +1042,14 @@ Main Page Templete
 
             // }
             renderTemplete('template.templateContent');
+            var userOptionsMenu = document.querySelector("#AllUserOptions + [data-kt-menu='true']");
+            if (userOptionsMenu) {
+                userOptionsMenu.addEventListener("click", function (event) {
+                    var link = event.target.closest("a[href='#']");
+                    if (link && userOptionsMenu.contains(link))
+                        event.preventDefault();
+                }, true);
+            }
 
             $(function () {
 

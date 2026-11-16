@@ -85,10 +85,10 @@
     <title><%=appTitle%></title>
     <link rel="shortcut icon" href="../images/favicon.ico" />
     <script src="../Js/xmlToJson.js?v=2"></script>
-    <script src="../Js/helper.min.js?v=172"></script>
+    <script src="../Js/helper.min.js?v=181"></script>
     <script src="../assets/js/loadingoverlay.min.js?v=3" type="text/javascript"></script>
-    <script type="text/javascript" src="../Js/common.min.js?v=149"></script>
-    <script src="../Js/process.min.js?v=324"></script>
+    <script type="text/javascript" src="../Js/common.min.js?v=167"></script>
+    <script src="../Js/process.min.js?v=362"></script>
     <script type="text/javascript" src="../Js/lang/content-<%=langType%>.js?v=64"></script>
     <script src="../ThirdParty/QRcode/qrcode.js?v=1"></script>
 
@@ -174,17 +174,22 @@
         var reportJs = '<%=Scripts.RenderFormat("{0},", "~/Js/report").ToString().Replace("\r\n", "")%>'.split(",").filter(file => file).map(file => window.location.origin + file);
         var aspBundleJs = '<%=Scripts.RenderFormat("{0},", "~/Js/aspJs").ToString().Replace("\r\n", "")%>'.split(",").filter(file => file).map(file => window.location.origin + file);
         var pwdExpDaysAlert = '<%=pwdExpDays%>';
+        var axpertstudioReact = '<%=axpertstudioReact%>';
+        var axOldModelFlag = '<%=axOldModelFlag%>';
+        var axpertDevOpt = '<%=axpertDevOpt%>';
+        var axicmdEnabled = '<%=axicmdEnabled%>';
+        <%--var isAxiPlugin = '<%=isAxiPlugin%>';--%>
         var encPublicKey = '<%=encPublicKey%>';
     </script>
     <script type="text/javascript" src="../Js/util.min.js?v=2"></script>
     <script src="../Js/sso.min.js?v=2" type="text/javascript"></script>
     <script src="../Js/msal.min.js" type="text/javascript"></script>
     <script src="../Js/okta-auth-js.min.js" type="text/javascript"></script>
-    <script type="text/javascript" src="../js/main.min.js?v=316"></script>
+    <script type="text/javascript" src="../js/main.min.js?v=349"></script>
 </head>
 
-<body id="mainNewPageBody" onload="ChangeDir('<');"
-    class="btextDir-<%=direction%> header-fixed header-tablet-and-mobile-fixed toolbar-enabled aside-fixed aside-default-enabled" dir="<%=direction%>" data-kt-aside-minimize="off" onunload="ClosePopUps();">
+<body id="mainNewPageBody"
+    class="btextDir-<%=direction%> header-fixed header-tablet-and-mobile-fixed toolbar-enabled aside-fixed aside-default-enabled" dir="<%=direction%>" data-kt-aside-minimize="off">
     <asp:Literal ID="templateStage" runat="server" Text=""></asp:Literal>
     <%--<form id="form1" runat="server" onclick="HideHelp();">--%>
     <form id="form1" runat="server" onclick="HideHelp();">
@@ -221,7 +226,7 @@
             <div style="display: none;">
                 <asp:HiddenField ID="hdParamsValues" runat="server" />
                 <asp:HiddenField ID="hdnDisplayTxt" runat="server" />
-                <asp:Button ID="btnSetParams" runat="server" OnClientClick="SetUnload('false');"
+                <asp:Button ID="btnSetParams" runat="server" data-ax-submit-unload="false"
                     OnClick="btnSetParams_Click" UseSubmitBehavior="true" />
             </div>
 
@@ -229,8 +234,8 @@
             <asp:HiddenField ID="hdnAction" runat="server" />
             <asp:HiddenField ID="draftsMessage" runat="server" />
             <asp:HiddenField ID="hdnAxGloRecId" runat="server" />
-            <div id="AxGloVarHTML" runat="server" style="display: none"/>
-            <div id="AxGloVarPopOverHTML" runat="server" style="display: none"/>
+            <div id="AxGloVarHTML" runat="server" style="display: none" />
+            <div id="AxGloVarPopOverHTML" runat="server" style="display: none" />
             <div id="divtheme" style="display: none">
                 <asp:Label ID="lbltheme" runat="server" Text=""></asp:Label>
                 <asp:DropDownList ID="DropDownList1" runat="server">
@@ -536,7 +541,7 @@
                                                     </li>
 
 
-                                                  <%--  <li id="exeiddownload" onclick="LoadIframe('AppDownload.aspx')"
+                                                    <%--  <li id="exeiddownload" onclick="LoadIframe('AppDownload.aspx')"
                                                         title="Download" style="display: none;">
                                                         <a href="javascript:void(0)"><i
                                                             class="glyphicon glyphicon-download-alt icon-basic-elaboration-browser-download"
@@ -823,6 +828,13 @@
         <asp:HiddenField ID="_antiforgery" runat="server" />
 
         <asp:HiddenField ID="hdnOpenNewtabSite" runat="server" />
+
+        <div id="waitDiv" class="page-loader rounded-2">
+            <div class="loader-box-wrapper d-flex">
+                <span class="loader"></span>
+                <span class="page-loader-text ps-3 boldest fs-5 py-5">Welcome</span>
+            </div>
+        </div>
     </form>
     <form name="clwindow" dir="<%=direction%>">
         <input type="hidden" name="clwin" value="" />

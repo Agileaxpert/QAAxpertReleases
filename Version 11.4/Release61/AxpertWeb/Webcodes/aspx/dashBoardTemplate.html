@@ -5,6 +5,7 @@
     <link rel="stylesheet" href="../UI/axpertUI/plugins.bundle.css">
     <link rel="stylesheet" href="../ThirdParty/fullcalendar/lib/main.min.css">
     <link rel="stylesheet" href="../ThirdParty/jquery-confirm-master/jquery-confirm.min.css">
+    <link rel="stylesheet" href="../css/axpertUI_dashboard.min.css?v=6">
 </head>
 <body>
     <div class="d-flex flex-column flex-root page-loading stay-page-loading">
@@ -12,6 +13,13 @@
         <div class="page d-flex flex-row flex-column-fluid">
             <!--begin::Wrapper-->
             <div class="wrapper d-flex flex-column flex-row-fluid position-relative bg-light">
+                <!-- Grouping Button -->
+                <div class="grouping-button-container">
+                    <button class="grouping-button" onclick="$.axpertUI_dashboard.dashboardGrouping.openCardGrouping()">
+                        <span class="material-icons">settings</span>
+                    </button>
+
+                </div>
                 <!--begin::Content-->
                 <div class="content fs-6 d-flex flex-column flex-column-fluid px-3 pt-5 pb-2" id="dvdashboard">
                     <div class="cardsPageWrapper d-none">
@@ -39,6 +47,7 @@
                             </div>
                         </div>
 
+
                         <ul class="cardsDesigner card list-group d-none mt-6"></ul>
                         <div class="cardsPlot mb-1">
                             <!-- Customized for Activelist Homepage -->
@@ -50,6 +59,8 @@
                                 </div>
                             </div>
                         </div>
+
+
                         <!-- </div> -->
 
                         <div class="d-none toolbar ms-5 pb-0">
@@ -102,35 +113,89 @@
         </div>
     </div>
 
+    <div class="modal fade" id="confirmationModal" tabindex="-1" aria-labelledby="confirmationModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="confirmationModalLabel">Confirm</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    Apply this change for?
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-primary" id="btnAllUsers">All Users</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" id="btnJustMyself">Myself</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="groupingModal" tabindex="-1" aria-labelledby="groupingModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-xl">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="groupingModalLabel">Cards Grouping Configuration</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="grid-container">
+                        <div class="grid-header">
+                            <div>S.No</div>
+                            <div>Group Name</div>
+                            <div>Charts selection</div>
+                            <div>Order No.</div>
+                            <div></div>
+                        </div>
+                        <div id="grid-body" class="scrollable-grid-body"></div>
+                        <button class="add-btn" onclick="$.axpertUI_dashboard.dashboardGrouping.addCardGroupingRow()">Add Row</button>
+                    </div>
+                </div>
+                <div class="modal-footer d-flex flex-row justify-content-between w-100">
+                    <div class="action_buttons d-inline-flex gap-2">
+                        <button type="button" onclick="$.axpertUI_dashboard.dashboardGrouping.resetCardGrouping()"
+                                class="btn btn-white btn-sm">
+                            Reset
+                        </button>
+                        <button type="button" onclick="$.axpertUI_dashboard.dashboardGrouping.validateAndSubmit()" class="btn btn-primary">Apply</button>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
 
 
     <script type="text/javascript" src="../UI/axpertUI/plugins.bundle.js"></script>
     <script type="text/javascript" src="../UI/axpertUI/scripts.bundle.js"></script>
     <script type="text/javascript" src="../ThirdParty/jquery-confirm-master/jquery-confirm.min.js"></script>
     <script type="text/javascript" src="../Js/alerts.min.js"></script>
-    <script type="text/javascript" src="../Js/helper.min.js?v=172"></script>
-    <script type="text/javascript" src="../Js/common.min.js?v=149"></script>
+    <script type="text/javascript" src="../Js/helper.min.js?v=181"></script>
+    <script type="text/javascript" src="../Js/common.min.js?v=167"></script>
     <script type="text/javascript" src="../ThirdParty/lodash.min.js?v=1"></script>
     <script type="text/javascript" src="../ThirdParty/deepdash.min.js"></script>
     <script type="text/javascript" src="../Js/handlebars.min.js?v=3"></script>
     <script type="text/javascript" src="../Js/handleBarsHelpers.min.js"></script>
-    <script type="text/javascript" src="../Js/AxInterface.min.js?v=13"></script>
+    <script type="text/javascript" src="../Js/AxInterface.min.js?v=24"></script>
     <script type="text/javascript" src="../ThirdParty/Highcharts/highcharts.js"></script>
     <script type="text/javascript" src="../ThirdParty/Highcharts/highcharts-3d.js"></script>
     <script type="text/javascript" src="../ThirdParty/Highcharts/highcharts-more.js"></script>
     <script type="text/javascript" src="../ThirdParty/Highcharts/highcharts-exporting.js"></script>
-    <script type="text/javascript" src="../Js/high-charts-functions.min.js?v=23"></script>
+    <script type="text/javascript" src="../Js/high-charts-functions.min.js?v=24"></script>
     <script type="text/javascript" src="../ThirdParty/DataTables-1.10.13/media/js/jquery.dataTables.js"></script>
     <script type="text/javascript" src="../ThirdParty/DataTables-1.10.13/media/js/dataTables.bootstrap.js"></script>
     <script type="text/javascript" src="../ThirdParty/DataTables-1.10.13/extensions/Extras/moment.min.js"></script>
     <script type="text/javascript" src="../ThirdParty/fullcalendar/lib/main.min.js"></script>
-    <script type="text/javascript" src="../Js/axpertUI_dashboard.min.js?v=4"></script>
+    <script type="text/javascript" src="../Js/Entity-common.min.js?v=18"></script>
+    <script type="text/javascript" src="../Js/axpertUI_dashboard.min.js?v=9"></script>
 
     <script type="text/javascript">
+        var _entityCommon = new EntityCommon();
         $(document).ready(function () {
             ShowDimmer(true);
             deepdash(_);
             var enableMasonry = false;
+
             try {
                 var dashcardsData = "";
                 var cardsDesign = "";
@@ -143,6 +208,12 @@
                     contentType: "application/json",
                     success: function (data) {
                         if (data && data.d) {
+                            if (data.d !== "" && data.d.indexOf("SESSION_TIMEOUT") > -1) {
+                                window.location.href = "../aspx/sess.aspx";
+                                return;
+                            }
+
+
                             let _dbcards = data.d;
                             dashcardsData = _dbcards.split('♦')[0];
                             cardsDesign = _dbcards.split('♦')[1];
@@ -153,7 +224,8 @@
                     }
                 });
                 if (dashcardsData == "") {
-                    showAlertDialog("error", "No dashboard cards available.");
+                    //showAlertDialog("error", "No dashboard cards available.");
+                    showAlertDialog("error", appGlobalVarsObject.lcm[572]);            
                     return;
                 }
                 appGlobalVarsObject._CONSTANTS.dashboardcardsPage = {

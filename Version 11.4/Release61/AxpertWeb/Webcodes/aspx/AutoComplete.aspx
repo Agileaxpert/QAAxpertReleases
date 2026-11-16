@@ -1,4 +1,4 @@
-<%@ Page Language="C#" AutoEventWireup="true" CodeFile="AutoComplete.aspx.cs" Inherits="aspx_AutoComplete" %>
+﻿<%@ Page Language="C#" AutoEventWireup="true" CodeFile="AutoComplete.aspx.cs" Inherits="aspx_AutoComplete" %>
 
 <!DOCTYPE html>
 
@@ -27,12 +27,12 @@
     <script src="../UI/axpertUI/datatables.bundle.js"></script>
     <script src="../Js/noConflict.min.js"></script>
 
-    <script type="text/javascript" src="../Js/tstruct.min.js?v=632"></script>
-    <script type="text/javascript" src="../Js/helper.min.js?v=172"></script>
-    <script type="text/javascript" src="../Js/jsclient.min.js?v=116"></script>
+    <script type="text/javascript" src="../Js/tstruct.min.js?v=707"></script>
+    <script type="text/javascript" src="../Js/helper.min.js?v=181"></script>
+    <script type="text/javascript" src="../Js/jsclient.min.js?v=119"></script>
 
     <script src="../Js/advSearch.min.js?v=27" type="text/javascript"></script>
-    <script src="../Js/common.min.js?v=149" type="text/javascript"></script>
+    <script src="../Js/common.min.js?v=167" type="text/javascript"></script>
     <script type="text/javascript">
         var _isMulSel = '<%=_isMulSel%>';
         var IsFormDirty = false;

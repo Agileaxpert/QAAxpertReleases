@@ -59,6 +59,7 @@ public class BundleConfig
             //"~/UI/axpertUI/plugins.bundle.css",
             "~/ThirdParty/jquery-confirm-master/jquery-confirm.min.css",
             "~/ThirdParty/bgrins-spectrum/spectrum.css"
+            //"~/Css/iviewNewUi114.css"
         );
         smartviewsCSS.EnableFileExtensionReplacements = true;
         smartviewsCSS.Transforms.Add(CssContentMimeType);
@@ -157,7 +158,8 @@ public class BundleConfig
             "~/ThirdParty/gridstack.js/dist/gridstack.css",
             "~/UI/axpertUI/datatables.bundle.css",
             "~/ThirdParty/codemirror/codemirror.css",
-            "~/ThirdParty/Tribute/tribute.css"
+            "~/ThirdParty/Tribute/tribute.css",
+            "~/Css/tstructNewUi114.css"
         );
         formCSS.EnableFileExtensionReplacements = true;
         formCSS.Transforms.Add(CssContentMimeType);
@@ -193,6 +195,7 @@ public class BundleConfig
              "~/Js/multiselect.min.js",
              "~/Js/sqlBuilder.js",
              "~/Js/createTheEditor.js",//min
+             "~/Js/htmlPages.js",
              "~/Js/codemirror/codemirror.js",
              "~/Js/codemirror/mode/sql.js",
              "~/Js/codemirror/addon/hint/sql-hint.js",
@@ -250,6 +253,142 @@ public class BundleConfig
         aspJs.Transforms.Add(JsContentMimeType);
         aspJs.Orderer = new BundleSorter();
         bundles.Add(aspJs);
+        #endregion
+
+        #region ArrangeMenu => ArrangeMenu.aspx
+        var ArrangeMenuCSS = new Bundle("~/Css/ArrangeMenu");
+        ArrangeMenuCSS.Include(
+            "~/ThirdParty/DataTables-1.10.13/extensions/Responsive/css/responsive.bootstrap.min.css",
+            "~/Css/thirdparty/bootstrap/3.3.6/bootstrap.min.css",
+            "~/Css/Icons/icon.css",
+            "~/Css/thirdparty/font-awesome/4.6.3/css/font-awesome.min.css",
+            "~/ThirdParty/jquery-confirm-master/jquery-confirm.min.css",
+            "~/Css/thirdparty/jquery-ui/1.12.1/jquery-ui.min.css",
+            "~/Css/thirdparty/jquery-ui/1.12.1/jquery-ui.structure.min.css",
+            "~/Css/thirdparty/jquery-ui/1.12.1/jquery-ui.theme.min.css",
+            "~/Css/globalStyles.css",
+            //"~/ThirdParty/materialize/css/materialize.min.css",
+            "~/ThirdParty/fancytree-master/src/skin-material/ui.fancytree.css",
+            "~/Css/arrangeMenu.css",
+            "~/Css/iconPopup.css"
+            );
+        ArrangeMenuCSS.EnableFileExtensionReplacements = true;
+        ArrangeMenuCSS.Transforms.Add(CssContentMimeType);
+        ArrangeMenuCSS.Transforms.Insert(0, new CssRewriteUrlTransformWrapper());
+        ArrangeMenuCSS.Orderer = new BundleSorter();
+        bundles.Add(ArrangeMenuCSS);
+
+        var ArrangeMenuJS = new Bundle("~/Js/ArrangeMenuJS")
+           .Include(
+            "~/Js/thirdparty/jquery/3.1.1/jquery.min.js",
+            "~/Js/noConflict.min.js",
+            "~/ThirdParty/lodash.min.js",
+            "~/Js/thirdparty/bootstrap/3.3.6/bootstrap.min.js",
+            "~/Js/thirdparty/jquery-ui/1.12.1/jquery-ui.min.js",
+            "~/ThirdParty/jquery-confirm-master/jquery-confirm.min.js",
+            "~/Js/alerts.js",//min
+            "~/newPopups/Remodal/remodal.js",//min
+            "~/newPopups/axpertPopup.js",//min
+            "~/ThirdParty/fancytree-master/src/jquery.fancytree.js",
+            "~/ThirdParty/fancytree-master/src/jquery-ui-dependencies/jquery.fancytree.ui-deps.js",
+            "~/ThirdParty/fancytree-master/src/jquery.fancytree.dnd5.js",
+            "~/ThirdParty/fancytree-master/src/jquery.fancytree.edit.js",
+            "~/ThirdParty/fancytree-master/src/jquery.fancytree.glyph.js",
+            "~/ThirdParty/fancytree-master/src/jquery.fancytree.filter.js",
+            "~/Js/xmlToJson.min.js",
+            "~/Js/ArrangeMenu.js",
+            "~/Js/common.js",
+            "~/Js/iconPopup.js"
+             );
+        ArrangeMenuJS.EnableFileExtensionReplacements = true;
+        ArrangeMenuJS.Transforms.Add(JsContentMimeType);
+        ArrangeMenuJS.Orderer = new BundleSorter();
+        bundles.Add(ArrangeMenuJS);
+        #endregion
+
+        #region DbScript => AxDbscript.aspx
+        var DbScriptCSS = new Bundle("~/Css/DbScript");
+        DbScriptCSS.Include(
+            "~/ThirdParty/DataTables-1.10.13/media/css/jquery.dataTables.css",
+            "~/ThirdParty/DataTables-1.10.13/extensions/Responsive/css/responsive.bootstrap.min.css",
+            "~/Css/thirdparty/bootstrap/3.3.6/bootstrap.min.css",
+            "~/newPopups/Remodal/remodal-default-theme.min.css",
+            "~/newPopups/Remodal/remodal.min.css",
+            "~/Css/axpertPopup.css",
+            "~/Css/Icons/icon.css",
+            "~/Css/thirdparty/font-awesome/4.6.3/css/font-awesome.min.css",
+            "~/ThirdParty/jquery-confirm-master/jquery-confirm.min.css",
+            "~/Css/thirdparty/jquery-ui/1.12.1/jquery-ui.min.css",
+            "~/Css/thirdparty/jquery-ui/1.12.1/jquery-ui.structure.min.css",
+            "~/Css/thirdparty/jquery-ui/1.12.1/jquery-ui.theme.min.css",
+            "~/Css/globalStyles.css",
+            "~/Css/codemirror.css",
+            "~/ThirdParty/codemirror/theme/elegant.css",
+            "~/ThirdParty/codemirror/addon/hint/show-hint.css",
+            "~/ThirdParty/fancytree-master/src/skin-material/ui.fancytree.css",
+            "~/Css/dbScript.css"
+        );
+        DbScriptCSS.EnableFileExtensionReplacements = true;
+        DbScriptCSS.Transforms.Add(CssContentMimeType);
+        DbScriptCSS.Transforms.Insert(0, new CssRewriteUrlTransformWrapper());
+        DbScriptCSS.Orderer = new BundleSorter();
+        bundles.Add(DbScriptCSS);
+
+        var DbScriptJS = new Bundle("~/Js/DbScriptJS")
+            .Include(
+             "~/Js/thirdparty/jquery/3.1.1/jquery.min.js",
+             "~/Js/noConflict.min.js",
+             "~/ThirdParty/lodash.min.js",
+             "~/ThirdParty/DataTables-1.10.13/media/js/jquery.dataTables.min.js",
+             "~/ThirdParty/DataTables-1.10.13/media/js/dataTables.bootstrap.min.js",
+             "~/ThirdParty/jquery-confirm-master/jquery-confirm.min.js",
+             "~/Js/alerts.js",//min
+             "~/newPopups/Remodal/remodal.js",//min
+             "~/newPopups/axpertPopup.js",//min
+             "~/Js/thirdparty/bootstrap/3.3.6/bootstrap.min.js",
+             //"~/Js/handlebars.min.js",
+             "~/Js/thirdparty/jquery-ui/1.12.1/jquery-ui.min.js",
+             "~/Js/thirdparty/jquery-resizable.min.js",
+             "~/Js/codemirror/codemirror.js",
+             "~/Js/codemirror/mode/sql.js",
+             "~/Js/codemirror/addon/edit/matchbrackets.js",
+             "~/ThirdParty/codemirror/addon/edit/closebrackets.js",
+             "~/ThirdParty/codemirror/addon/hint/show-hint.js",
+             "~/ThirdParty/codemirror/addon/hint/sql-hint.js",
+             "~/ThirdParty/fancytree-master/src/jquery-ui-dependencies/jquery.fancytree.ui-deps.js",
+             "~/ThirdParty/fancytree-master/src/jquery.fancytree.js",
+             "~/ThirdParty/fancytree-master/src/jquery.fancytree.glyph.js",
+             "~/ThirdParty/fancytree-master/src/jquery.fancytree.filter.js",
+             "~/Js/xmlToJson.min.js",
+             "~/Js/AxDBScript.js",
+             "~/Js/common.js"
+             );
+        DbScriptJS.EnableFileExtensionReplacements = true;
+        DbScriptJS.Transforms.Add(JsContentMimeType);
+        DbScriptJS.Orderer = new BundleSorter();
+        bundles.Add(DbScriptJS);
+        #endregion
+
+        #region DataPage => EntityForm.aspx       
+        var DataPageJS = new Bundle("~/Js/DataPageJS")
+            .Include(
+             "~/ThirdParty/jquery-confirm-master/jquery-confirm.min.js",
+             "~/Js/noConflict.min.js",
+             "~/Js/alerts.min.js",
+             "~/Js/handlebars.min.js",
+             "~/Js/common.js",
+             "~/js/process.js",
+             "~/Js/helper.js",
+             "~/Js/util.js",
+             "~/Js/jsclient.js",
+             "~/Js/tstructvars.js",
+             "~/Js/Entity-common.js",
+             "~/Js/EntityForm.js"
+             );
+        DataPageJS.EnableFileExtensionReplacements = true;
+        DataPageJS.Transforms.Add(JsContentMimeType);
+        DataPageJS.Orderer = new BundleSorter();
+        bundles.Add(DataPageJS);
         #endregion
 
     }

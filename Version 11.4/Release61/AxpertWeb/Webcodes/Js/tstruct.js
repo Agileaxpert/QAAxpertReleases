@@ -394,8 +394,9 @@ function clearHiddenGridstack(divId, isTable = false) {
                 return ele.dc_id == thisDC
             })[0];
         }
-    } catch (ex) {}
-    if (DCIsGrid[thisDC - 1] == "True" && axInlineGridEdit && theMode == "design") {
+    } catch (ex) { }
+    let _dcInx = $j.inArray(thisDC, DCFrameNo);
+    if (DCIsGrid[_dcInx] == "True" && axInlineGridEdit && theMode == "design") {
         $("#wrapperForEditFields" + thisDC).hide();
     }
 
@@ -420,6 +421,8 @@ function clearHiddenGridstack(divId, isTable = false) {
         if (!isTable) {
             var gsiY = "";
             var prevIndId = 0;
+            let layoutOrder = [];
+            let visibleElements = [];
             currentDC.fieldsDesign.filter(function (elm, ind) {
                 elm = generateRtlPos(elm);
                 //if (!designObj[0].newDesign && theMode == "render") {
@@ -612,10 +615,54 @@ function clearHiddenGridstack(divId, isTable = false) {
                             $("#" + divId).data('gridstack').resize(dvElem, elm.width, elm.height);
                             dvElem.find(".form-control").css(gsiHeight);
                             applyGridStackCalcHeight(dvElem.find("textarea.gridstackCalc, input[type=button].hotbtn.btn"), elm, gsiHeight, fullFieldHeight);
+
+
+
+                            layoutOrder.push({
+                                fld_id: elm.fld_id,
+                                width: elm.width,
+                                height: elm.height,
+                                x: elm.x,
+                                y: elm.y
+                            });
+
+                            var dvElem = $("#dv" + elm.fld_id).parents(".grid-stack-item");
+                            /*if (dvElem.is(":visible")) {*/
+                            if (!dvElem.hasClass('d-none') && !dvElem.hasClass('hide')) {
+                                visibleElements.push({
+                                    elm: elm,
+                                    dvElem: dvElem
+                                });
+                            }
                         }
                     }
                 }
                 return !elm.visibility;
+            });
+
+            $.each(visibleElements, function (i, item) {
+                var gsiHeight = "height";
+                var fullFieldHeight = "height";
+                var $grid = $("#" + divId).data('gridstack');
+                var layout = layoutOrder[i]; // Get the i-th layout slot
+                var elm = item.elm;
+                var dvElem = item.dvElem;
+
+                elm.x = layout.x;
+                elm.y = layout.y;
+                elm.width = layout.width;
+                elm.height = layout.height;
+
+                $grid.move(dvElem, elm.x, elm.y);
+                $grid.resize(dvElem, elm.width, elm.height);
+
+                dvElem.find(".form-control").css(gsiHeight);
+                applyGridStackCalcHeight(
+                    dvElem.find("textarea.gridstackCalc, input[type=button].hotbtn.btn"),
+                    elm,
+                    gsiHeight,
+                    fullFieldHeight
+                );
             });
         } else {
             //currentDC.dc_id
@@ -701,6 +748,9 @@ function toggleStaticRunMode() {
 }
 
 function goToDesignMode() {
+    if (CheckBtnReadOnly('goToDesignMode()')) {
+        return;
+    }
     if (AxIsTstructLocked)
         return;
 
@@ -796,14 +846,18 @@ function AddFormLabel(ele = "") {
         });
     }
     var dvHtml = `<div class="container-fluid"><div class="row">`;
-    dvHtml += `<div class="column col-sm-12 col-md-12 col-lg-12"><textarea id="txtlblcaption" class="form-control" rows="2" style="resize: none;">` + editCaption + `</textarea></div>`; // style="min-height: 150px; min-width: 500px; max-height: 150px; max-width: 700px;"
+    dvHtml += `<div class="column col-sm-12 col-md-12 col-lg-12"><textarea id="txtlblcaption" class="form-control" rows="2" style="resize: none;">` + editCaption + `</textarea></div>`;
     dvHtml += `</div>`;
-
     dvHtml += `</div>`;
-    let footerHTML = `<div class="modal-footer"><button id="btnlcOk" title="Ok" value="Ok" class="hotbtn btn" onclick="AddFormLabelCaption('label','` + ele + `');">Ok</button></div>`;
-    displayBootstrapModalDialog("Caption", "sm", "50px", "", dvHtml, false, () => {
+    let footerHTML = `<div class="modal-footer"><button id="btnlcOk" title="Ok" value="Ok" class="btn btn-primary shadow-sm" onclick="AddFormLabelCaption('label','` + ele + `');">Ok</button></div>`;
+    
+    let myModal = new BSModal("modalLabelCaption", "Caption", dvHtml, () => {
         $(".modal-content").append(footerHTML);
+    }, () => {
+        //hide callback
     });
+    myModal.changeSize("lg");
+    myModal.hideFooter();
 }
 
 function AddFormLabelCaption(eleType, ele) {
@@ -877,7 +931,7 @@ function ChangeFontAndColor(ele, ctType) {
             (new PropertySheet()).generateFontPicker($(iconBtnFldId));
             setTimeout(function () {
                 $("#filterBtn #btnFilter").hide();
-                $("#filterBtn").append(`<input type="button" name="btnFilterReturn" value="Ok" onclick="callBackFontPicker('` + ele + `','` + ctType + `')" id="btnFilterReturn" title="Ok" class="hotbtn btn handCursor allow-enter-key" style="">`);
+                $("#filterBtn").append(`<input type="button" name="btnFilterReturn" value="Ok" onclick="callBackFontPicker('` + ele + `','` + ctType + `')" id="btnFilterReturn" title="Ok" class="btn btn-primary shadow-sm ms-auto handCursor allow-enter-key" style="">`);
             }, 300);
         }
     });
@@ -953,25 +1007,25 @@ function LabelHyperlink(ele, ctType) {
     if (typeof flJson.hyperlinkJson != "undefined" && flJson.hyperlinkJson != "")
         hylinkJson = JSON.parse(flJson.hyperlinkJson);
     var dvHtml = `<div class="container-fluid"><div class="row">`;
-    dvHtml += `<div class="form-group col-sm-12 col-md-12 col-lg-12"><div class="col-sm-2 col-md-2 col-lg-2"><span>Name</span></div><div class="col-sm-4 col-md-4 col-lg-4">`;
+    dvHtml += `<div class="col-md-12 d-flex pb-2"><div class="col-md-2"><span>Name</span></div><div class="col-md-4">`;
     if (typeof flJson.hyperlinkJson != "undefined" && flJson.hyperlinkJson != "")
         dvHtml += `<input type="textbox" id="txtHlName" class="form-control" value="` + hylinkJson.name + `" readonly/>`;
     else
         dvHtml += `<input type="textbox" id="txtHlName" class="form-control"/>`;
 
     dvHtml += `</div></div>`;
-    dvHtml += `<div class="form-group col-sm-12 col-md-12 col-lg-12"><div class="col-sm-2 col-md-2 col-lg-2"><span>Type</span></div><div class="col-sm-4 col-md-4 col-lg-4">`;
-    dvHtml += `<select name="ddlHlType" id="ddlHlType" class="form-control" onchange="labelHyperlinkType(this);" value="` + ((typeof flJson.hyperlinkJson != "undefined" && flJson.hyperlinkJson != "") ? hylinkJson.type : "") + `">
+    dvHtml += `<div class="col-md-12 d-flex pb-2"><div class="col-md-2"><span>Type</span></div><div class="col-md-4">`;
+    dvHtml += `<select name="ddlHlType" id="ddlHlType" class="form-control form-select" onchange="labelHyperlinkType(this);" value="` + ((typeof flJson.hyperlinkJson != "undefined" && flJson.hyperlinkJson != "") ? hylinkJson.type : "") + `">
   <option value=""></option>
         <option value="tstruct">tstruct</option>
   <option value="iview">iview</option>
   <option value="page">page</option>
-</select></div><div class="col-sm-2 col-md-2 col-lg-2"><span>Structure Name</span></div><div class="col-sm-4 col-md-4 col-lg-4"><select name="ddlStructName" id="ddlStructName" class="form-control" onchange="labelHyperlinkStructName(this);" value="` + ((typeof flJson.hyperlinkJson != "undefined" && flJson.hyperlinkJson != "") ? hylinkJson.structName : "") + `"></select></div></div>`;
+</select></div><div class="col-md-2 ps-2"><span>Structure Name</span></div><div class="col-md-4"><select name="ddlStructName" id="ddlStructName" class="form-control form-select" onchange="labelHyperlinkStructName(this);" value="` + ((typeof flJson.hyperlinkJson != "undefined" && flJson.hyperlinkJson != "") ? hylinkJson.structName : "") + `"></select></div></div>`;
 
-    dvHtml += `<div class="form-group col-sm-12 col-md-12 col-lg-12"><div class="col-sm-2 col-md-2 col-lg-2"></div><div class="col-sm-4 col-md-4 col-lg-4"><input type="checkbox" class="" id="chkpivtst" ` + ((typeof flJson.hyperlinkJson != "undefined" && flJson.hyperlinkJson != "") ? (hylinkJson.ivtstpopup == "true" ? "checked" : "") : "") + `> Popup iview/tstruct</input></div><div class="col-sm-4 col-md-4 col-lg-4"><input type="checkbox" class="" id="refreshparent" ` + ((typeof flJson.hyperlinkJson != "undefined" && flJson.hyperlinkJson != "") ? (hylinkJson.refreshparent == "true" ? "checked" : "") : "") + `> Refresh parent on close</input></div></div>`;
+    dvHtml += `<div class="col-md-12 d-flex pb-2 ps-2"><div class="col-md-2"></div><div class="col-md-4"><input type="checkbox" class="" id="chkpivtst" ` + ((typeof flJson.hyperlinkJson != "undefined" && flJson.hyperlinkJson != "") ? (hylinkJson.ivtstpopup == "true" ? "checked" : "") : "") + `> Popup iview/tstruct</input></div><div class="col-md-4 ps-2"><input type="checkbox" class="" id="refreshparent" ` + ((typeof flJson.hyperlinkJson != "undefined" && flJson.hyperlinkJson != "") ? (hylinkJson.refreshparent == "true" ? "checked" : "") : "") + `> Refresh parent on close</input></div></div>`;
 
-    dvHtml += `<div class="form-group col-sm-12 col-md-12 col-lg-12"><div class="col-sm-2 col-md-2 col-lg-2"></div><div class="col-sm-4 col-md-4 col-lg-4"><input type="radio" name="hyperlnikradio" value="load" ` + ((typeof flJson.hyperlinkJson != "undefined" && flJson.hyperlinkJson != "") ? (hylinkJson.loadType == "load" ? "checked" : "") : "") + `> Load</input></div><div class="col-sm-4 col-md-4 col-lg-4"><input type="radio" name="hyperlnikradio" value="open" ` + ((typeof flJson.hyperlinkJson != "undefined" && flJson.hyperlinkJson != "") ? (hylinkJson.loadType == "open" ? "checked" : "") : "") + `> Open</input></div></div>`;
-    dvHtml += `<div class="form-group col-sm-12 col-md-12 col-lg-12"><table class="table table-bordered designTableHyperlink">
+    dvHtml += `<div class="col-md-12 d-flex pb-2 ps-2"><div class="col-md-2"></div><div class="col-md-4"><input type="radio" name="hyperlnikradio" value="load" ` + ((typeof flJson.hyperlinkJson != "undefined" && flJson.hyperlinkJson != "") ? (hylinkJson.loadType == "load" ? "checked" : "") : "") + `> Load</input></div><div class="col-md-4 ps-2"><input type="radio" name="hyperlnikradio" value="open" ` + ((typeof flJson.hyperlinkJson != "undefined" && flJson.hyperlinkJson != "") ? (hylinkJson.loadType == "open" ? "checked" : "") : "") + `> Open</input></div></div>`;
+    dvHtml += `<div class="col-md-12 d-flex pb-2 ps-2"><table class="table table-bordered designTableHyperlink">
   <thead> 
     <tr>
         <th class="col-fit"></th>
@@ -985,23 +1039,30 @@ function LabelHyperlink(ele, ctType) {
         $.each(paramNodeList, function (key, value) {
             let idInd = key + 1;
             let valList = value.split("~");
-            dvHtml += `<tr><td><input type="checkbox" name="chkHlParam"></td><td><select name="ddlParamName` + idInd + `" id="ddlParamName` + idInd + `" class="form-control" value="` + valList[0] + `"></select></td><td><input type="textbox" id="txtValue` + idInd + `" class="form-control" value="` + valList[1] + `"/></td></tr>`;
+            dvHtml += `<tr><td><input type="checkbox" name="chkHlParam"></td><td><select name="ddlParamName` + idInd + `" id="ddlParamName` + idInd + `" class="form-control form-select" data-val="` + valList[0] + `"><option value="` + valList[0] + `" selected>` + valList[0] + `</option></select></td><td><input type="textbox" id="txtValue` + idInd + `" class="form-control" value="` + valList[1] + `"/></td></tr>`;
         });
     } else {
         dvHtml += `<tr>
         <td><input type="checkbox" name="chkHlParam"></td>
-        <td><select name="ddlParamName1" id="ddlParamName1" class="form-control"></select></td>
+        <td><select name="ddlParamName1" id="ddlParamName1" class="form-control form-select"></select></td>
         <td><input type="textbox" id="txtValue1" class="form-control"/></td>
     </tr>`;
     }
     dvHtml += `</tbody></table></div>`;
-    dvHtml += `<div class="form-group col-sm-12 col-md-12 col-lg-12">
-    <button id="btnHlAdd" class="cardStyle designTableBtns" onclick="hlAddParam();"><span class="material-icons designTableIcons">add</span></button>
-    <button id="btnHlDelete" class="cardStyle designTableBtns" onclick="hlDeleteParam();"><span class="material-icons designTableIcons">delete</span></button>
-    <button id="btnlcOk" title="Ok" value="Ok" class="hotbtn btn pull-right" onclick="callBackHyperlink('` + ele + `','` + ctType + `')">Ok</button>
+    dvHtml += `<div class="col-md-12 d-flex pb-2 ps-2">
+    <button id="btnHlAdd" class="btn btn-bg-light btn-color btn-active-light shadow-sm cardStyle designTableBtns" onclick="hlAddParam();"><span class="material-icons designTableIcons">add</span></button>
+    <button id="btnHlDelete" class="btn btn-bg-light btn-color btn-active-light shadow-sm cardStyle designTableBtns" onclick="hlDeleteParam();"><span class="material-icons designTableIcons">delete</span></button>
+    <button id="btnlcOk" title="Ok" value="Ok" class="btn btn-primary shadow-sm ms-auto" onclick="callBackHyperlink('` + ele + `','` + ctType + `')">Ok</button>
     </div>`;
     dvHtml += `</div></div>`;
-    displayBootstrapModalDialog("Hyperlink", "sm", "400px", "", dvHtml, "", (typeof flJson.hyperlinkJson != "undefined" && flJson.hyperlinkJson != "") ? labelHyperlinkOnLoad() : "");
+
+    let myModal = new BSModal("modalHyperlink", "Hyperlink", dvHtml, () => {
+        (typeof flJson.hyperlinkJson != "undefined" && flJson.hyperlinkJson != "") ? labelHyperlinkOnLoad() : "";
+    }, () => {
+        //hide callback
+    });
+    myModal.changeSize("xl");
+    myModal.hideFooter();
 }
 
 
@@ -1033,7 +1094,7 @@ function hlAddParam() {
 function hlDeleteParam() {
     $(".designTableHyperlink tbody tr").filter(':has(:checkbox:checked)').remove()
     if ($(".designTableHyperlink tbody tr").length == 0)
-        $(".designTableHyperlink tbody").append(`<tr><td><input type="checkbox" name="chkHlParam"></td><td><select name="ddlParamName1" id="ddlParamName1" class="form-control"></select></td><td><input type="textbox" id="txtValue1" class="form-control"/></td></tr>`);
+        $(".designTableHyperlink tbody").append(`<tr><td><input type="checkbox" name="chkHlParam"></td><td><select name="ddlParamName1" id="ddlParamName1" class="form-control form-select"></select></td><td><input type="textbox" id="txtValue1" class="form-control"/></td></tr>`);
 }
 
 function callBackHyperlink(ele, ctType) {
@@ -1129,20 +1190,30 @@ function labelHyperlinkStructName(ele, selectedValonLoad = "") {
                             var output = [];
                             output.push('<option value=""></option>');
                             $.each(jVal.result.row, function (ind, obj) {
-                                if (obj.name != "")
+                                if (typeof obj.name != "undefined" && obj.name != "")
                                     output.push('<option value="' + obj.name + '">' + obj.caption + '</option>');
+                                else if (typeof obj.NAME != "undefined" && obj.NAME != "")
+                                    output.push('<option value="' + obj.NAME + '">' + obj.CAPTION + '</option>');
                             });
                             $(".designTableHyperlink tbody tr").each(function (ind, val) {
                                 $(val).find("select").empty().append(output.join(''));
                                 if (selectedValonLoad != "") {
-                                    let sVal = $(val).find("select").attr("value");
+                                    let sVal = $(val).find("select").attr("data-val");
                                     if (typeof sVal != "undefined" && sVal != "")
                                         $(val).find("select").val(sVal);
                                 }
                             });
+                        } else {
+                            $(".designTableHyperlink tbody tr").each(function (ind, val) {
+                                $(val).find("select").empty();
+                                $(val).find("input.form-control").val('');
+                            });
                         }
                     } else {
-                        jsonVal = "";
+                        $(".designTableHyperlink tbody tr").each(function (ind, val) {
+                            $(val).find("select").empty();
+                            $(val).find("input.form-control").val('');
+                        });
                     }
                 },
                 error: function (error) {
@@ -1157,9 +1228,10 @@ function labelHyperlinkType(ele, selectedValonLoad = "") {
     let jsonVal = "";
     let selectedValue = $(ele).val();
     if (selectedValue != "") {
-
-        $(".designTableHyperlink tbody tr").remove();
-        $(".designTableHyperlink tbody").append(`<tr><td><input type="checkbox" name="chkHlParam"></td><td><select name="ddlParamName1" id="ddlParamName1" class="form-control"></select></td><td><input type="textbox" id="txtValue1" class="form-control"/></td></tr>`);
+        if (selectedValonLoad == "") {
+            $(".designTableHyperlink tbody tr").remove();
+            $(".designTableHyperlink tbody").append(`<tr><td><input type="checkbox" name="chkHlParam"></td><td><select name="ddlParamName1" id="ddlParamName1" class="form-control form-select"></select></td><td><input type="textbox" id="txtValue1" class="form-control"/></td></tr>`);
+        }
         if (selectedValue == "page") {
             $("#chkpivtst,#refreshparent").prop("disabled", true);
             $('input[name="hyperlnikradio"]').prop("disabled", true);
@@ -1195,8 +1267,10 @@ function labelHyperlinkType(ele, selectedValonLoad = "") {
                             var output = [];
                             output.push('<option value=""></option>');
                             $.each(jVal.result.row, function (ind, obj) {
-                                if (obj.name != "")
+                                if (typeof obj.name != "undefined" && obj.name != "")
                                     output.push('<option value="' + obj.name + '">' + obj.caption + '</option>');
+                                else if (typeof obj.NAME != "undefined" && obj.NAME != "")
+                                    output.push('<option value="' + obj.NAME + '">' + obj.CAPTION + '</option>');
                             });
                             $('#ddlStructName').empty().html(output.join(''));
                             if (selectedValonLoad != "") {
@@ -1241,7 +1315,7 @@ function RemoveLabelHyperlink(ele) {
 function customTstHtml() {
     // displayBootstrapModalDialog("Custom HTML", "lg", "370px", true, "./tstructhtml.aspx", true);
     ShowDimmer(true);
-    let myModal = new BSModal("tstCustomHtml", "Custom HTML", "<iframe class='col-12 h-100' src='./tstructhtml.aspx'></iframe>", () => {
+    let myModal = new BSModal("tstCustomHtml", "Custom HTML", `<iframe class="col-12 h-100" src="./tstructhtml.aspx?transid=${transid}"></iframe>`, () => {
         //shown callback
     }, () => {
         //hide callback
@@ -1260,8 +1334,25 @@ function goToRenderMode() {
     } else {
         //window.location.href = "tstruct.aspx" + window.location.search.replace(/&theMode=design/g, "");
         //callParentNew("lastLoadtstId=", _thisRui);
-        let _thisRui = 'tstruct.aspx?transid=' + transid + '&openerIV=ttotl&isIV=false';
-        callParentNew(`LoadIframe(${_thisRui})`, "function");
+
+        //let _thisRui = 'tstruct.aspx?transid=' + transid + '&openerIV=ttotl&isIV=false';
+        //callParentNew(`LoadIframe(${_thisRui})`, "function");
+
+        let iframes = window.parent.document.getElementsByTagName('iframe');
+        let currentIframe = null;
+        for (let i = 0; i < iframes.length; i++) {
+            if (iframes[i].contentWindow === window) {
+                currentIframe = iframes[i];
+                break;
+            }
+        }
+        let _thisIframe = $(currentIframe).attr("id");
+        if (typeof _thisIframe != "undefined" && _thisIframe == "middle1") {
+            let _thisRui = "tstruct.aspx" + window.location.search.replace(/&theMode=design/g, "");
+            callParentNew(`LoadIframe(${_thisRui})`, "function");
+        } else {
+            window.location.href = "tstruct.aspx" + window.location.search.replace(/&theMode=design/g, "");
+        }
     }
 
 }
@@ -1315,9 +1406,32 @@ function designLayoutProperties() {
         }
         $("#designForntSizeSelector").val(designObj[0].selectedFontSize == null ? "14" : designObj[0].selectedFontSize);
         $("#designForntSizeValue").val(designObj[0].selectedFontSize == null ? "14" : designObj[0].selectedFontSize);
-        $("#designFormWidthSelector").val(designObj[0].formWidth == null ? "100" : designObj[0].formWidth);
-        $("#designFormWidthValue").val(designObj[0].formWidth == null ? "100" : designObj[0].formWidth);
-        $("#designFormAlignmentSelector").val(designObj[0].formAlignment == null ? "default" : designObj[0].formAlignment);
+        // $("#designFormWidthSelector").val(designObj[0].formWidth == null ? "100" : designObj[0].formWidth);
+        // $("#designFormWidthValue").val(designObj[0].formWidth == null ? "100" : designObj[0].formWidth);
+        // $("#designFormAlignmentSelector").val(designObj[0].formAlignment == null ? "default" : designObj[0].formAlignment);
+        
+        if (designObj[0].formWidth == null) {
+            $("#designFormWidthSelector").val("100");
+        } else {
+            $("#designFormWidthSelector").val(designObj[0].formWidth);
+            $("#" + designObj[0].transid).css("width", $("#designFormWidthSelector").val() + "%");
+        }
+        if (designObj[0].formWidth == null) {
+            $("#designFormWidthValue").val("100");
+        } else {
+            //$("#dvlayout").removeClass("w-100");
+            $("#designFormWidthValue").val(designObj[0].formWidth);
+            $("#" + designObj[0].transid).css("width", $("#designFormWidthSelector").val() + "%");
+        }
+        if (designObj[0].formAlignment == null) {
+            $("#designFormAlignmentSelector").val("default");
+        } else {
+            if (!isMobile)
+                $("#dvlayout").removeClass("position-absolute");
+            $("#designFormAlignmentSelector").val(designObj[0].formAlignment);
+        }
+
+
         $("#designFieldCaptionWidthSelector").val(designObj[0].fieldCaptionWidth == null ? "30" : designObj[0].fieldCaptionWidth);
         $("#designFieldCaptionWidthValue").val(designObj[0].fieldCaptionWidth == null ? "30" : designObj[0].fieldCaptionWidth);
         dcLayoutType = designObj[0].dcLayout == null ? "default" : designObj[0].dcLayout;
@@ -1678,7 +1792,7 @@ function SaveDesignerJSONWeb() {
                 contentType: "application/json",
                 success: function (data) {
                     $("#designModeToolbar").css("pointer-events", "");
-                    if (data.d != "") {
+                    if (data.d != "" && !data.d.startsWith("error:")) {
                         SavedId = data.d;
                         $("#IsPublish").val("N");
                         var ispublish = $("#IsPublish").val();
@@ -1686,7 +1800,10 @@ function SaveDesignerJSONWeb() {
                         $("#PublishDesign").css("opacity", "1.0");
                         changeStatus("save");
                         showAlertDialog("success", DesigntstructMessages.designSaved);
-                    } else {
+                    } else if (data.d.startsWith("error:")) {
+                        showAlertDialog("error", data.d.replace(/^error:/, ''));
+                    }
+                    else {
                         showAlertDialog("error", "Error while save design, please check the trace file(using show logs) for more details.");
                     }
                 },
@@ -1788,13 +1905,16 @@ function PublishDesignerJSONWeb() {
             contentType: "application/json",
             success: function (data) {
                 $("#designModeToolbar").css("pointer-events", "");
-                if (data.d != "") {
+                if (data.d != "" && !data.d.startsWith("error:")) {
                     showAlertDialog("success", DesigntstructMessages.designPublished);
                     PublishId = data.d;
                     $("#PublishID").val(PublishId);
                     changeStatus("published");
                     $("#IsPublish").val("Y");
-                } else {
+                } else if (data.d.startsWith("error:")) {
+                    showAlertDialog("error", data.d.replace(/^error:/, ''));
+                }
+                else {
                     showAlertDialog("error", "Saved data not found.");
                 }
             },
@@ -1899,7 +2019,7 @@ function SavePublishDesignerJSONWeb(isSaveNormal = true) {
             contentType: "application/json",
             success: function (data) {
                 $("#designModeToolbar").css("pointer-events", "");
-                if (data.d != "") {
+                if (data.d != "" && !data.d.startsWith("error:")) {
                     SavedId = data.d.split('~')[0];
                     PublishId = data.d.split('~')[1];
                     $("#SaveID").attr("value", SavedId);
@@ -1916,7 +2036,10 @@ function SavePublishDesignerJSONWeb(isSaveNormal = true) {
                         pUrl = pUrl.split("#")[0];
                         window.location.href = pUrl;
                     }
-                } else {
+                } else if (data.d.startsWith("error:")) {
+                    showAlertDialog("error", data.d.replace(/^error:/, ''));
+                }
+                else {
                     showAlertDialog("error", "Error while save & publish design.");
                 }
             },
@@ -2059,7 +2182,7 @@ function ResetButtonClickedWeb() {
                         contentType: "application/json",
                         success: function (data) {
                             $("#designModeToolbar").css("pointer-events", "");
-                            if (data.d == "reseted") {
+                            if (data.d == "reseted" && !data.d.startsWith("error:")) {
                                 ShowDimmer(true);
                                 SavedId = "";
                                 $("#SaveID").val(SavedId);
@@ -2068,7 +2191,10 @@ function ResetButtonClickedWeb() {
                                 $("#IsPublish").val("N");
                                 showAlertDialog("success", DesigntstructMessages.resetSuccess);
                                 goToDesignMode();
-                            } else {
+                            } else if (data.d.startsWith("error:")) {
+                                showAlertDialog("error", data.d.replace(/^error:/, ''));
+                            }
+                            else {
                                 if (data.d === "500") {
                                     showAlertDialog("warning", DesigntstructMessages.alredayreset);
                                 } else {
@@ -2148,16 +2274,30 @@ function showHideGridStackField(op) {
 var multiSelectID = "";
 var draftTimer = "";
 
+function setGlobalParameters() {
+    if (typeof tstDummyLoadParams != "undefined" && tstDummyLoadParams != "") {
+        Parameters = [];
+        var regex = /Parameters\[(\d+)\]\s*=\s*"([^"]*)"/g;
+        var match;
+        while ((match = regex.exec(tstDummyLoadParams)) !== null) {
+            var index = parseInt(match[1]);
+            var value = match[2];
+            Parameters[index] = value;
+        }
+        tstDummyLoadParams = "";
+    }
+}
 function OnTstructLoad() {
     //Temporary code
     StartTime = new Date().getTime();
     //End Temporary code
     var stTime = new Date();
+    setGlobalParameters();
     if (isLoadDataCall == false)
         setListviewButtons();
     allRtfTextAreas();
     AxAllowCancel = true;
-
+    ClearRefreshOnSaveListLS();
     SetMRForFromList(AxFromLstFlds);
 
     jsonText = $j('#designHidden').val();
@@ -2190,7 +2330,8 @@ function OnTstructLoad() {
                 AssignTabDcHtmlPerf(dcTabHtml);
                 dcTabHtml = "";
                 DCFrameNo.forEach(function (dcID) {
-                    if (DCIsGrid[dcID - 1] == "True") {
+                    let _dcInx = $j.inArray(dcID, DCFrameNo);
+                    if (DCIsGrid[_dcInx] == "True") {
                         //ClearFieldsInDC(dcID);
                         SetRows(dcID, "", "d*", "LoadData"); //GIS000209
                         navValidator = true;
@@ -2198,10 +2339,24 @@ function OnTstructLoad() {
                         ChangedFieldDbRowNo = new Array();
                         ChangedFieldValues = new Array();
                         DeletedDCRows = new Array();
+                        DeletedDCs = new Array();
+                        DeletedRowNos = new Array();
                     }
                     SetFormDirty(false);
                 });
-            }           
+            } else {
+                for (i = 0; i < TabDCs.length; i++) {
+                    if (TabDCStatus[i] == "0") {
+                        let _tabdcNo = TabDCs[i];
+                        let _dcIdx = $j.inArray(_tabdcNo.toString(), DCFrameNo);
+                        let _curDcRCnt = $("#gridHd" + _tabdcNo + " tbody tr").length;
+                        if (IsDcGrid(_tabdcNo) && DCHasDataRows[_dcIdx] == "True" && _curDcRCnt == 0) {
+                            DCHasDataRows[_dcIdx] = "False";
+                        }
+                    }
+                }
+            }     
+            
             try {
                 if (typeof isCopyTrans != "undefined" && isCopyTrans)
                     isCopyTrans = false;
@@ -2277,8 +2432,13 @@ function OnTstructLoad() {
                         DropzoneGridInit("#divDc" + dvDcNo);
                     }
                 } else {
-                    DropzoneInit("#divDc" + dvDcNo);
-                    DropzoneGridInit("#divDc" + dvDcNo);
+                    if (isMobile && !axInlineGridEdit && AxpGridForm == "form") {
+                        DropzoneInitFormGridOnLoad("#divDc" + dvDcNo);
+                        DropzoneGridInitFormGridOnLoad("#divDc" + dvDcNo);
+                    } else {
+                        DropzoneInit("#divDc" + dvDcNo);
+                        DropzoneGridInit("#divDc" + dvDcNo);
+                    }
                 }
             }
         }
@@ -2328,7 +2488,8 @@ function OnTstructLoad() {
     if (appstatus != "Approved" && appstatus != "Rejected" && (!AxExecFormControl) && theMode != "design" && isOverridFomrControl) {
         DoFormControlOnload();
     }
-    if (appstatus != "Approved" && appstatus != "Rejected" && (!AxExecFormControl) && theMode != "design" && isOverridFomrControl) {
+    /*if (appstatus != "Approved" && appstatus != "Rejected" && (!AxExecFormControl) && theMode != "design" && isOverridFomrControl) {*/
+    if (!AxExecFormControl && theMode != "design" && isOverridFomrControl) {
         var rid = $j("#recordid000F0").val();
         if (rid != "0")
             DoScriptFormControl("", "On Data Load");
@@ -2368,6 +2529,10 @@ function OnTstructLoad() {
     } catch (ex) { }
 
     GetDcStateOnLodaData(isCopyTransLoad);
+    if (theModeDesign == 'false' && staticRunMode && typeof fldsHideOnPage != "undefined" && fldsHideOnPage == "true") {
+        setDesignedLayout("#wBdr");
+        fldsHideOnPage = "false";
+    }
 
     if (window.parent.enableDraft)
         EnableDraftFeature();
@@ -2455,7 +2620,8 @@ function OnTstructLoad() {
                     let dcNameId = DCName[i].substr(2);
                     $("#divDc" + dcNameId).removeClass("d-none");
                 }
-            } try {
+            }
+            try {
                 $(".ckbGridStretchSwitch").removeClass("disabled").attr("disabled", false);
             } catch (ex) { }
         } else {
@@ -2488,7 +2654,8 @@ function GridDcAddEmptyRows() {
     if (axInlineGridEdit || (!axInlineGridEdit && AxpGridForm == "form") || (isMobile && mobileCardLayout != "none")) {
         let dcgridCount = 0;
         DCFrameNo.forEach(function (dcID) {
-            if (DCIsGrid[dcID - 1] == "True") {
+            let _dcInx = $j.inArray(dcID, DCFrameNo);
+            if (DCIsGrid[_dcInx] == "True") {
                 var isAutoShow = false;
                 if (typeof wsPerfFGDcName != "undefined") {
                     if (jQuery.inArray("dc" + dcID, wsPerfFGDcName) != -1) {
@@ -2509,14 +2676,23 @@ function GridDcAddEmptyRows() {
                         dcgridCount++;
                         gridDummyRows = true;
                         lastRow = "001";
-                        if ((!axInlineGridEdit && AxpGridForm == "form") || (isMobile && mobileCardLayout != "none")) {
-                            if ($("#gridHd" + dcID + " tbody tr").length == 0) {
-                                editTheRow("", dcID, "", event);
-                            }
-                        } else {
-                            editTheRow("", dcID, lastRow, "event");
+                        if (typeof IsObjCustomHtml != "undefined" && IsObjCustomHtml == 'True') {
                             gridDummyRowVal.push(dcID + "~" + lastRow);
                             gridDummyRows = false;
+                        } else {
+                            if ((!axInlineGridEdit && AxpGridForm == "form") || (isMobile && mobileCardLayout != "none" && !axInlineGridEdit)) {
+                                if ($("#gridHd" + dcID + " tbody tr").length == 0) {
+                                    editTheRow("", dcID, "", event);
+                                    UpdateAxpRowVldInArray(dcID, "001", "1");
+                                    gridDummyRowVal.push(dcID + "~" + lastRow);
+                                    gridDummyRows = false;
+                                    gridRowEditOnLoad = true;
+                                }
+                            } else {
+                                editTheRow("", dcID, lastRow, "event");
+                                gridDummyRowVal.push(dcID + "~" + lastRow);
+                                gridDummyRows = false;
+                            }
                         }
                         try {
                             AxAfterAddRow(dcID, lastRow);
@@ -2530,6 +2706,11 @@ function GridDcAddEmptyRows() {
                                 setTimeout(function () {
                                     forceRowedit = true;
                                     gridRowEditOnLoad = true;
+                                    if (typeof IsObjCustomHtml != "undefined" && IsObjCustomHtml == 'True') {
+                                        var arrEditDiv = new Array();
+                                        arrEditDiv.push("#sp" + dcID + "R" + lastRow + "F" + dcID);
+                                        AssignJQueryEvents(arrEditDiv);
+                                    }
                                     $("#gridHd" + dcID + " tr#sp" + dcID + "R" + lastRow + "F" + dcID + " td:eq(2)").click();
                                     swicthCompressMode(dcID);
                                 }, 0);
@@ -2559,7 +2740,7 @@ function GridDcAddEmptyRows() {
                         tabDcSt = TabDCStatus[tabInd];
                     if (tabDcSt == 1) {
                         GetTabData(_tGdc);
-                        return false; 
+                        return false;
                     }
                 }
             });
@@ -2930,9 +3111,10 @@ function MainBlur(fldObj) {
         newFldValue = GetFieldValueNew(fldId);// GetFieldValue(fldId);
 
         if (fldType == "Numeric") {
+            let maskType = "";
+            const isPermMasked = IsPermissionMaskedField(fName);
             try {
-                if (typeof FldMaskType != "undefined" || typeof ScriptMaskFields != "undefined") {
-                    let maskType = "";
+                if (!isPermMasked && (typeof FldMaskType != "undefined" || typeof ScriptMaskFields != "undefined")) {                   
                     if (ScriptMaskFields.length > 0) {
                         var idx = $j.inArray(fName, ScriptMaskFields);
                         if (idx != -1)
@@ -2948,11 +3130,23 @@ function MainBlur(fldObj) {
                     }
                 }
             } catch (ex) { }
+            if (isPermMasked) {
+                let permFldValue = GetFieldValue(fldId);
+                if (AxOldValue == newFldValue && permFldValue != "")
+                    newFldValue = permFldValue;
+                maskType = "permission";
+            }
             newFldValue = NumericFldOnBlur(newFldValue, fldIndex);
             var oldValue = removeCommas(AxOldValue);
             var newValue = removeCommas(newFldValue);
-            if (oldValue == newValue)
+            if (oldValue == newValue) {
+                if (typeof FldMaskType != "undefined" || typeof ScriptMaskFields != "undefined") {
+                    if (maskType != "" && newFldValue != "") {
+                        SetFieldValue(fldId, newFldValue);
+                    }
+                }
                 return;
+            }
             SetFieldValue(fldId, newFldValue);
         } 
 
@@ -2983,8 +3177,12 @@ function MainBlur(fldObj) {
             else
                 AxOldValue = $("#" + fldId).val();
         }
-        if (AxOldValue == newFldValue && (fldObj.attr("type") != "checkbox" && fldObj.data("type") != "checkbox")) { //&& !fldId.toLowerCase().startsWith("axptm_")
-            if (typeof FldMaskType != "undefined" || typeof ScriptMaskFields != "undefined") {
+        if (AxOldValue == newFldValue && typeof fldObj.attr("type") !="undefined" && (fldObj.attr("type") != "checkbox" && fldObj.data("type") != "checkbox")) { //&& !fldId.toLowerCase().startsWith("axptm_")
+            // Permission level mask has priority; structure level mask is checked only when absent
+            if (IsPermissionMaskedField(fName)) {
+                if (newFldValue != "")
+                    SetFieldValue(fldId, newFldValue, true);
+            } else if (typeof FldMaskType != "undefined" || typeof ScriptMaskFields != "undefined") {
                 let maskType = "";
                 if (ScriptMaskFields.length > 0) {
                     var idx = $j.inArray(fName, ScriptMaskFields);
@@ -3127,7 +3325,7 @@ function MainBlur(fldObj) {
         }
     }
 
-    if ((!axInlineGridEdit && AxpGridForm == "form") || (isMobile && mobileCardLayout != "none"))
+    if ((!axInlineGridEdit && AxpGridForm == "form") || (isMobile && mobileCardLayout != "none" && !axInlineGridEdit))
         formGridRowBlur(fldObj);
 
     AxProcessObjRefresh(fldObj);
@@ -3137,7 +3335,20 @@ function MainBlur(fldObj) {
         AxAfterBlur(fldObj);
     } catch (ex) {}
 
+    try {
+        if (transid == 'axurg' && fieldID == 'pusername000F1') {
+            UserActivateBtns(fieldID);
+        }
 
+        if (transid == "b_sql" && fieldID == "cachedata000F1") {
+            switchOffCacheData('true');
+        }
+
+        /*if (transid == "apidg" && (fieldID == "APItype000F1" || fieldID == "config_url_name000F1")) {*/
+        if (transid == "apidg" && fieldID == "config_url_name000F1") {
+            OnChangeApiType(fieldID);
+        }
+    } catch (ex) { }
 }
 
 function blurThis(blurField) {
@@ -3170,6 +3381,9 @@ function UpdateGridRowFlags(fldId, fldDcNo, fldRowNo) {
 function ValidateField(fldObj, fldDbRowNo, fldIndex, fldType, fName) {
 
     if (fldType == "Date/Time") {
+        if (typeof FFieldType[fldIndex] != "undefined" && FFieldType[fldIndex] == 'Timestamp') {
+            return true;
+        }
         var dtTitle = "";
         if (fldObj.attr("title") != undefined && fldObj.attr("title") != null)
             dtTitle = fldObj.attr("title");
@@ -3248,10 +3462,17 @@ function ValidateReservedWord(obj, alertMessage) {
             checkRW = "*$*";
         }
         if (checkRW != "") {
-            showAlertDialog("error", 2053, "client", alertMessage + "^♠^" + checkRW);
-            obj.val("");
-            UpdateAllFieldValues(obj.attr("id"), "");
-            return false;
+            /*showAlertDialog("error", 2053, "client", alertMessage + "^♠^" + checkRW);*/
+            showAlertDialog("error", 2053, "client", "^♠^" + checkRW);
+            let _fValue = obj.val();
+            _fValue = _fValue.replace(/\*\*\*/g, " ");
+            _fValue = _fValue.replace(/\*\*/g, " ");
+            _fValue = _fValue.replace(/###/g, " ");
+            _fValue = _fValue.replace(/`/g, " ");
+            _fValue = _fValue.replace(/\*\$\*/g, " ");
+            obj.val(_fValue);
+            UpdateAllFieldValues(obj.attr("id"), _fValue);
+            //return false;
         }
     }
     return true;
@@ -3335,29 +3556,47 @@ function ValidateExpression(fldObj, fldno) {
                 } catch (ex) {
                     AxErrCode = fResult;
                 }
-                if (confirm(_fldCap + AxErrCode + ". " + cutMsg)) {
+                if (getDevOptionValue() == "true") {
+                    alert(_fldCap + AxErrCode + ". " + cutMsg)
                     SetFieldValue(flname, FldOldValue);
                     var dRowNo = GetDbRowNo(GetFieldsRowNo(flname), GetFieldsDcNo(flname));
                     UpdateFieldArray(flname, dRowNo, FldOldValue, "parent", "");
                     return false;
                 } else {
-                    return true;
+                    if (confirm(_fldCap + AxErrCode + ". " + cutMsg)) {
+                        SetFieldValue(flname, FldOldValue);
+                        var dRowNo = GetDbRowNo(GetFieldsRowNo(flname), GetFieldsDcNo(flname));
+                        UpdateFieldArray(flname, dRowNo, FldOldValue, "parent", "");
+                        return false;
+                    } else {
+                        return true;
+                    }
                 }
             } else {
                 if (fResult == "MessageSetAxFont") {
                     return true;
-                } else if (confirm(_fldCap + fResult + ". " + cutMsg)) {
-                    //SetFieldValue(flname, "");
-                    //var dRowNo = GetDbRowNo(GetFieldsRowNo(flname), GetFieldsDcNo(flname));
-                    //UpdateFieldArray(flname, dRowNo, "", "parent", "");
-                    //Refer Bug: HEA000082, Old Value assigning back to field if new value is not valid..  
-                    SetFieldValue(flname, FldOldValue);
-                    var dRowNo = GetDbRowNo(GetFieldsRowNo(flname), GetFieldsDcNo(flname));
-                    UpdateFieldArray(flname, dRowNo, FldOldValue, "parent", "");
-
-                    return false;
                 } else {
-                    return true;
+                    if (getDevOptionValue() == "true") {
+                        alert(_fldCap + fResult + ". " + cutMsg)
+                        SetFieldValue(flname, FldOldValue);
+                        var dRowNo = GetDbRowNo(GetFieldsRowNo(flname), GetFieldsDcNo(flname));
+                        UpdateFieldArray(flname, dRowNo, FldOldValue, "parent", "");
+                        return false;
+                    } else {
+                        if (confirm(_fldCap + fResult + ". " + cutMsg)) {
+                            //SetFieldValue(flname, "");
+                            //var dRowNo = GetDbRowNo(GetFieldsRowNo(flname), GetFieldsDcNo(flname));
+                            //UpdateFieldArray(flname, dRowNo, "", "parent", "");
+                            //Refer Bug: HEA000082, Old Value assigning back to field if new value is not valid..  
+                            SetFieldValue(flname, FldOldValue);
+                            var dRowNo = GetDbRowNo(GetFieldsRowNo(flname), GetFieldsDcNo(flname));
+                            UpdateFieldArray(flname, dRowNo, FldOldValue, "parent", "");
+
+                            return false;
+                        } else {
+                            return true;
+                        }
+                    }
                 }
             }
         }
@@ -3473,7 +3712,8 @@ function validatedwbfieldtype(value, dwbfldtype, flname) {
         if (value != "") {
             switch (dwbfldtype) {
                 case 'Email':
-                    vregex = "^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*$";
+                    //vregex = "^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*$";
+                    vregex = "^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\\.[a-zA-Z0-9-]+)+$";
                     if (!CheckIsvalidfield(value, vregex)) {
                         var cutMsg = eval(callParent('lcm[53]'));
                         patternErrMsg = (tmpFldCaption == "" ? tmpFldCaption : tmpFldCaption + ": ") + cutMsg;
@@ -3487,7 +3727,8 @@ function validatedwbfieldtype(value, dwbfldtype, flname) {
                     }
                     break;
                 case 'IP Address':
-                    vregex = "^[0-9]\+\.[0-9]\+\.[0-9]\+\.[0-9]\+$";
+                    /*vregex = "^[0-9]\+\.[0-9]\+\.[0-9]\+\.[0-9]\+$";*/
+                    vregex = /^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$/;
                     if (!CheckIsvalidfield(value, vregex)) {
                         var cutMsg = eval(callParent('lcm[493]'));
                         patternErrMsg = (tmpFldCaption == "" ? tmpFldCaption : tmpFldCaption + ": ") + cutMsg;
@@ -3505,7 +3746,7 @@ function validatedwbfieldtype(value, dwbfldtype, flname) {
                             var cutMsg = eval(callParent('lcm[450]'));
                             pwdpatternErrMsg = (tmpFldCaption == "" ? tmpFldCaption : tmpFldCaption + ": ") + cutMsg;
                         }
-                    } else {
+                    } else if (pwdopts[0] == "False") {
                         vregex = "^[0-9]+$";
                         if (pwdopts[1] != "" && value.length < pwdopts[1]) {
                             var cutMsg = eval(callParent('lcm[513]'));
@@ -3531,13 +3772,15 @@ function validatedwbfieldtype(value, dwbfldtype, flname) {
                 //        patternErrMsg = (tmpFldCaption == "" ? tmpFldCaption : tmpFldCaption + ": ") + cutMsg;
                 //    }
                 //    break;
-                case 'Phone Number':
-                    vregex = "^[0-9]{5,10}$";
-                    if (!CheckIsvalidfield(value, vregex)) {
-                        var cutMsg = eval(callParent('lcm[496]'));
-                        patternErrMsg = (tmpFldCaption == "" ? tmpFldCaption : tmpFldCaption + ": ") + cutMsg;
-                    }
-                    break;
+                //case 'Phone Number':
+                //    //vregex = "^[0-9]{5,10}$";
+                //    /*vregex == "^$|^[0-9]{5,10}$";*/
+                //    //vregex = "^([0-9]{5,10})?$";
+                //    if (!CheckIsvalidfield(value, vregex)) {
+                //        var cutMsg = eval(callParent('lcm[496]'));
+                //        patternErrMsg = (tmpFldCaption == "" ? tmpFldCaption : tmpFldCaption + ": ") + cutMsg;
+                //    }
+                //    break;
                 case 'Pin Code':
                     vregex = "^[1-9][0-9]{5}$";
                     if (!CheckIsvalidfield(value, vregex)) {
@@ -3545,13 +3788,13 @@ function validatedwbfieldtype(value, dwbfldtype, flname) {
                         patternErrMsg = (tmpFldCaption == "" ? tmpFldCaption : tmpFldCaption + ": ") + cutMsg;
                     }
                     break;
-                case 'Zip Code':
-                    vregex = "^[0-9]{5}(?:-[0-9]{4})?$";
-                    if (!CheckIsvalidfield(value, vregex)) {
-                        var cutMsg = eval(callParent('lcm[498]'));
-                        patternErrMsg = (tmpFldCaption == "" ? tmpFldCaption : tmpFldCaption + ": ") + cutMsg;
-                    }
-                    break;
+                //case 'Zip Code':
+                //    vregex = "^[0-9]{5}(?:-[0-9]{4})?$";
+                //    if (!CheckIsvalidfield(value, vregex)) {
+                //        var cutMsg = eval(callParent('lcm[498]'));
+                //        patternErrMsg = (tmpFldCaption == "" ? tmpFldCaption : tmpFldCaption + ": ") + cutMsg;
+                //    }
+                //    break;
                 case 'Random Number':
                     return true;
                     break;
@@ -3619,19 +3862,19 @@ function EvaluatePattern(fld, pattrn, fldIndex) {
                     patternErrMsg = (tmpFldCaption == "" ? tmpFldCaption : tmpFldCaption + ": ") + cutMsg;
                 }
                 break;
-                case 'Initcaps':
+            case 'Initcaps':
                 if (!CheckIsInit(value)) {
                     var cutMsg = eval(callParent('lcm[525]'));
                     patternErrMsg = (tmpFldCaption == "" ? tmpFldCaption : tmpFldCaption + ": ") + cutMsg;
                 }
                 break;
-                   case 'Caps':
+            case 'Caps':
                 if (!CheckIsCaps(value)) {
                     var cutMsg = eval(callParent('lcm[526]'));
                     patternErrMsg = (tmpFldCaption == "" ? tmpFldCaption : tmpFldCaption + ": ") + cutMsg;
                 }
                 break;
-                   case 'small':
+            case 'small':
                 if (!CheckIsSmall(value)) {
                     var cutMsg = eval(callParent('lcm[527]'));
                     patternErrMsg = (tmpFldCaption == "" ? tmpFldCaption : tmpFldCaption + ": ") + cutMsg;
@@ -3642,9 +3885,16 @@ function EvaluatePattern(fld, pattrn, fldIndex) {
         }
     }
     if (patternErrMsg != "") {
-        var cutMsg = eval(callParent('lcm[58]'));
-        if (!confirm(patternErrMsg + cutMsg))
-            return false;
+        //var cutMsg = eval(callParent('lcm[58]'));
+        //if (!confirm(patternErrMsg + cutMsg))
+        //    return false;
+        alert(patternErrMsg);
+
+        SetFieldValue(fld, FldOldValue);
+        let _dRowNo = GetDbRowNo(GetFieldsRowNo(fld), GetFieldsDcNo(fld));
+        UpdateFieldArray(fld, _dRowNo, FldOldValue, "parent", "");
+
+        return false;
     } else {
         return true;
     }
@@ -3659,20 +3909,21 @@ function CheckIsPhone(phone) {
 }
 
 function CheckIsInit(str) {
-    var strsplit =str.split(' ')
-    var checkInit ="";
+    var strsplit = str.split(' ')
+    var checkInit = "";
     strsplit.forEach(myFunction);
     function myFunction(item) {
-     checkInit += isUppercase(item).toString();
+        checkInit += isUppercase(item).toString();
     }
-    if(checkInit.indexOf("false") != -1)
+    if (checkInit.indexOf("false") != -1)
         return false;
-     else
+    else
         return true;
-        }
-function isUppercase(word){
-	 return /^\p{Lu}/u.test( word );
-    }
+}
+function isUppercase(word) {
+    // First letter uppercase, remaining letters must not be uppercase
+    return /^\p{Lu}[^\p{Lu}]*$/u.test(word);
+}
 function CheckIsCaps(str) {
     //var strsplit =str.split(' ')
     //var CheckIsCaps ="";
@@ -3680,27 +3931,27 @@ function CheckIsCaps(str) {
     //function checkCaps(item) {
     // CheckIsCaps += /^[A-Z]+$/.test(item);
     //}
-   var CheckIsCaps = /^[A-Z ]+$/.test(str);
-   //if(CheckIsCaps.indexOf("false") != -1)
-   if(!CheckIsCaps)
+    var CheckIsCaps = /^[A-Z ]+$/.test(str);
+    //if(CheckIsCaps.indexOf("false") != -1)
+    if (!CheckIsCaps)
         return false;
     else
         return true;
-    }
+}
 
 function CheckIsSmall(str) {
     //var strsplit =str.split(' ')
     //var CheckIsSmall ="";
     //strsplit.forEach(checkSmall);
     //function checkSmall(item) {
-     var CheckIsSmall = /^[a-z ]+$/.test(str);;
+    var CheckIsSmall = /^[a-z ]+$/.test(str);;
     //}
     // if(CheckIsSmall.indexOf("false") != -1)
-    if(!CheckIsSmall)
+    if (!CheckIsSmall)
         return false;
     else
         return true;
-        }
+}
 //Function to check for custom fields regexp.
 function CheckIsvalidfield(fieldv, regexv) {
 
@@ -4402,7 +4653,7 @@ function CheckDependencyPerf(fieldID, calledFrom) {
                         var aedepFirstChar = aedField.substring(0, 1);
                         var aedepfName = aedField.substring(1);
                         var aedfldInd = GetFieldIndex(aedepfName);
-                        if (aedfldInd > -1 && FMoe[aedfldInd].toString().toLowerCase() == "accept" && FldIsSql[aedfldInd].toString().toLowerCase() != "true" && aedepFirstChar == "e")
+                        if (aedfldInd > -1 && FMoe[aedfldInd].toString().toLowerCase() == "accept" && FldIsSql[aedfldInd].toString().toLowerCase() != "true" && aedepFirstChar == "e" && fieldName != aedepfName)
                             AcceptExpressionFlds.push(aedepfName);
                     }
                     isServiceCalled = true;
@@ -4499,7 +4750,12 @@ function ClearFldValues(fieldID, rowNo, dcNo, depFldDc, depfName) {
                 if (depfName.toLowerCase().startsWith("axpfilepath_")) {
                     axpfilepathold = GetFieldValue(depfName + "000F" + depFldDc);
                 }
-            } catch (ex) {}
+            } catch (ex) { }
+            try {
+                if ($j("#" + depfName + "000F" + depFldDc).prop("type") === "select-one") {
+                    $j("#" + depfName + "000F" + depFldDc).val("");
+                }
+            } catch (ex) { }
             UpdateFieldArray(depfName + "000F" + depFldDc, "000", "", "parent", "AutoComplete");
             SetFieldValue(depfName + "000F" + depFldDc, "");
         }
@@ -4510,7 +4766,12 @@ function ClearFldValues(fieldID, rowNo, dcNo, depFldDc, depfName) {
                     if (depfName.toLowerCase().startsWith("axpfilepath_")) {
                         axpfilepathold = GetFieldValue(depfName + rowNo + "F" + depFldDc);
                     }
-                } catch (ex) {}
+                } catch (ex) { }
+                try {
+                    if ($j("#" + depfName + rowNo + "F" + depFldDc).prop("type") === "select-one") {
+                        $j("#" + depfName + rowNo + "F" + depFldDc).val("");
+                    }
+                } catch (ex) { }
                 UpdateFieldArray(depfName + rowNo + "F" + depFldDc, rowNo, "", "parent", "AutoComplete");
                 SetFieldValue(depfName + rowNo + "F" + depFldDc, "");
             }
@@ -4519,6 +4780,11 @@ function ClearFldValues(fieldID, rowNo, dcNo, depFldDc, depfName) {
                 var rcount = parseInt(GetDcRowCount(depFldDc), 10);
                 for (var i = 1; i <= rcount; i++) {
                     var newRowNo = GetClientRowNo(i, depFldDc);
+                    try {
+                        if ($j("#" + depfName + newRowNo + "F" + depFldDc).prop("type") === "select-one") {
+                            $j("#" + depfName + newRowNo + "F" + depFldDc).val("");
+                        }
+                    } catch (ex) { }
                     UpdateFieldArray(depfName + newRowNo + "F" + depFldDc, newRowNo, "", "parent", "AutoComplete");
                     SetFieldValue(depfName + newRowNo + "F" + depFldDc, "");
                 }
@@ -5173,6 +5439,8 @@ function Tstructhyperlink(obj) {
 }
 
 function TstructLabelhyperlink(obj) {
+    if (typeof theMode != "undefined" && theMode == "design")
+        return;
     var params = "";
     let hlParamData = JSON.parse($(obj).attr("data-param"));
     if (hlParamData.paramNode != "" && hlParamData.paramNode != "~") {
@@ -5353,7 +5621,7 @@ function GetTabData(tabNo) {
 
     if ($("#myTab li#li" + tabNo).hasClass('active'))
         return false;
-
+    GetCurrentTime("Tstruct GetTabData click (" + tabNo + ")");
     $("#myTab li").removeClass("bg-white");
     $("#myTab li").find(".form-check").addClass("d-none");
     $("#myTab li#li" + tabNo).addClass("bg-white"); 
@@ -5407,6 +5675,7 @@ function GetTabData(tabNo) {
     var i = 0;
     var status = 0;
     var indx = 0;
+    AdditionalRunTimeMsg(" Before Status check status:" + status + " TabDCStatus:" + TabDCStatus + " tabNo:" + tabNo);
     for (i = 0; i < TabDCs.length; i++) {
 
         if (TabDCs[i] == tabNo) {
@@ -5423,6 +5692,7 @@ function GetTabData(tabNo) {
     }
     var isTabHtml = false;
     TabDcActive = false;
+    AdditionalRunTimeMsg(" Before Status and tab html check status:" + status + " tabhtmlexist:" + ($j("#tab-" + tabNo).html() != "" ? "true" : "false"));
     if (status == 0 && $j("#tab-" + tabNo).html() != "") {
         isTabHtml = true;
         status = 1;
@@ -5445,7 +5715,7 @@ function GetTabData(tabNo) {
         FldListParents = new Array();
         FldListData = new Array();
     } catch (ex) { }
-
+    AdditionalRunTimeMsg(" Before WS call status check, status:" + status + " TabDCStatus:" + TabDCStatus + " tabNo:" + tabNo);
     if (status == 0) {
         TabDcActive = true;
         TabDCStatus[indx] = "1";
@@ -5453,13 +5723,23 @@ function GetTabData(tabNo) {
 
         try {
             callBackFunDtls = "GetTabData♠" + tabNo;
+            AdditionalRunTimeMsg("Before CallLoadDcData WS call ");
+            GetProcessTime();
             ASB.WebService.CallLoadDcData(ChangedFields, ChangedFieldDbRowNo, ChangedFieldValues, DeletedDCRows, ArrActionLog, updtxt, tabNo, IsFillGrid, IsTabDisabled, tstDataId, resTstHtmlLS, SuccessGetTabData, OnException);
         } catch (exp) {
             AxWaitCursor(false);
             ShowDimmer(false);
             showAlertDialog("error", ServerErrMsg);
+            UpdateExceptionMessageInET("CallLoadDcData exception : " + exp.message);
+
+            GetProcessTime();
+            GetTotalElapsTime();
         }
     } else {
+        UpdateExceptionMessageInET("CallLoadDcData Not called, status: " + status);
+        GetProcessTime();
+        GetTotalElapsTime();
+
         gridFreezeCols(CurrTabNo);
         isFill = 0;
         try {
@@ -5527,12 +5807,12 @@ function focusOnFirstInputOnTabClick(tabNo, reffreshEditor) {
                 if (v.split("~")[0] == tabNo && v.split("~")[1] == "001") isExitDummy = true;
             });
         }
-        if(isExitDummy){
+        if (isExitDummy) {
             forceRowedit = true;
             gridRowEditOnLoad = true;
             $("#gridHd" + tabNo + " tr#sp" + tabNo + "R001F" + tabNo + " td:eq(2)").click();
         }
-        SetPositionfldDisplayTot();  
+        SetPositionfldDisplayTot();
         if (typeof theModeDesign != "undefined" && theModeDesign == "true") {
             const _obj = $(".tstformbutton");
             _obj.prop("disabled", true);
@@ -5546,6 +5826,9 @@ function focusOnFirstInputOnTabClick(tabNo, reffreshEditor) {
             if (typeof TabDcActive != "undefined" && TabDcActive && !isExitDummy && recordid != "0") {
                 DropzoneInit("#divDc" + tabNo);
                 DropzoneGridInit("#divDc" + tabNo);
+            } else if (typeof reffreshEditor == "undefined" && typeof TabDcActive != "undefined" && TabDcActive && !isExitDummy && recordid == "0" && $("#gridHd" + tabNo + " tbody tr").length > 0) {
+                DropzoneInit("#divDc" + tabNo);
+                DropzoneGridInit("#divDc" + tabNo);
             }
         } catch (ex) { }
     }, 200)
@@ -5557,6 +5840,9 @@ function SuccessGetTabData(result, eventArgs) {
         tstDataId = result.split("♠*♠")[0];
         result = result.split("♠*♠")[1];
     }
+    UpdateExceptionMessageInET("SuccessGetTabData completed ");
+    GetProcessTime();
+    GetTotalElapsTime();
     if (result.toLowerCase().indexOf("access violation") === -1) {
         var stTime = new Date();
         ArrActionLog = "";
@@ -5607,7 +5893,7 @@ function SuccessGetTabData(result, eventArgs) {
             });
         }
 
-        GridDcAddEmptyRows();
+        //GridDcAddEmptyRows();
 
         FocusOnFirstField(CurrTabNo);
         DeletedDCRows = new Array();
@@ -5672,7 +5958,8 @@ function SuccessGetTabData(result, eventArgs) {
             }
         });
 
-        if (appstatus != "Approved" && appstatus != "Rejected" && (!AxExecFormControl) && theMode != "design") {
+        /* if (appstatus != "Approved" && appstatus != "Rejected" && (!AxExecFormControl) && theMode != "design") {*/
+        if (!AxExecFormControl && theMode != "design") {
             var rid = $j("#recordid000F0").val();
             if (rid != "0")
                 DoScriptFormControl("", "On Data Load");
@@ -5755,6 +6042,9 @@ function AssignTabDcHtmlPerf(result) {
         var curDcRCnt = $("#gridHd" + tabDcNo + " tbody tr").length;
         if (IsDcGrid(tabDcNo) && DCHasDataRows[dcIdx] == "True" && curDcRCnt > 0) {
             changeEditLayoutIds('', tabDcNo, 'tabListView');
+        }
+        if (IsDcGrid(tabDcNo) && DCHasDataRows[dcIdx] == "True" && curDcRCnt == 0) {
+            DCHasDataRows[dcIdx] = "False";
         }
         makeFieldInitCap(tabDcNo);
         SetDynamicDcCaptions(tabDcNo);
@@ -6040,66 +6330,181 @@ function AssignJQueryEvents(dcArray,_calledFrom="") {
                     dtpkrRTL = false;
                 var glCulture = eval(callParent('glCulture'));
                 var dtFormat = "d/m/Y";
-                if (glCulture == "en-us")
+                var tsFormat = "d/m/Y H:i:S";
+                if (glCulture == "en-us") {
                     dtFormat = "m/d/Y";
-
-                $j(dvId + " .flatpickr-input:not(.tstOnlyTime,.tstOnlyTime24hours)").flatpickr({
-                    dateFormat: dtFormat,
-                    allowInput: true,
-                    onOpen: function (selectedDates, dateStr, instance) {
-                        MainFocus($(instance.element));
-                    },
-                    onChange: function (selectedDates, dateStr, instance) {
-                        //if ($(".flatpickr-calendar:visible").length == 0 && $(instance.element).val() != AxOldValue) {
-                        //    MainBlur($(instance.element));
-                        //}
-                    },
-                    onClose: function (selectedDates, dateStr, instance) {
-                        MainBlur($(instance.element));
-                    }
+                    tsFormat = "m/d/Y H:i:S";
+                }
+                $j(dvId + " .flatpickr-input:not(.tstOnlyTime,.tstOnlyTime24hours,.fldtimestamp)").each(function () {
+                    let $input = $j(this);
+                    let fp = flatpickr(this, {
+                        dateFormat: dtFormat,
+                        allowInput: true,
+                        disableMobile: true,
+                        clickOpens: false,
+                        onReady: function (selectedDates, dateStr, instance) {
+                            $input.on("focus", function () {
+                                let val = $input.val();
+                                if (!val || val.trim() === "") {
+                                    instance.open();
+                                }
+                            });
+                            $input.on("click", function () {
+                                instance.open();
+                            });
+                            $input.on("keydown", function () {
+                                instance.open();
+                            });
+                        },
+                        onOpen: function (selectedDates, dateStr, instance) {
+                            if (dateStr)
+                                instance.setDate(dateStr);
+                            MainFocus($input);
+                        },
+                        onClose: function (selectedDates, dateStr, instance) {
+                            MainBlur($input);
+                        }
+                    });
+                    $input.closest(".input-group").find(".input-group-text")
+                        .on("click", function () {
+                            fp.open();
+                        });
                 });
-                $j(dvId + " .tstOnlyTime").flatpickr({
-                    enableTime: true,
-                    noCalendar: true,
-                    dateFormat: "h:i K",
-                    onPreCalendarPosition: function (selectedDates, dateStr, instance) {
-                        let _thisfpVal = $(instance.element).val();
-                        if (_thisfpVal != "")
-                            instance.setDate(_thisfpVal);
-                    },
-                    onOpen: function (selectedDates, dateStr, instance) {
-                        MainFocus($(instance.element));
-                    },
-                    onChange: function (selectedDates, dateStr, instance) {
-                        //if ($(instance.element).val() != AxOldValue) {
-                        //    MainBlur($(instance.element));
-                        //}
-                    },
-                    onClose: function (selectedDates, dateStr, instance) {
-                        MainBlur($(instance.element));
-                    }
+                $j(dvId + " .flatpickr-input.fldtimestamp").each(function () {
+                    let $input = $j(this);
+                    let fp = flatpickr(this, {
+                        dateFormat: tsFormat,
+                        enableTime: true,
+                        time_24hr: true,
+                        enableSeconds: true,
+                        allowInput: false,
+                        disableMobile: true,
+                        clickOpens: false,
+                        wrap: false,
+                        defaultHour: new Date().getHours(),
+                        defaultMinute: new Date().getMinutes(),
+                        defaultSeconds: new Date().getSeconds(),
+                        onReady: function (selectedDates, dateStr, instance) {
+                            $input.on("focus", function () {
+                                let val = $input.val();
+                                if (!val || val.trim() === "") {
+                                    instance.open();
+                                }
+                            });
+                            $input.on("click", function () {
+                                instance.open();
+                            });
+                            $input.on("keydown", function () {
+                                instance.open();
+                            });
+                        },
+                        onPreCalendarPosition: function (selectedDates, dateStr, instance) {
+                            let $input = $(instance.element);
+                            let inputVal = $input.val();
+                            if (inputVal && inputVal.trim() !== "") {
+                                instance.setDate(inputVal, false, tsFormat);
+                            } else {
+                                instance.clear();
+                            }
+                        },
+                        onOpen: function (selectedDates, dateStr, instance) {
+                            let val = $input.val();
+                            if (val) {
+                                instance.setDate(val, false, tsFormat);
+                            }
+                            MainFocus($input);
+                        },
+                        onClose: function (selectedDates, dateStr, instance) {
+                            MainBlur($input);
+                        }
+                    });
+                    $input.closest(".input-group").find(".spanDateTime")
+                        .on("click", function () {
+                            fp.open();
+                        });
                 });
-                $j(dvId + " .tstOnlyTime24hours").flatpickr({
-                    enableTime: true,
-                    noCalendar: true,
-                    dateFormat: "H:i",
-                    time_24hr: true,
-                    onPreCalendarPosition: function (selectedDates, dateStr, instance) {
-                        let _thisfpVal = $(instance.element).val();
-                        if (_thisfpVal != "")
-                            instance.setDate(_thisfpVal);
-                    },
-                    onOpen: function (selectedDates, dateStr, instance) {
-                        MainFocus($(instance.element));
-                    },
-                    onChange: function (selectedDates, dateStr, instance) {
-                        //if ($(instance.element).val() != AxOldValue) {
-                        //    MainBlur($(instance.element));
-                        //}
-                    },
-                    onClose: function (selectedDates, dateStr, instance) {
-                        MainBlur($(instance.element));
-                    }
+                $j(dvId + " .tstOnlyTime").each(function () {
+                    let $input = $j(this);
+                    let fp = flatpickr(this, {
+                        enableTime: true,
+                        noCalendar: true,
+                        dateFormat: "h:i K",
+                        disableMobile: true,
+                        clickOpens: false,
+                        onReady: function (selectedDates, dateStr, instance) {
+                            $input.on("focus", function () {
+                                let val = $input.val();
+                                if (!val || val.trim() === "") {
+                                    instance.open();
+                                }
+                            });
+                            $input.on("click", function () {
+                                instance.open();
+                            });
+                            $input.on("keydown", function () {
+                                instance.open();
+                            });
+                        },
+                        onPreCalendarPosition: function (selectedDates, dateStr, instance) {
+                            let _thisfpVal = $input.val();
+                            if (_thisfpVal != "")
+                                instance.setDate(_thisfpVal);
+                        },
+                        onOpen: function (selectedDates, dateStr, instance) {
+                            MainFocus($input);
+                        },
+                        onClose: function (selectedDates, dateStr, instance) {
+                            MainBlur($input);
+                        }
+                    });
+                    $input
+                        .closest(".input-group")
+                        .find(".input-group-text")
+                        .on("click", function () {
+                            fp.open();
+                        });
+                });
+                $j(dvId + " .tstOnlyTime24hours").each(function () {
+                    let $input = $j(this);
+                    let fp = flatpickr(this, {
+                        enableTime: true,
+                        noCalendar: true,
+                        dateFormat: "H:i",
+                        time_24hr: true,
+                        disableMobile: true,
+                        clickOpens: false,
+                        onReady: function (selectedDates, dateStr, instance) {
+                            $input.on("focus", function () {
+                                let val = $input.val();
+                                if (!val || val.trim() === "") {
+                                    instance.open();
+                                }
+                            });
+                            $input.on("click", function () {
+                                instance.open();
+                            });
+                            $input.on("keydown", function () {
+                                instance.open();
+                            });
+                        },
+                        onPreCalendarPosition: function (selectedDates, dateStr, instance) {
+                            let _thisfpVal = $input.val();
+                            if (_thisfpVal != "")
+                                instance.setDate(_thisfpVal);
+                        },
+                        onOpen: function (selectedDates, dateStr, instance) {
+                            MainFocus($input);
+                        },
+                        onClose: function (selectedDates, dateStr, instance) {
+                            MainBlur($input);
+                        }
+                    });
+                    $input
+                        .closest(".input-group")
+                        .find(".input-group-text")
+                        .on("click", function () {
+                            fp.open();
+                        });
                 });
             }
 
@@ -6136,7 +6541,7 @@ function AssignJQueryEvents(dcArray,_calledFrom="") {
 
             $j(dvId).find("select:not(#selectbox),:checkbox,:radio").unbind("change");
             //function call on change event of dropdown.
-            $j(dvId + " select:not(.fldFromSelect,.multiFldChklist,.multiFldChk)").change(function () {
+            $j(dvId + " select:not(.fldFromSelect,.multiFldChklist,.multiFldChk,.fldmultiSelect)").change(function () {
                 if ($j(this).find(':selected').text().indexOf("+ Add") == -1) {
                     MainBlur($j(this));
                     $j(this).blur();
@@ -6255,7 +6660,16 @@ function AssignJQueryEvents(dcArray,_calledFrom="") {
                         var fName = GetFieldsName(fldId);
                         var fldIndex = $j.inArray(fName, FNames);
                         if (fldIndex != undefined && fldIndex > -1) {
-                            if (typeof FldMaskType != "undefined" || typeof ScriptMaskFields != "undefined") {
+                            // Permission level mask has priority; structure level mask is checked only when absent
+                            const isPermMasked = IsPermissionMaskedField(fName);
+                            if (isPermMasked) {
+                                let permFldValue = GetFieldValue(fldId);
+                                if (permFldValue != "" && permFldValue != '0.00' && permFldValue != '0') {
+                                    $j(this).val(permFldValue);
+                                    $j(this).attr("value", permFldValue);
+                                }
+                            }
+                            if (!isPermMasked && (typeof FldMaskType != "undefined" || typeof ScriptMaskFields != "undefined")) {
                                 let maskType = "";
                                 if (ScriptMaskFields.length > 0) {
                                     var idx = $j.inArray(fName, ScriptMaskFields);
@@ -6538,6 +6952,9 @@ function AddInlineRow(dcNo, calledFrom, keyColValue, newCalledFrom) {
         var dcClientRows = GetDcClientRows(dcNo);
         var lastRow = dcClientRows.getMaxVal();
         if (lastRow == 0) lastRow = 1;
+        if (lastRow == 1 && typeof IsObjCustomHtml != "undefined" && IsObjCustomHtml == 'True') {
+            lastRow = 2;
+        }
         var newCnt = parseInt(lastRow, 10);
         var newRowNo = GetRowNoHelper(newCnt);
         srcCalledFrom = calledFrom;
@@ -7088,7 +7505,10 @@ function CallEvaluateOnAddPerf(dcNo, rowNo, fields, calldepField) {
             EvaluateAxFunction(fields[i], fldName, rowNo + "F" + dcNo, calldepField);
         var newValue = GetFieldValue(fldName);
         var fldDbRowNo = GetDbRowNo(rowNo, dcNo);
-        UpdateFieldArray(fldName, fldDbRowNo, newValue, "parent", "AddRow");
+        if (calldepField == "AllRowClear") {
+            //do not update while clearing all rows
+        } else
+            UpdateFieldArray(fldName, fldDbRowNo, newValue, "parent", "AddRow");
         IsService = false;
         if (oldValue == parseInt(newValue, 10))
             continue;
@@ -7105,16 +7525,22 @@ function CallEvaluateOnAddPerf(dcNo, rowNo, fields, calldepField) {
             if (fldIndx != -1 && FMoe[fldIndx].toString().toLowerCase() == "accept" && FldIsSql[fldIndx].toString().toLowerCase() == "true") {
                 var isBound = false;
                 isBound = ISBoundPerf(fields[i], rowNo);
-                depNotBoundFld = ""
+                if (depNotBoundFld != "")
+                    AdditionalRunTimeMsg(depNotBoundFld + " parent not bound for the field " + fields[i] + " in AddRow Accept + Sql");
+                depNotBoundFld = "";
                 if (isBound) {
+                    AdditionalRunTimeMsg(" AddRow calling from: " + fields[i] + " in AddRow Accept + Sql");
                     callService = true;
                     $("#" + fldName).addClass("addServiceCallMade");
                 }
             } else if (fldIndx != -1 && FMoe[fldIndx].toString().toLowerCase() == "select" && FldAutoSelect[fldIndx].toString().toLowerCase() == "true" && typeof AxFillAutoSelectFlds != "undefined" && AxFillAutoSelectFlds == "true") {
                 var isBound = false;
                 isBound = ISBoundPerf(fields[i], rowNo);
+                if (depNotBoundFld != "")
+                    AdditionalRunTimeMsg(depNotBoundFld + " parent not bound for the field " + fields[i] + " in AddRow Select + Autoselect");
                 depNotBoundFld = ""
                 if (isBound) {
+                    AdditionalRunTimeMsg(" AddRow calling from: " + fields[i] + " in AddRow Select + Autoselect");
                     callService = true;
                     $("#" + fldName).addClass("addServiceCallMade");
                 }
@@ -7124,15 +7550,25 @@ function CallEvaluateOnAddPerf(dcNo, rowNo, fields, calldepField) {
         if (callService == false && (calldepField == "newRow" || calldepField == "AddRow" || calldepField == "ToCheckAddRow")) {
             var fldIndx = GetFieldIndex(fldIdnName);
             if (fldIndx != -1 && FMoe[fldIndx].toString().toLowerCase() == "select" && GetFldNamesIndx(fldIdnName) > -1) {
-                callService = true;
+                var isBound = false;
+                isBound = ISBoundPerf(fields[i], rowNo);
+                if (depNotBoundFld != "")
+                    AdditionalRunTimeMsg(depNotBoundFld + " parent not bound for the field " + fields[i] + " in AddRow Select + Expression");
+                depNotBoundFld = ""
+                if (isBound) {
+                    AdditionalRunTimeMsg(" AddRow calling from: " + fields[i] + " in AddRow Select + Expression");
+                    callService = true;
+                }
             }
         }
 
         if (callService == false && (calldepField == "newRow" || calldepField == "AddRow" || calldepField == "ToCheckAddRow")) {
             if (typeof AxFldExpOnAddRow != "undefined" && AxFldExpOnAddRow != "") {
                 var AxExpDepField = AxFldExpOnAddRow.split(",");
-                if (AxExpDepField.indexOf(fldIdnName) > -1)
+                if (AxExpDepField.indexOf(fldIdnName) > -1) {
+                    AdditionalRunTimeMsg("Force AddRow call AxFldExpOnAddRow:" + AxFldExpOnAddRow + " from: " + fldIdnName);
                     callService = true;
+                }
             }
         }
     }
@@ -7337,7 +7773,7 @@ function SetFormDirty(status) {
 }
 
 //Function which deletes the given row from the given dc no.
-function DeleteGridRow(dcNo, rowFrmNo, webService) {
+function DeleteGridRow(dcNo, rowFrmNo, webService,calledFrom="") {
 
     ShowDimmer(true);
 
@@ -7417,7 +7853,10 @@ function DeleteGridRow(dcNo, rowFrmNo, webService) {
             SetRowCount(dcNo, rowCnt - 1, "d");
 
         SetSerialNoCnt(dcNo, slNo);
-        AddDeletedRowsToArray(dcNo, rowNo)
+        if (calledFrom == "FillGrid" && isMobile && !axInlineGridEdit && AxpGridForm == "form" && $("#gridHd" + dcNo + " tbody tr").length > 0) {
+            //No do add row in delete
+        } else
+            AddDeletedRowsToArray(dcNo, rowNo);
 
         UpdateFldArrayInDeleteRow(dcNo, rowNo);//Remove this row field values from ALLField array 
 
@@ -7448,8 +7887,12 @@ function DeleteGridRow(dcNo, rowFrmNo, webService) {
 
         AddDeletedRowsToArray(dcNo, rowNo);
         ClearDeletedFields(dcNo, rowNo);
-        var fields = GetGridFields(dcNo);
-        CallEvaluate(dcNo, rowNo, fields);
+        if (typeof calledFrom != "undefined" && calledFrom == "FillGrid") {
+            //do nothing 
+        } else {
+            var fields = GetGridFields(dcNo);
+            CallEvaluate(dcNo, rowNo, fields);
+        }
         //Refer bug-AGI003560 - Only if the record is new wrapper div id will be reset to 1, since existing row will be sent to service in deleted array
         if (rid != "0")
             changeEditLayoutIds(0, dcNo);
@@ -7798,6 +8241,9 @@ function ResetRowStyle(rowNo, dcNo) {
 
 //Function which calls the SaveData webservice.
 function FormSubmit() {
+    if (CheckBtnReadOnly('FormSubmit()')) {
+        return;
+    }
     GetCurrentTime("Tstruct load on Save button click(ws call)");
     if (actionCallFlag == actionCallbackFlag) {
         actionCallFlag = Math.random();
@@ -7840,7 +8286,8 @@ function FormSubmit() {
     if (doSave == undefined)
         doSave = true;
 
-    if (typeof tstructCachedsave != 'undefined' && tstructCachedsave == "T" && (recordid == "" || recordid == "0")) {
+    /*if (typeof tstructCachedsave != 'undefined' && tstructCachedsave == "T" && (recordid == "" || recordid == "0")) {*/
+    if (typeof tstructCachedsave != 'undefined' && tstructCachedsave == "T") {
         if (typeof callParentNew('signalRNotifications') != 'undefined' && callParentNew('signalRNotifications') == 'true') {
             SaveTransactionJSON();
             return;
@@ -7950,9 +8397,11 @@ function FormSubmit() {
                     AxPegApprovalSave = AxDoPegApprovalSave;
                     AxDoPegApprovalSave = "";
                 }
-                if (!sumDisplay) {
-                    //const encryptedValues = encryptTstDetails(JSON.stringify(ChangedFieldValues));
-                    //ASB.WebService.SaveDataXML(ChangedFields, ChangedFieldDbRowNo, encryptedValues, DeletedDCRows, DeletedFieldValue, files, rid, delRows, chngRows, tstDataId, axrulesFlds, AxPegApprovalSave, resTstHtmlLS, SucceededCallback, OnException);
+                let _isLoadFromDraft = "false";
+                if (typeof isLoadFromDraft != "undefined")
+                    _isLoadFromDraft = isLoadFromDraft;
+                if (!sumDisplay){
+                    //ASB.WebService.SaveDataXML(ChangedFields, ChangedFieldDbRowNo, ChangedFieldValues, DeletedDCRows, DeletedFieldValue, files, rid, delRows, chngRows, tstDataId, axrulesFlds, AxPegApprovalSave, resTstHtmlLS, _isLoadFromDraft, SucceededCallback, OnException);
                     const saveDataRequest = {
                         fldArray: ChangedFields,
                         fldDbRowNo: ChangedFieldDbRowNo,
@@ -7966,7 +8415,8 @@ function FormSubmit() {
                         key: tstDataId,
                         axRulesFlds: axrulesFlds,
                         axPegApprovalSave: AxPegApprovalSave,
-                        resTstHtmlLS: resTstHtmlLS
+                        resTstHtmlLS: resTstHtmlLS,
+                        isLoadFromDraft: _isLoadFromDraft
                     };
                     const encryptedRequest = encryptTstDetails(JSON.stringify(saveDataRequest));
                     ASB.WebService.SaveDataXML(encryptedRequest, SucceededCallback, OnException);
@@ -8259,7 +8709,7 @@ function IsAxFldEmpty(idx, rowNo, dcNo, allowEmpty, isPositive, calledFrom) {
                         if (isVRow)
                             return true;
                     }
-                } catch (ex) {}
+                } catch (ex) { }
 
                 if (axInlineGridEdit) { //if grid inline edit mode is enabled then make that particular grid row into editmode & focus on the input field
                     var showActiveTabTime = 50;
@@ -8272,8 +8722,12 @@ function IsAxFldEmpty(idx, rowNo, dcNo, allowEmpty, isPositive, calledFrom) {
                     setTimeout(function () {
                         $("#" + FNames[idx] + clRowNo + "F" + dcNo).closest("td").attr("inline-grid-warning", '').click();
                     }, showActiveTabTime);
-                } else
-                    showAlertDialog("warning", 2056, "client", FCaption[idx] + "^♠^" + parseInt(rowNo, 10));
+                } else {
+                    if (isMobile && AxpGridForm == "form" && $("#gridHd" + dcNo + " tbody tr").length == 0) {
+                        return true;
+                    } else
+                        showAlertDialog("warning", 2056, "client", FCaption[idx] + "^♠^" + parseInt(rowNo, 10));
+                }
             } else
                 showAlertDialog("warning", 2055, "client", FCaption[idx]);
             SetFocusOnField(dcNo, FNames[idx] + rowNo + "F" + dcNo);
@@ -8391,6 +8845,7 @@ function CheckPattern() {
 var recordidax = '';
 //Callback function which returns either successfull or error message on save.
 function SucceededCallback(resultJson, eventArgs) {
+    let attaErrors = "";
     if (resultJson != "") {
         if (resultJson.split("♠*♠").length > 1) {
             tstDataId = resultJson.split("♠*♠")[0];
@@ -8399,6 +8854,8 @@ function SucceededCallback(resultJson, eventArgs) {
         if (resultJson.split("*♠*").length > 1) {
             var serverprocesstime = resultJson.split("*♠*")[0];
             var requestProcess_logtime = resultJson.split("*♠*")[1];
+            if (requestProcess_logtime.split("♣$♣").length > 1)
+                attaErrors = requestProcess_logtime.split("♣$♣")[1];
             resultJson = resultJson.split("*♠*")[2];
             WireElapsTime(serverprocesstime, requestProcess_logtime, true);
         } else {
@@ -8415,7 +8872,7 @@ function SucceededCallback(resultJson, eventArgs) {
             GetFormLoadData("AxIsPop=true");
         else
             GetFormLoadData("");
-        ShowDialog('error', "Transaction save taking long time than expected.");
+        ShowDialog('info', "Transaction save taking long time than expected. You will get notified once save is completed.");
         return;
     }
 
@@ -8439,6 +8896,17 @@ function SucceededCallback(resultJson, eventArgs) {
     //Checks for axp_savedirective Field for value--> display~fieldName
     fldMsg = GetSaveDirectiveValue();
 
+    if (typeof transid != "" && transid == "ad_af") {
+        addfieldSaveSuccess(strResult1);
+        return;
+    }
+    try {
+        if (typeof attaErrors != "undefined" && attaErrors != "") {
+            let _attaErrors = attaErrors;
+            attaErrors = "";
+            ShowDialog('error', _attaErrors);
+        }
+    } catch (ex) { }
     for (var i = 0; i < strResult1.length; i++) {
         strResult = strResult1[i].split("*$*");
         for (var j = 0; j < strResult.length; j++) {
@@ -8549,11 +9017,16 @@ function SucceededCallback(resultJson, eventArgs) {
                                 }
                                 //Refer Bug: AXP000134
                                 var src = $(eval(callParent("loadPopUpPage"))).attr("src");
-                                if (src != undefined && src.indexOf("AxPop=true") != -1)
+                                if (src != undefined && src.indexOf("AxPop=true") != -1) {
                                     eval(callParent('isRefreshParentOnClose') + "= true");
+                                    isTstRefreshParentOnClose = "true";
+                                }
                                 //End AXP000134
                                 ShowDialog('success', result, undefined, undefined, undefined, undefined, undefined, 'true');
-                                eval(callParent('isSuccessAlertInPopUp') + "= true");
+                                eval(callParent('isSuccessAlertInPopUp') + "= true"); 
+                                try {
+                                    focusAfterSaveOnLoad = "";
+                                } catch (ex) { }                             
                                 SetFormDirty(false);
                             }
 
@@ -8562,6 +9035,9 @@ function SucceededCallback(resultJson, eventArgs) {
                         if (AxIsTstructCached && recIdDetails != "") {
                             var recId = recIdDetails.substring(recIdDetails.indexOf("=") + 1);
                             SaveInCache(recId, "Save");
+                            try {
+                                focusAfterSaveOnLoad = "";
+                            } catch (ex) { }
                         }
 
                         if (IsDraftLoad) {
@@ -8684,6 +9160,47 @@ function SucceededCallback(resultJson, eventArgs) {
     AxWaitCursor(false);
 }
 
+function addfieldSaveSuccess(strResult1) {
+    try {
+        var result = "";
+        for (var i = 0; i < strResult1.length; i++) {
+            strResult = strResult1[i].split("*$*");
+            for (var j = 0; j < strResult.length; j++) {
+                try {
+                    var resJson = $j.parseJSON(strResult[j]);
+                } catch (ex) {
+                    ShowDimmer(false);
+                }
+                var recIdDetails = "";
+                var restxt = "";
+                if (resJson != undefined) {
+                    if (resJson.error != undefined) {
+                        result = resJson.error[0].msg;
+                    }
+                }
+            }
+        }
+        if (typeof addFieldReloaduri != "undefined" && addFieldReloaduri != "") {
+            let _adfhref = addFieldReloaduri;
+            addFieldReloaduri = "";
+            _adfhref = _adfhref.replace("&newform=T", "&newform=F");
+            window.location.href = _adfhref;
+        } else {
+            let _adfhref = window.location.href;
+            _adfhref = _adfhref.replace("&newform=T", "&newform=F");
+            window.location.href = _adfhref;
+        }
+        if (result == "") {
+            if (typeof recordid != "undefined" && recordid != "" && recordid != "0")
+                showAlertDialog("success", "Field Updated successfully.");
+            else
+                showAlertDialog("success", "Field Created successfully.");
+        }
+        else
+            showAlertDialog("error", result);
+    } catch (ex) { }
+}
+
 function GetSaveDirectiveValue() {
     var fldMsg = "";
     var dispfld, fldName, saveDirFld, fld, fldVal;
@@ -8704,6 +9221,9 @@ function GetSaveDirectiveValue() {
 
 //Function which opens the pdf window.
 function OpenPdfDocList() {
+    if (CheckBtnReadOnly('OpenPdfDocList()')) {
+        return;
+    }
     recID = parseInt(recordid);
     if (recID != "0") {
         if (typeof AxRulesBtnConMsg != "undefined" && AxRulesBtnConMsg == "true") {
@@ -8726,6 +9246,9 @@ function OpenPdfDocList() {
 
 //Function which opens the search window.
 function OpenSearch(tid) {
+    if (CheckBtnReadOnly(`OpenSearch('${tid}')`)) {
+        return;
+    }
     if (typeof AxRulesBtnConMsg != "undefined" && AxRulesBtnConMsg == "true") {
         if (!AxRulesBtnConMsgParser(event.currentTarget)) {
             return;
@@ -8772,6 +9295,9 @@ function OpenSearch(tid) {
 //Function which opens a new tstsruct.
 function NewTstruct() {
     //For new tstruct,home and navigation buttons will not be available
+    if (CheckBtnReadOnly('NewTstruct()')) {
+        return;
+    }
     if (typeof AxRulesBtnConMsg != "undefined" && AxRulesBtnConMsg == "true") {
         if (!AxRulesBtnConMsgParser(event.currentTarget)) {
             return;
@@ -8874,7 +9400,7 @@ function NewTstruct() {
 function GetFormLoadData(tstQureystr, isDraft, forceRefresh = "false",isdirectCall="false") {
     if (typeof isDraft == "undefined")
         isDraft = "false";
-    checkIsdraft = isDraft;
+    checkIsdraft = isDraft.startsWith('true♦') ? 'true' : isDraft;
     try {
         AxWaitCursor(true);
         ShowDimmer(true);
@@ -8882,6 +9408,8 @@ function GetFormLoadData(tstQureystr, isDraft, forceRefresh = "false",isdirectCa
         if ((window.location.href).indexOf("AxSplit") != -1) {
             tstQureystr += tstQureystr.indexOf("AxSplit") == -1 ? `${tstQureystr.endsWith("♠") ? "": "♠"}AxSplit=true` : "";
         }
+        if (typeof isLoadFromDraft != "undefined")
+            isLoadFromDraft = "false";
         if (isdirectCall == "false" && forceRefresh == "false") {
             if (typeof wsPerfFormLoadCall != "undefined" && wsPerfFormLoadCall) {
                 var _finalJson = [];
@@ -8926,7 +9454,8 @@ function GetFormLoadData(tstQureystr, isDraft, forceRefresh = "false",isdirectCa
 
             if (_TstlocalStorage != "") {
                 let _thisHtmlls = _TstlocalStorage.split('♠♠♠')[1];
-                GetTstHtmlLS(_thisHtmlls);
+                let _permissionVars = _TstlocalStorage.split('♠♠♠')[2];
+                GetTstHtmlLS(_thisHtmlls, _permissionVars);
                 return;
             }
         }
@@ -8953,7 +9482,11 @@ function GetFormLoadData(tstQureystr, isDraft, forceRefresh = "false",isdirectCa
                 ShowDimmer(true);
                 resTstHtmlLS = '';
                 var result = data.d;
-                if (result != "") {
+                if (result != "" && !result.startsWith("Error:")) {
+                    if (result.split("*♦♠*").length > 1) {
+                        tstPermissions = result.split("*♦♠*")[1];
+                        result = result.split("*♦♠*")[0];
+                    }
                     if (result.split("*♠♦*").length > 1) {
                         serverprocesstime = result.split("*♠♦*")[1];
                         requestProcess_logtime = result.split("*♠♦*")[2];
@@ -8962,6 +9495,10 @@ function GetFormLoadData(tstQureystr, isDraft, forceRefresh = "false",isdirectCa
                     } else {
                         UpdateExceptionMessageInET("Error : " + result);
                     }
+                } else if (result.startsWith("Error:")) {
+                    let _result = result.replace("Error:", "");
+                    window.location.href = "err.aspx?errmsg=" + _result;
+                    return;
                 }
                 Closediv();
                 if (result.toLowerCase().indexOf("access violation") === -1) {
@@ -8999,11 +9536,14 @@ function GetFormLoadData(tstQureystr, isDraft, forceRefresh = "false",isdirectCa
                     $j("#recordid000F0").val("0");
                     AxFormControlList = new Array();
                     AxSetFldCaption = new Array();
+                    AxFCBtnReadOnly = new Array();
                     RegVarFldList = new Array();
                     ChangedFields = new Array();
                     ChangedFieldDbRowNo = new Array();
                     ChangedFieldValues = new Array();
                     DeletedDCRows = new Array();
+                    DeletedDCs = new Array();
+                    DeletedRowNos = new Array();
                     ChangedDcRows = new Array();
                     ChangedDcs = new Array();
                     AllFieldNames = new Array();
@@ -9120,9 +9660,15 @@ function GetFormLoadData(tstQureystr, isDraft, forceRefresh = "false",isdirectCa
                             }
                         } catch (ex) { }
 
-                        $j("#hdnDataObjId").val(tstDataId);                      
+                        $j("#hdnDataObjId").val(tstDataId);
                         LoadResult = result;
                         isLoadDataCall = false;
+                        if (typeof isDraft != "undefined" && isDraft.startsWith('true♦')) {
+                            let _thisDraftkey = isDraft.split('♦')[1];
+                            _thisDraftkey = _thisDraftkey.substring(_thisDraftkey.indexOf("-") + 1);
+                            isLoadFromDraft = _thisDraftkey;
+                        } else
+                            isLoadFromDraft = "false";
                         ReloadJqueryReference();
                         //if (typeof isWizardTstruct == "undefined" || isWizardTstruct == false) {
                         isTstPostBackVal = resval[0] + "*$*" + resval[1] + "*$*" + resval[2];
@@ -9236,7 +9782,7 @@ function LoadTstHtmlLS(_thisTransid, _src) {
     //ShowDimmer(false);
 }
 
-function GetTstHtmlLS(_TstlocalStorage) {
+function GetTstHtmlLS(_TstlocalStorage, _permissionVars="") {
     //Closediv();
     pageLogTime = '';
     formLogTime = '';
@@ -9245,6 +9791,10 @@ function GetTstHtmlLS(_TstlocalStorage) {
         var resResult = resTstLoadDummy;
         resTstLoadDummy = '';
         if (resResult != "") {
+            if (resResult.split("*♦♠*").length > 1) {
+                tstPermissions = resResult.split("*♦♠*")[1];
+                resResult = resResult.split("*♦♠*")[0];
+            }
             if (resResult.split("*♠♦*").length > 1) {
                 serverprocesstime = resResult.split("*♠♦*")[1];
                 requestProcess_logtime = resResult.split("*♠♦*")[2];
@@ -9252,6 +9802,11 @@ function GetTstHtmlLS(_TstlocalStorage) {
                 WireElapsTime(serverprocesstime, requestProcess_logtime, true);
             } else {
                 UpdateExceptionMessageInET("Error : " + resResult);
+                if (resResult.startsWith("Error:")) {
+                    let _result = resResult.replace("Error:", "");
+                    window.location.href = "err.aspx?errmsg=" + _result;
+                    return;
+                }
             }
         }
         Closediv();
@@ -9282,6 +9837,7 @@ function GetTstHtmlLS(_TstlocalStorage) {
         blurNextPreventId = "";
         AxFormControlList = new Array();
         AxSetFldCaption = new Array();
+        AxFCBtnReadOnly = new Array();
         RegVarFldList = new Array();
         ChangedFields = new Array();
         ChangedFieldDbRowNo = new Array();
@@ -9289,6 +9845,8 @@ function GetTstHtmlLS(_TstlocalStorage) {
         ChangedDcRows = new Array();
         ChangedDcs = new Array();
         DeletedDCRows = new Array();
+        DeletedDCs = new Array();
+        DeletedRowNos = new Array();
         AllFieldNames = new Array();
         AllFieldValues = new Array();
         ScriptMaskFields = new Array();
@@ -9461,6 +10019,22 @@ function GetTstHtmlLS(_TstlocalStorage) {
             else
                 ClearFieldsInDC(dcID);
         });
+        try {
+            if (typeof tstGrdAttDdlAutoSelect != "undefined" && tstGrdAttDdlAutoSelect == "true") {
+                $.ajax({
+                    url: 'tstruct.aspx/DeleteTstGridAtt',
+                    type: 'POST',
+                    cache: false,
+                    async: true,
+                    dataType: 'json',
+                    contentType: "application/json",
+                    success: function (data) {
+                    },
+                    error: function (error) {
+                    }
+                });
+            }
+        } catch (ex) { }
         ExprPosArray.forEach(function (vals, ind) {
             if (vals != "")
                 ExprPosArray[ind] = "";
@@ -9474,11 +10048,14 @@ function GetTstHtmlLS(_TstlocalStorage) {
         $j("#recordid000F0").val("0");
         AxFormControlList = new Array();
         AxSetFldCaption = new Array();
+        AxFCBtnReadOnly = new Array();
         RegVarFldList = new Array();
         ChangedFields = new Array();
         ChangedFieldDbRowNo = new Array();
         ChangedFieldValues = new Array();
         DeletedDCRows = new Array();
+        DeletedDCs = new Array();
+        DeletedRowNos = new Array();
         ChangedDcRows = new Array();
         ChangedDcs = new Array();
         AllFieldNames = new Array();
@@ -9506,7 +10083,14 @@ function GetTstHtmlLS(_TstlocalStorage) {
         changeFillGridDc = 0;
         if (isMobile)
             OnMobileNewTst();
-
+        if (_permissionVars != "") {
+            tstPermissions = _permissionVars;
+            if (tstPermissions.startsWith("Error:")) {
+                let _result = tstPermissions.replace("Error:", "");
+                window.location.href = "err.aspx?errmsg=" + _result;
+                return;
+            }
+        }
         if (_TstlocalStorage != "") {
             var resval = _TstlocalStorage.split("*$*");
             if (resval[0] == "") {
@@ -9707,6 +10291,8 @@ function GetLoadData(recid, tstQureystr) {
         AxWaitCursor(true);
         ShowDimmer(true);
         GetProcessTime();
+        if (typeof isLoadFromDraft != "undefined")
+            isLoadFromDraft = "false";
         let _isDupTab = callParentNew('isDuplicateTab');
         if ((window.location.href).indexOf("AxSplit") != -1) {            
             tstQureystr += tstQureystr.indexOf("AxSplit") == -1 ? `${tstQureystr.endsWith("♠") ? "": "♠"}AxSplit=true` : "";
@@ -9732,7 +10318,11 @@ function GetLoadData(recid, tstQureystr) {
                 ShowDimmer(true);
                 resTstHtmlLS = '';
                 var result = data.d;
-                if (result != "") {
+                if (result != "" && !result.startsWith("Error:")) {
+                    if (result.split("*♦♠*").length > 1) {
+                        tstPermissions = result.split("*♦♠*")[1];
+                        result = result.split("*♦♠*")[0];
+                    }
                     if (result.split("*♠♦*").length > 1) {
                         serverprocesstime = result.split("*♠♦*")[1];
                         requestProcess_logtime = result.split("*♠♦*")[2];
@@ -9741,6 +10331,10 @@ function GetLoadData(recid, tstQureystr) {
                     } else {
                         UpdateExceptionMessageInET("Error : " + result);
                     }
+                } else if (result.startsWith("Error:")) {
+                    let _result = result.replace("Error:", "");
+                    window.location.href = "err.aspx?errmsg=" + _result;
+                    return;
                 }
                 Closediv();
                 if (result.toLowerCase().indexOf("access violation") === -1) {
@@ -9776,6 +10370,7 @@ function GetLoadData(recid, tstQureystr) {
                         blurNextPreventId = "";
                         AxFormControlList = new Array();
                         AxSetFldCaption = new Array();
+                        AxFCBtnReadOnly = new Array();
                         RegVarFldList = new Array();
                         ChangedFields = new Array();
                         ChangedFieldDbRowNo = new Array();
@@ -9783,6 +10378,8 @@ function GetLoadData(recid, tstQureystr) {
                         ChangedDcRows = new Array();
                         ChangedDcs = new Array();
                         DeletedDCRows = new Array();
+                        DeletedDCs = new Array();
+                        DeletedRowNos = new Array();
                         AllFieldNames = new Array();
                         AllFieldValues = new Array();
                         ScriptMaskFields = new Array();
@@ -9969,6 +10566,9 @@ function GetLoadData(recid, tstQureystr) {
 
 //Function which deletes a tstruct record.
 function DeleteTstruct() {
+    if (CheckBtnReadOnly('DeleteTstruct()')) {
+        return;
+    }
     if (AxIsTstructLocked) {
         showAlertDialog("warning", 2008, "client");
         return;
@@ -10045,8 +10645,11 @@ function DeleteTstruct() {
                             txt = txt + '<Transaction axpapp="' + proj + '" transid="' + tst + '" recordid="' + rid + '" action="delete" trace="' + trace + '" sessionid="' + sid + '" allowCancel="' + AxAllowCancel + '"> ';
                             //txt = txt + '</Transaction>';
                             try {
+                                ShowDimmer(true);
+                                AxWaitCursor(true);
                                 ASB.WebService.DeleteDataXML(rid, txt, tstDataId, AxAllowCancel, resTstHtmlLS, SucceededCallbackDelTst);
                             } catch (exp) {
+                                ShowDimmer(false);
                                 AxWaitCursor(false);
                                 var execMess = exp.name + "^♠^" + exp.message;
                                 showAlertDialog("error", 2030, "client", execMess);
@@ -10078,6 +10681,8 @@ function SucceededCallbackDelTst(result, eventArgs) {
         tstDataId = result.split("♠*♠")[0];
         result = result.split("♠*♠")[1];
     }
+    ShowDimmer(false);
+    AxWaitCursor(false);
     if (CheckSessionTimeout(result))
         return;
 
@@ -10101,7 +10706,14 @@ function SucceededCallbackDelTst(result, eventArgs) {
             ExecErrorMsg(myJSONObject.error, "Delete");
         } else if (myJSONObject.timetaken) {
             ExecTimetaken(myJSONObject.timetaken);
-        } else {
+        } else {        
+            if (typeof transid != "" && transid == "ad_af") {
+                eval(callParent('isRefreshParentOnClose') + "= true");
+                isTstRefreshParentOnClose = "true";
+            }
+            if (typeof transid != "" && transid == "job_s") {
+                DeleteAxpertJobs();
+            }
             if (AxLogTimeTaken == "true") {
                 var edTime = new Date();
                 var diff = edTime.getTime() - stTime.getTime();
@@ -10123,10 +10735,15 @@ function SucceededCallbackDelTst(result, eventArgs) {
                     $j("#axpertPopupWrapper .remodal-close", window.parent.document).click();
                     try {
                         callParentNew("loadPopUpPage", "id").dispatchEvent(new CustomEvent("close"));
-                    } catch (ex) {}
+                    } catch (ex) { }
                 }
             } else {
-                window.location.href = "tstruct.aspx?transid=" + tst + `&isDupTab=${callParentNew('isDuplicateTab')}`;
+                if (typeof transid != "undefined" && (transid == "sect" || transid == "a__rp")) {
+                    try {
+                        htmlCustomDeleteRedirect();
+                    } catch (ex) { }
+                } else
+                    window.location.href = "tstruct.aspx?transid=" + tst + `&isDupTab=${callParentNew('isDuplicateTab')}`;
             }
             window.parent.isSessionCleared = true;
             ResetNavGlobalVariables();
@@ -10148,6 +10765,9 @@ function SucceededCallbackDelTst(result, eventArgs) {
 var printWindow;
 //Function to print the transaction.
 function OpenPrint(tid) {
+    if (CheckBtnReadOnly(`OpenPrint('${tid}')`)) {
+        return;
+    }
     if (typeof AxRulesBtnConMsg != "undefined" && AxRulesBtnConMsg == "true") {
         if (!AxRulesBtnConMsgParser(event.currentTarget)) {
             return;
@@ -10631,6 +11251,9 @@ function HideTaskList(btnClicked) {
 
 //Function to open view history page.
 function OpenHistory(tid) {
+    if (CheckBtnReadOnly(`OpenHistory('${tid}')`)) {
+        return;
+    }
     if (typeof AxRulesBtnConMsg != "undefined" && AxRulesBtnConMsg == "true") {
         if (!AxRulesBtnConMsgParser(event.currentTarget)) {
             return;
@@ -10790,9 +11413,12 @@ function SearchOpenNew(fldAdvSrcId) {
         _thisFldVal = fldPk.val();
     }
     var objKey = tstDataId;
+    x = CheckUrlSpecialChars(x);
+    if (typeof _thisFldVal != "undefined" && _thisFldVal != null)
+        _thisFldVal = CheckUrlSpecialChars(_thisFldVal);
     var na = "./AutoComplete.aspx?search=" + x + "&fldname=" + fname + "&transid=" + tst + "&activeRow=" + AxActiveRowNo + "&frameno=" + fldFrameNo + "&key=" + objKey + "&parStr=" + parStr + "&subStr=" + subStr + "&isFldddl=" + _isDropfld + "&selFldVal=" + _thisFldVal + "&isMultSel=" + _isMultSel + "&AxPop=true";
     // createPopup(na, "73vw");
-    let myModal = new BSModal("loadPopUpPage", "", "<iframe id='loadPopUpPage' name='loadPopUpPage' class='col-12 h-100' src='" + na + "'></iframe>", () => {
+    let myModal = new BSModal("loadPopUpPage", "", "<iframe id='loadPopUpPage' name='loadPopUpPage' class='col-12 h-100' src=\"" + na + "\"></iframe>", () => {
         //shown callback
     }, (closing, modal) => {
         //hide callback
@@ -11342,7 +11968,10 @@ function SucceededCallbackAction(result, calledFrom) {
                 callParentNew('isSuccessAlertInPopUp=', true);
             }
             showAlertDialog("info", 2051, "client", actname);
-            window.location.href = window.location.href;
+            //window.location.href = window.location.href;
+            const url = new URL(window.location.href);
+            url.searchParams.set("recordid", recordid);
+            window.location.replace(url.href);
         } else {
             // Page element to display feedback.
             var resSplit1 = result.split(",");
@@ -11362,7 +11991,10 @@ function SucceededCallbackAction(result, calledFrom) {
                     window.document.location.href = "./mid1.aspx";
                 } else {
                     if (tstType == "loadqs") {
-                        window.location.href = window.location.href;
+                        //window.location.href = window.location.href;
+                        const url = new URL(window.location.href);
+                        url.searchParams.set("recordid", recordid);
+                        window.location.replace(url.href);
                     } else {
                         window.document.location.href = "./tstruct.aspx?transid=" + tst + `&openerIV=${typeof isListView != "undefined" ? iName : tst}&isIV=${typeof isListView != "undefined" ? !isListView : "false"}&isDupTab=${callParentNew('isDuplicateTab')}`;
                     }
@@ -11532,7 +12164,7 @@ function AssignHTML(result, calledFrom, source) {
 
                 var tmpRecId = "";
                 tmpRecId = $j("#recordid000F0").val();
-                if (tmpRecId != "0" && calledFrom == "FillGrid") {
+                if (tmpRecId != "0" && calledFrom == "FillGrid" && source != "GetTabData") {
                     for (var dIdx = 1; dIdx <= parseInt(pRCnt, 10); dIdx++) {
                         var rowNo = GetRowNoHelper(dIdx);
                         UpdateChangedRows(rowNo + "F" + pDcNo, dIdx);
@@ -11725,6 +12357,14 @@ function EnableDisableBtns(obj, enable) {
             obj.attr('tabindex', -1);
             if (obj.hasClass('menu-link'))
                 obj.addClass('btn');
+            let _onclickVal = obj.attr("onclick") || "";
+            _onclickVal = _onclickVal.replace(/^javascript:\s*/i, "").replace(/;\s*$/, "");
+            if (_onclickVal && !AxFCBtnReadOnly.includes(_onclickVal)) {
+                AxFCBtnReadOnly.push(_onclickVal);
+            } else if (_onclickVal == "" && typeof obj.attr("id") != "undefined" && obj.attr("id") == "btnAppsDraft") {
+                if (!AxFCBtnReadOnly.includes('btnAppsDraft'))
+                    AxFCBtnReadOnly.push('btnAppsDraft');
+            }
         } else {
             obj.prop("disabled", false);
             obj.removeClass('disabled');
@@ -11735,6 +12375,19 @@ function EnableDisableBtns(obj, enable) {
             obj.removeAttr('tabindex');
             if (obj.hasClass('menu-link'))
                 obj.removeClass('btn');
+            let _onclickVal = obj.attr("onclick") || "";
+            _onclickVal = _onclickVal.replace(/^javascript:\s*/i, "").replace(/;\s*$/, "");
+            if (_onclickVal) {
+                const index = AxFCBtnReadOnly.indexOf(_onclickVal);
+                if (index !== -1) {
+                    AxFCBtnReadOnly.splice(index, 1);
+                }
+            } else if (_onclickVal == "" && typeof obj.attr("id") != "undefined" && obj.attr("id") == "btnAppsDraft") {
+                const index = AxFCBtnReadOnly.indexOf('btnAppsDraft');
+                if (index !== -1) {
+                    AxFCBtnReadOnly.splice(index, 1);
+                }
+            }
         }
 
         var isAxpBtn = false;
@@ -12195,6 +12848,31 @@ function ShowdivContentCK(objId, isBlur) {
         var dvHtml = CKEDITOR.instances[objId].getData();
         /*dvHtml = dvHtml.replace(/<img/g, '<gmi');*/
         dvHtml = TagReplaceCharForRTB(dvHtml);
+        try {
+            if (dvHtml != "") {
+                let checkRW = "";
+                if (dvHtml.indexOf("***") != -1) {
+                    checkRW = "***";
+                } else if (dvHtml.indexOf("**") != -1) {
+                    checkRW = "**";
+                } else if (dvHtml.indexOf("###") != -1) {
+                    checkRW = "###";
+                } else if (dvHtml.indexOf("`") != -1) {
+                    checkRW = "`";
+                } else if (dvHtml.indexOf("*$*") != -1) {
+                    checkRW = "*$*";
+                }
+                if (checkRW != "") {
+                    showAlertDialog("error", 2053, "client", "^♠^" + checkRW);
+                    dvHtml = dvHtml.replace(/\*\*\*/g, " ");
+                    dvHtml = dvHtml.replace(/\*\*/g, " ");
+                    dvHtml = dvHtml.replace(/###/g, " ");
+                    dvHtml = dvHtml.replace(/`/g, " ");
+                    dvHtml = dvHtml.replace(/\*\$\*/g, " ");
+                }
+            }
+        } catch (ex) { }
+
         $j("#" + objId).val(dvHtml);
         MainBlur($j("#" + objId));
         currentCK = "";
@@ -12334,8 +13012,48 @@ function ShowGridAttLink(src) {
     }
     if (isFileMissed)
         showAlertDialog("error", eval(callParent('lcm[516]')));
-    else
-        window.open(src, "GridUploadFile", "width=500,height=350,scrollbars=no,resizable=yes");
+    else {
+        if (src != "" && src.endsWith('.zip')) {
+            let protectFile = "false";
+            if (typeof tstConfigurations != "undefined" && tstConfigurations.config !== undefined && tstConfigurations.config.length > 0) {
+                let _finalJson = [];
+                try {
+                    tstConfigurations.config.forEach(function (val) {
+                        var ret = {};
+                        $.map(val, function (value, key) {
+                            ret[key.toLowerCase()] = value;
+                        });
+                        _finalJson.push(ret);
+                    });
+                } catch (ex) { }
+                protectFile = _finalJson.find(item => item.props?.trim().toLowerCase() === "file protected in tstruct attachments")?.propsval;
+                if (typeof protectFile == "undefined" || protectFile == "")
+                    protectFile = "false";
+            }
+            if (protectFile == "true") {
+                const _zipfileName = src.substring(src.lastIndexOf('/') + 1);
+                ASB.WebService.LoadAxpFileToScript("", _zipfileName, CallBackOnAxpFile);
+                function CallBackOnAxpFile(furesult, eventArgs) {
+                    if (typeof furesult != "undefined" && furesult != "" && furesult.indexOf("true:") > -1) {
+                        let newFileName = furesult.startsWith("true:") ? furesult.substring(5) : furesult;
+                        let lastSlashIndex = src.lastIndexOf("/");
+                        let updatedSrc = src.substring(0, lastSlashIndex + 1) + newFileName;
+                        src = unescape(updatedSrc);
+                        var idx = src.lastIndexOf("/");
+                        if (idx > -1) src = src.substring(0, idx + 1) + encodeURIComponent(src.substring(idx + 1, src.length));
+                        if (isMobile) {
+                            let _fileName = src.match(/\/([^\/?#]+)$/)[1];
+                            OpenPdfFile(_fileName, "", "", "", false);
+                        } else {
+                            window.open(src, "GridDcUploadFile", "width=500,height=350,scrollbars=no,resizable=yes");
+                        }
+                    }
+                }
+            } else
+                window.open(src, "GridDcUploadFile", "width=500,height=350,scrollbars=no,resizable=yes");
+        } else
+            window.open(src, "GridDcUploadFile", "width=500,height=350,scrollbars=no,resizable=yes");
+    }
 }
 
 function ShowAxpFileuploadLink(fldName, pathSrc, src, event) {
@@ -12357,15 +13075,31 @@ function ShowAxpFileuploadLink(fldName, pathSrc, src, event) {
 
     ASB.WebService.LoadAxpFileToScript(axpPath, pathSrc, CallBackOnAxpFile);
 
-    function CallBackOnAxpFile() {
-        src = unescape(src); //to show decode special characters
-        var idx = src.lastIndexOf("/");
-        if (idx > -1) src = src.substring(0, idx + 1) + encodeURIComponent(src.substring(idx + 1, src.length));
-        if (isMobile) {
-            let _fileName = src.match(/\/([^\/?#]+)$/)[1];
-            OpenPdfFile(_fileName, "", "", "", false);
+    function CallBackOnAxpFile(furesult, eventArgs) {
+        if (typeof furesult != "undefined" && furesult != "" && furesult.indexOf("true:") > -1) {
+            let newFileName = furesult.startsWith("true:") ? furesult.substring(5) : furesult;
+            let lastSlashIndex = src.lastIndexOf("/");
+            let updatedSrc = src.substring(0, lastSlashIndex + 1) + newFileName;
+            src = unescape(updatedSrc);
+            var idx = src.lastIndexOf("/");
+            if (idx > -1) src = src.substring(0, idx + 1) + encodeURIComponent(src.substring(idx + 1, src.length));
+            if (isMobile) {
+                let _fileName = src.match(/\/([^\/?#]+)$/)[1];
+                OpenPdfFile(_fileName, "", "", "", false);
+            } else {
+                window.open(src, "GridUploadFile", "width=500,height=350,scrollbars=no,resizable=yes");
+            }
+
         } else {
-            window.open(src, "GridUploadFile", "width=500,height=350,scrollbars=no,resizable=yes");
+            src = unescape(src); //to show decode special characters
+            var idx = src.lastIndexOf("/");
+            if (idx > -1) src = src.substring(0, idx + 1) + encodeURIComponent(src.substring(idx + 1, src.length));
+            if (isMobile) {
+                let _fileName = src.match(/\/([^\/?#]+)$/)[1];
+                OpenPdfFile(_fileName, "", "", "", false);
+            } else {
+                window.open(src, "GridUploadFile", "width=500,height=350,scrollbars=no,resizable=yes");
+            }
         }
     }
 }
@@ -13916,7 +14650,7 @@ $j(document).on('click', '.printhtmltopdf', function () {
             success: function (data) {
                 if (data.d != null || data.d != "") {
                     if (data.d.split('~')[0] != "error" && data.d.split('~')[0] != "session") {
-                        var waitTime = 1000;
+                        var waitTime = 2000;
                         if (jQBrowser.chrome || jQBrowser.opera || jQBrowser.safari) {
                             try {
                                 printJS(data.d);
@@ -13963,7 +14697,7 @@ $j(document).on('click', '.printhtmltopdf', function () {
                             } catch (ex) {
                                 showAlertDialog("warning", eval(callParent('lcm[356]')));
                             }
-                            waitTime = 1000;
+                            waitTime = 2000;
                         } else {
                             var URL = data.d;
                             var W;
@@ -13975,7 +14709,9 @@ $j(document).on('click', '.printhtmltopdf', function () {
                             }
                         }
                         setTimeout(function () {
-                            deletepdffile(data.d);
+                            setTimeout(function () {
+                                deletepdffile(data.d);
+                            }, 0);
                         }, waitTime);
                     } else if (data.d.split('~')[0] == "session") {
                         ShowDimmer(false);
@@ -14234,6 +14970,9 @@ function SetGridElementsHeight() {
 }
 
 function lnkNextClick() {
+    if (CheckBtnReadOnly('lnkNextClick()')) {
+        return;
+    }
     if ($("#lnkNext").length > 0 && $("#lnkNext").prop("disabled") == true) {
         return false;
     }
@@ -14260,7 +14999,10 @@ function lnkNextClick() {
                     btnClass: 'btn btn-primary',
                     action: function () {
                         lvNavDetails = "next";
-                        FormSubmit();
+                        if (typeof transid != "undefined" && transid == "job_s") {
+                            $("#ftbtn_iSave").click();
+                        } else
+                            FormSubmit();
                     }
                 },
                 buttonB: {
@@ -14278,6 +15020,9 @@ function lnkNextClick() {
 }
 
 function lnkPrevClick() {
+    if (CheckBtnReadOnly('lnkPrevClick()')) {
+        return;
+    }
     if ($("#lnkPrev").length > 0 && $("#lnkPrev").prop("disabled") == true) {
         return false;
     }
@@ -14304,7 +15049,10 @@ function lnkPrevClick() {
                     btnClass: 'btn btn-primary',
                     action: function () {
                         lvNavDetails = "prev";
-                        FormSubmit();
+                        if (typeof transid != "undefined" && transid == "job_s") {
+                            $("#ftbtn_iSave").click();
+                        } else
+                            FormSubmit();
                     }
                 },
                 buttonB: {
@@ -14921,9 +15669,77 @@ function getDraftsList(elem) {
 function SuccessCallbackDraftKeys(result, eventArgs) {
     if (CheckSessionTimeout(result))
         return;
-
 }
 
+function getDraftsListNew(elem) {
+    if (CheckBtnReadOnly(`getDraftsListNew()`)) {
+        return;
+    }
+    try {
+        ASB.WebService.GetDraftsFromRedisNew(tst, tstructCaption, SuccessCallbackDraftKeysNew, FailureCallBackDraftKeys);
+    } catch (exp) {
+        AxWaitCursor(false);
+    }
+}
+
+function SuccessCallbackDraftKeysNew(result, eventArgs) {
+    if (CheckSessionTimeout(result))
+        return;
+    if (result.indexOf('No Drafts') > -1) {
+        showAlertDialog("error", "No drafts exist in this form.");
+    } else {
+        let myModal = new BSModal("modalIdSaveDraft", "Load Saved Drafts", "<div>" + result + "</div>", () => {
+        }, () => {
+        });
+        myModal.okBtn.innerText = "Delete";
+        let newOkBtn = myModal.okBtn.cloneNode(true);
+        myModal.okBtn.parentNode.replaceChild(newOkBtn, myModal.okBtn);
+        myModal.okBtn = newOkBtn;
+        myModal.okBtn.removeAttribute("data-bs-dismiss");
+        myModal.okBtn.addEventListener("click", function (e) {
+            e.preventDefault();
+            const proceed = clearDraftrediskeysNew();
+            if (!proceed)
+                return;
+            myModal.hide();
+        });
+        myModal.cancelBtn.classList.add('d-none');
+    }
+}
+
+function clearDraftrediskeysNew() {
+    try {
+        const selected = document.querySelectorAll(".draft-delete-checkbox:checked");
+        if (selected.length === 0) {
+            showAlertDialog("error", "Please select at least one draft to delete.");
+            return false; 
+        }
+        const keyIds = Array.from(selected).map(chk => chk.getAttribute("data-keyid"));
+        const keyIdString = keyIds.join("♥");
+        $.ajax({
+            url: 'tstruct.aspx/DeletedraftRediskeysNew',
+            type: 'POST',
+            cache: false,
+            async: true,
+            data: JSON.stringify({
+                key: transid,
+                keyNames: keyIdString
+            }),
+            dataType: 'json',
+            contentType: "application/json",
+            success: function (data) {
+                callParentNew("modalIdSaveDraft", "id").dispatchEvent(new CustomEvent("close"));
+                getDraftsListNew(this);
+            },
+            error: function (error) {
+                showAlertDialog("error", "Failed to delete selected drafts.");
+            }
+        });
+    } catch (exp) {
+        showAlertDialog("error", "Unexpected error occurred while deleting drafts.");
+        return false;
+    }
+}
 
 function FailureCallBackDraftKeys(result, eventArgs) {
     //Need to implement
@@ -14991,6 +15807,73 @@ function loadSavedDraft(CreatedOn) {
         }
     });
 }
+
+function loadSavedDraftNew(CreatedOn) {
+
+    var cutMsg = eval(callParent('lcm[31]'));
+    const cutMsgTime = CreatedOn;
+    var glType = eval(callParent('gllangType'));
+    cutMsg = cutMsg.split(".")[0] + " " + "created on " + cutMsgTime + "." + "Do you want to retrieve and edit this data?";
+    var isRTL = false;
+    if (glType == "ar")
+        isRTL = true;
+    else
+        isRTL = false;
+    var CallListViewCB = $.confirm({
+        theme: 'modern',
+        closeIcon: false,
+        title: eval(callParent('lcm[155]')),
+        rtl: isRTL,
+        onContentReady: function () {
+            disableBackDrop('bind');
+        },
+        backgroundDismiss: true,
+        escapeKey: 'buttonB',
+        content: cutMsg,
+        buttons: {
+            buttonA: {
+                text: eval(callParent('lcm[279]')),
+                btnClass: 'btn btn-primary',
+                action: function () {
+                    GetCurrentTime("Tstruct load on SaveDraft button click(ajax call)");
+                    CallListViewCB.close();
+                    ShowDimmer(true);
+                    evalExpOnSaveDraftLoad = true;
+                    callParentNew("modalIdSaveDraft", "id").dispatchEvent(new CustomEvent("close"));
+                    closeParentFrame();
+                    GetFormLoadData("", "true♦" + cutMsgTime, "false", "true");
+                    window.parent.isSessionCleared = true;
+                }
+            },
+            buttonB: {
+                text: eval(callParent('lcm[280]')),
+                btnClass: 'btn btn-bg-light btn-color-danger btn-active-light-danger',
+                action: function () {
+                    ShowDimmer(false);
+                    evalExpOnSaveDraftLoad = false;
+                    disableBackDrop('destroy');
+                    //clearDraftrediskeys("true");
+                    closeParentFrame();
+                    window.parent.isSessionCleared = true;
+                }
+            }
+
+        }
+    });
+}
+
+function toggleAllDrafts(source) {
+    const checkboxes = document.querySelectorAll('.draft-delete-checkbox');
+    checkboxes.forEach(cb => {
+        cb.checked = source.checked;
+    });
+}
+
+$j(document).off("change", ".draft-delete-checkbox").on("change", ".draft-delete-checkbox", function () {
+    const total = $j(".draft-delete-checkbox").length;
+    const checked = $j(".draft-delete-checkbox:checked").length;
+    $j("#selectAllDrafts").prop("checked", total === checked);
+});
 
 function clearDraftrediskeys(Isclear) {
     try {
@@ -15085,8 +15968,22 @@ function confirmOnAction(fromPropsheet) {
                     if (!fromPropsheet) {
                         //window.location.href = "tstruct.aspx" + window.location.search.replace(/&theMode=design/g, "");
                         //callParentNew("lastLoadtstId=", _thisRui);
-                        let _thisRui = 'tstruct.aspx?transid=' + transid + '&openerIV=ttotl&isIV=false';
-                        callParentNew(`LoadIframe(${_thisRui})`, "function");
+
+                        let iframes = window.parent.document.getElementsByTagName('iframe');
+                        let currentIframe = null;
+                        for (let i = 0; i < iframes.length; i++) {
+                            if (iframes[i].contentWindow === window) {
+                                currentIframe = iframes[i];
+                                break;
+                            }
+                        }
+                        let _thisIframe = $(currentIframe).attr("id");
+                        if (typeof _thisIframe != "undefined" && _thisIframe == "middle1") {
+                            let _thisRui = "tstruct.aspx" + window.location.search.replace(/&theMode=design/g, "");
+                            callParentNew(`LoadIframe(${_thisRui})`, "function");
+                        } else {
+                            window.location.href = "tstruct.aspx" + window.location.search.replace(/&theMode=design/g, "");
+                        }
                     }
                     else
                         openProprtySht('addFieldPS');
@@ -15394,20 +16291,51 @@ function GetFieldId(AxFldName, AxRowNo, AxDcNo) {
     return AxFldId;
 }
 
+
+var allowClose = false;
 function FieldTypeTable(event, el) {
     let thisFldId = typeof $(el).attr("id") == "undefined" ? $(el).parent().parent().find("input").attr("id") : $(el).attr("id");
     src = "./tsttable.aspx?fldId=" + thisFldId;
     var tableHeader = GetFieldCaption(thisFldId).length != -1 ? (GetFieldCaption(thisFldId) == "&nbsp" ? "" : GetFieldCaption(thisFldId)) : "";
     // displayBootstrapModalDialog(tableHeader, "", "330px", true, src, "", "", CallbackFunctionBootstrap);
-
-    let myModal = new BSModal("modalIdTableField", tableHeader, "<iframe class='w-100 h-100' src='" + src + "'></iframe>", () => {
-        // CallbackFunctionBootstrap();
+    allowClose = false;
+    let myModal = new BSModal("modalIdTableField", tableHeader, "<iframe class='w-100 h-400px' src='" + src + "'></iframe>", () => {
+        if (typeof isTstPop != "undefined" && isTstPop == 'True')
+            $(".modal-content").css({ "height": "100%" });
+        let isResizableApplied = false;
+        $('#modalIdTableField').on('mouseenter', '.modal-content', function () {
+            if (isResizableApplied) return;
+            isResizableApplied = true;
+            let $modal = $('#modalIdTableField');
+            let $dialog = $modal.find('.modal-dialog');
+            let width = $dialog.width();
+            let height = $dialog.height();
+            $dialog.removeClass('modal-xl modal-fullscreen modal-lg modal-sm');
+            $dialog.css({
+                width: width,
+                height: height,
+                maxWidth: 'none'
+            });
+            $modal.find('.modal-content').resizable({
+                minHeight: 300,
+                minWidth: 400
+            });
+            $dialog.draggable({
+                handle: ".modal-header"
+            });
+        });
     }, () => {
-        //hide callback
     });
     myModal.scrollableDialog();
-    myModal.modalBody.classList.add('overflow-hidden');
-    myModal.changeSize("fullscreen");
+    //myModal.modalBody.classList.add('overflow-hidden'); 
+    if (typeof transid != "undefined" && transid == "b_sql")
+        myModal.changeSize("xl");
+    else if (typeof isTstPop != "undefined" && isTstPop == 'True') {
+        myModal.changeSize("xl");
+    }
+    else {
+        myModal.changeSize("xl");
+    }
     myModal.okBtn.innerText = "Ok";
     myModal.okBtn.addEventListener("click", (e) => {
         document.getElementById('modalIdTableField').querySelector("iframe").contentWindow.AddTableData();
@@ -15417,8 +16345,24 @@ function FieldTypeTable(event, el) {
         document.getElementById('modalIdTableField').querySelector("iframe").contentWindow.ClearTableData('fldTable');
     });
     myModal.cancelBtn.removeAttribute("data-bs-dismiss");
-    myModal.okBtn.removeAttribute("data-bs-dismiss");
+    //myModal.okBtn.removeAttribute("data-bs-dismiss");
     myModal.modalFooter.classList.add("p-2");
+
+    $(document).on('click', '#modalIdTableField .btn-close, #modalIdTableField [data-bs-dismiss="modal"]', function () {
+        allowClose = true;
+    });
+    $('#modalIdTableField').on('hide.bs.modal', function (e) {
+        if (!allowClose) {
+            e.preventDefault();
+            return false;
+        }
+        allowClose = false;
+    });
+    $(document).on('click', '#modalIdTableField .btn-close', function () {
+        allowClose = true;
+        let modalEl = document.getElementById('modalIdTableField');
+        bootstrap.Modal.getInstance(modalEl).hide();
+    });
 }
 
 function CallbackFunctionBootstrap(thisFldId) {
@@ -15819,7 +16763,12 @@ function importExceltoGrid(importDcNo) {
 
     var dcCaption = GetDcCaption(importDcNo);
     displayBootstrapModalDialog("Import Data from Excel to " + dcCaption + " ", "xs", "388px", true, "./excelimportgrid.aspx?dcNo=" + importDcNo + "", false, () => {
-        $(callParentNew('middle1', 'id').contentWindow.document.getElementsByTagName('body')).css("overflow", "");
+        if (parent.$("#loadPopUpPage").length > 0) {
+            let _thisPopId = dcCaption.split(" ").join("");
+            $("#divModalImportDatafromExcelto" + _thisPopId).parent("body").css("overflow", "auto");
+        }
+        else
+            $(callParentNew('middle1', 'id').contentWindow.document.getElementsByTagName('body')).css("overflow", "");
     }, () => { });
 
 }
@@ -16043,8 +16992,7 @@ function callBackBarQrScanner(scanReaderId) {
 }
 
 var isViewColUpdate=false;
-function SearchViewColumns()
-{
+function SearchViewColumns() {
     try {
         $.ajax({
             url: 'tstruct.aspx/GetSavedViewColumns',
@@ -16057,21 +17005,25 @@ function SearchViewColumns()
             dataType: 'json',
             contentType: "application/json",
             success: function (data) {
-                if(data.d!=""){
-                    isViewColUpdate=true;
-                    let vcValues=data.d;
+                if (data.d != "" && !data.d.startsWith('error:')) {
+                    isViewColUpdate = true;
+                    let vcValues = data.d;
                     ViewColumnsPopup(vcValues);
+                } else if (data.d.startsWith('error:')) {
+                    isViewColUpdate = false;
+                    ViewColumnsPopup("");
+                    showAlertDialog("error", data.d.replace(/^error:/, ''));
                 }
-                else{
-                    isViewColUpdate=false;
+                else {
+                    isViewColUpdate = false;
                     ViewColumnsPopup("");
                 }
             },
             error: function (error) {
-                isViewColUpdate=false;
+                isViewColUpdate = false;
             }
         });
-    } catch (exp) {}
+    } catch (exp) { }
 }
 
 function ViewColumnsPopup(vcValues)
@@ -16121,16 +17073,14 @@ function ChkHdrsvcCheckbox(obj, exprResult) {
         $j(".fgHdrChk").prop("checked", false);
 }
 
-function SaveViewColumns()
-{
-    let selectedFlds="";
-    $j(".fgChk:checked").each(function(ind,val){
-        selectedFlds+=$(this).parents("tr").find("td:eq(1)").text()+"~100~";
+function SaveViewColumns() {
+    let selectedFlds = "";
+    $j(".fgChk:checked").each(function (ind, val) {
+        selectedFlds += $(this).parents("tr").find("td:eq(1)").text() + "~100~";
     });
-    if(selectedFlds!="")
-    {
-        selectedFlds= "189,388,350,590,1~~~" + selectedFlds;
-        selectedFlds=selectedFlds.slice(0, -1);
+    if (selectedFlds != "") {
+        selectedFlds = "189,388,350,590,1~~~" + selectedFlds;
+        selectedFlds = selectedFlds.slice(0, -1);
         try {
             $.ajax({
                 url: 'tstruct.aspx/SaveViewColumns',
@@ -16139,20 +17089,23 @@ function SaveViewColumns()
                 async: true,
                 data: JSON.stringify({
                     TransId: transid,
-                    selectedFlds:selectedFlds,
-                    isViewColUpdate:isViewColUpdate
+                    selectedFlds: selectedFlds,
+                    isViewColUpdate: isViewColUpdate
                 }),
                 dataType: 'json',
                 contentType: "application/json",
                 success: function (data) {
-                    if(data.d=="" || data.d!="success")
+                    if (data.d != "" && data.d.startsWith("error:")) {
+                        showAlertDialog("error", data.d.replace(/^error:/, ''));
+                    }
+                    else if (data.d == "" || data.d != "success")
                         showAlertDialog("warning", 1031, "client");
                 },
                 error: function (error) {
                     showAlertDialog("warning", 1031, "client");
                 }
             });
-        } catch (exp) {}
+        } catch (exp) { }
     }
 }
 
@@ -16839,7 +17792,11 @@ function GetCloneFormLoadData(tstQureystr) {
             success: function (data) {
                 resTstHtmlLS = "";
                 var result = data.d;
-                if (result != "") {
+                if (result != "" && !result.startsWith("Error:")) {
+                    if (result.split("*♦♠*").length > 1) {
+                        tstPermissions = result.split("*♦♠*")[1];
+                        result = result.split("*♦♠*")[0];
+                    }
                     if (result.split("*♠♦*").length > 1) {
                         serverprocesstime = result.split("*♠♦*")[1];
                         requestProcess_logtime = result.split("*♠♦*")[2];
@@ -16848,6 +17805,10 @@ function GetCloneFormLoadData(tstQureystr) {
                     } else {
                         UpdateExceptionMessageInET("Error : " + result);
                     }
+                } else if (result.startsWith("Error:")) {
+                    let _result = result.replace("Error:", "");
+                    window.location.href = "err.aspx?errmsg=" + _result;
+                    return;
                 }
                 Closediv();
                 if (result.toLowerCase().indexOf("access violation") === -1) {
@@ -16883,11 +17844,14 @@ function GetCloneFormLoadData(tstQureystr) {
                         blurNextPreventId = "";
                         AxFormControlList = new Array();
                         AxSetFldCaption = new Array();
+                        AxFCBtnReadOnly = new Array();
                         RegVarFldList = new Array();
                         ChangedFields = new Array();
                         ChangedFieldDbRowNo = new Array();
                         ChangedFieldValues = new Array();
                         DeletedDCRows = new Array();
+                        DeletedDCs = new Array();
+                        DeletedRowNos = new Array();
                         ChangedDcRows = new Array();
                         ChangedDcs = new Array();
                         AllFieldNames = new Array();
@@ -17016,7 +17980,8 @@ function GetCloneFormLoadData(tstQureystr) {
                                 })
                             }
                         } catch (ex) { }
-
+                        displayAutoGenVal = "false";
+                        $j("#hdnShowAutoGenFldValue").val(displayAutoGenVal);
                         $j("#hdnDataObjId").val(tstDataId);
                         LoadResult = result;
                         Closediv();
@@ -17172,31 +18137,48 @@ function SaveTransactionJSON() {
                 tstDataId = result.split("♠*♠")[0];
                 result = result.split("♠*♠")[1];
             }
-            resTstHtmlLS = "";
-            try {
-                var resJson = $j.parseJSON(result);
-            } catch (ex) {
+            if (result.startsWith("RMQError:")) {
+                ShowDialog('error', result.replace("RMQError:", ""));
                 ShowDimmer(false);
+                AxWaitCursor(false);
             }
-            ShowDimmer(false);
-            AxWaitCursor(false);
-            if (resJson != undefined) {
-                if (resJson.result.success == true) {
-                    try {
-                        callParentNew("removeSavedtranNotify(" + transid + "," + recordid + ")", "function");
-                    } catch (ex) { }
-
-                    var src = $(eval(callParent("loadPopUpPage"))).attr("src");
-                    if (src != undefined && src.indexOf("AxPop=true") != -1)
-                        eval(callParent('isRefreshParentOnClose') + "= true");
-                    ShowDialog('success', "Data submitted to Queue successfully.");
-                    eval(callParent('isSuccessAlertInPopUp') + "= true");
-                    SetFormDirty(false);
-                } else {
-                    ShowDialog('error', "There was an error please try again");
+            else {
+                resTstHtmlLS = "";
+                try {
+                    var resJson = $j.parseJSON(result);
+                } catch (ex) {
+                    ShowDimmer(false);
                 }
-            } else {
-                ShowDialog('error', "There was an error please try again");
+                ShowDimmer(false);
+                AxWaitCursor(false);
+                if (resJson != undefined) {
+                    if (resJson.result.success == true) {
+                        try {
+                            callParentNew("removeSavedtranNotify(" + transid + "," + recordid + ")", "function");
+                        } catch (ex) { }
+
+                        var src = $(eval(callParent("loadPopUpPage"))).attr("src");
+                        if (src != undefined && src.indexOf("AxPop=true") != -1) {
+                            eval(callParent('isRefreshParentOnClose') + "= true");
+                            isTstRefreshParentOnClose = "true";
+                        }
+                        if (recordid =="0")
+                            ShowDialog('success', "Data submitted to Queue successfully.");
+                        else
+                            ShowDialog('success', "Changed data pushed to queue successfully. You will notified once the data updated successfully.");
+                        eval(callParent('isSuccessAlertInPopUp') + "= true");
+                        SetFormDirty(false);
+                    } else {
+                        if (typeof resJson.result.message != "undefined" && resJson.result.message != "") {
+                            ShowDialog('error', resJson.result.message);
+                        } else
+                            ShowDialog('error', "There was an error please try again");
+                    }
+                } else {
+                    //ShowDialog('error', "There was an error please try again");
+                    result = result.replace("error:", "");
+                    showAlertDialog('error', result);
+                }
             }
         } catch (ex) {
             ShowDimmer(false);
@@ -17295,7 +18277,9 @@ $j(document).off("click", ".amendmentOptions").on("click", ".amendmentOptions", 
                     }
                 } else {
                     let _oldVal = ele.oldvalue == "" ? "Nil" : ele.oldvalue;
+                    _oldVal = _oldVal.replace(/\^\^dq/g, "\"");
                     let _newVal = ele.newvalue == "" ? "Nil" : ele.newvalue
+                    _newVal = _newVal.replace(/\^\^dq/g, "\"");
                     let _dcNo = ele.dcname;
                     _dcNo = _dcNo.substr(2);
                     if (IsDcGrid(_dcNo)) {
@@ -17898,8 +18882,15 @@ function axPegApprove(isCommentApprove = "") {
                 ShowDimmer(false);
             }
             if (resJson != undefined && typeof resJson.result != "undefined" && typeof resJson.result[0].status != "undefined" && resJson.result[0].status == "success") {
-                showAlertDialog("success", resJson.result[0].msg);
-                window.location.href = window.location.href;
+                let _tiframes = parent.document.getElementsByTagName("iframe");
+                if (typeof _tiframes != "undefined" && $(_tiframes).attr("id").startsWith("ldb")) {
+                    parent.parent.window.location.reload();
+                    showAlertDialog("success", resJson.result[0].msg);
+                }
+                else {
+                    showAlertDialog("success", resJson.result[0].msg);
+                    window.location.href = window.location.href;
+                }
             } else if (resJson != undefined && typeof resJson.result != "undefined" && typeof resJson.result[0].error != "undefined" && resJson.result[0].error.status.toLowerCase() == "failed") {
                 showAlertDialog("error", resJson.result[0].error.msg);
                 ShowDimmer(false);
@@ -17976,8 +18967,15 @@ function axPegReturn(isCommentReturn = "") {
                 ShowDimmer(false);
             }
             if (resJson != undefined && typeof resJson.result != "undefined" && typeof resJson.result[0].status != "undefined" && resJson.result[0].status == "success") {
-                showAlertDialog("success", resJson.result[0].msg);
-                window.location.href = window.location.href;
+                let _tiframes = parent.document.getElementsByTagName("iframe");
+                if (typeof _tiframes != "undefined" && $(_tiframes).attr("id").startsWith("ldb")) {
+                    parent.parent.window.location.reload();
+                    showAlertDialog("success", resJson.result[0].msg);
+                }
+                else {
+                    showAlertDialog("success", resJson.result[0].msg);
+                    window.location.href = window.location.href;
+                }
             } else if (resJson != undefined && typeof resJson.result != "undefined" && typeof resJson.result[0].error != "undefined" && resJson.result[0].error.status.toLowerCase() == "failed") {
                 showAlertDialog("error", resJson.result[0].error.msg);
                 ShowDimmer(false);
@@ -18021,7 +19019,7 @@ function axPegReject(isCommentReject = "") {
         if (typeof _axPegJson[0].data.rejectcomments != "undefined" && _axPegJson[0].data.rejectcomments == "T" && _pegComment == "") {
             setTimeout(function () {
                 document.querySelector(`a[data-popover="PegReject"]`).click();
-                document.querySelector(`textarea[id="txtPegRejectComments"]`).focus();  
+                document.querySelector(`textarea[id="txtPegRejectComments"]`).focus();
                 setTimeout(function () {
                     $("#btnRejectPegMore").next('.Active_list_popover').removeAttr('style');
                     $("#btnRejectPegMore").next('.Active_list_popover').css({ "z-index": "105", "position": "absolute", "inset": "30px 10px auto auto" });
@@ -18051,8 +19049,15 @@ function axPegReject(isCommentReject = "") {
                 ShowDimmer(false);
             }
             if (resJson != undefined && typeof resJson.result != "undefined" && typeof resJson.result[0].status != "undefined" && resJson.result[0].status == "success") {
-                showAlertDialog("success", resJson.result[0].msg);
-                window.location.href = window.location.href;
+                let _tiframes = parent.document.getElementsByTagName("iframe");
+                if (typeof _tiframes != "undefined" && $(_tiframes).attr("id").startsWith("ldb")) {
+                    parent.parent.window.location.reload();
+                    showAlertDialog("success", resJson.result[0].msg);
+                }
+                else {
+                    showAlertDialog("success", resJson.result[0].msg);
+                    window.location.href = window.location.href;
+                }
             } else if (resJson != undefined && typeof resJson.result != "undefined" && typeof resJson.result[0].error != "undefined" && resJson.result[0].error.status.toLowerCase() == "failed") {
                 showAlertDialog("error", resJson.result[0].error.msg);
                 ShowDimmer(false);
@@ -18303,11 +19308,14 @@ function GetLoadDataForDiscard(recid, tstQureystr) {
                         blurNextPreventId = "";
                         AxFormControlList = new Array();
                         AxSetFldCaption = new Array();
+                        AxFCBtnReadOnly = new Array();
                         RegVarFldList = new Array();
                         ChangedFields = new Array();
                         ChangedFieldDbRowNo = new Array();
                         ChangedFieldValues = new Array();
                         DeletedDCRows = new Array();
+                        DeletedDCs = new Array();
+                        DeletedRowNos = new Array();
                         ChangedDcRows = new Array();
                         ChangedDcs = new Array();
                         AllFieldNames = new Array();
@@ -18540,6 +19548,11 @@ function bindNotificationFldData(notifyData) {
                 _dataJson += `{"n":"axp_recid` + _ic + `","v":"0","r":"` + _rowN + `","t":"s"},`;
                 for (_key in _json[i]["axp_recid" + _ic][j].columns) {
                     let _val = _json[i]["axp_recid" + _ic][j].columns[_key];
+
+                    _val = _val.toString().replace(new RegExp("\\n", "g"), "");
+                    _val = _val.replace(new RegExp("\\t", "g"), "&#9;");
+                    _val = ReverseCheckSpecialChars(_val);
+
                     _dataJson += `{"n":"` + _key + `","v":"` + _val + `","r":"` + _rowN + `","t":"s"},`;
                 }
             }
@@ -18561,7 +19574,7 @@ function bindNotificationFldData(notifyData) {
 
 function publishAPIInputJSON(thisFldid) {
     try {
-        if (thisFldid == "apitype000F1" || thisFldid == "structcapui000F1" || thisFldid == "unameui000F1" || thisFldid =="objdatasrc000F1") {
+        if (thisFldid == "apitype000F1" || thisFldid == "structcapui000F1" || thisFldid == "unameui000F1" || thisFldid == "objdatasrc000F1" || thisFldid =="scriptcapui000F1") {
             if (thisFldid == "apitype000F1") {
                 setTimeout(function () {
                     $("#structcapui000F1").val('').trigger('change');
@@ -18577,7 +19590,15 @@ function publishAPIInputJSON(thisFldid) {
                 UpdateAllFieldValues("apisuccess000F1", "");
                 $("#apierror000F1").val('');
                 UpdateFieldArray("apierror000F1", "0", "", "parent", "AutoComplete");
-                UpdateAllFieldValues("apierror000F1", "");
+                UpdateAllFieldValues("apierror000F1", "");               
+            }
+
+            if (thisFldid == "structcapui000F1") {
+                setTimeout(function () {
+                    $("#scriptcapui000F1").val('').trigger('change');
+                }, 0);
+                UpdateFieldArray("scriptcapui000F1", "0", "", "parent", "AutoComplete");
+                UpdateAllFieldValues("scriptcapui000F1", "");
             }
             if ($("#apitype000F1").val() != null && $("#apitype000F1").val() == "Submit Data" && $("#structcapui000F1").val() != null && $("#structcapui000F1").val() != "" && $("#unameui000F1").val() != null && $("#unameui000F1").val() != "") {
                 let strtrId = $("#objname000F1").val();
@@ -18600,15 +19621,15 @@ function publishAPIInputJSON(thisFldid) {
                             var _strFldDetails = "";
                             $.each(tstDCJSON["result"]["row"], function (i, e) {
                                 var tempjson = {};
-                                var dcName = e.dname;
+                                var dcName = (e.dname || e.DNAME);
                                 _strFldDetails += ',"' + dcName + '":{\"row1\":{';
                                 var fldCnt = 1;
                                 $.each(tempfldJSON["result"]["row"], function (ind, ele) {
-                                    if (ele.dcname == dcName) {
+                                    if ((ele.dcname || ele.DCNAME) === dcName) {
                                         if (fldCnt == 1)
-                                            _strFldDetails += '"' + ele.fname + '":"FIELD_VALUE"';
+                                            _strFldDetails += '"' + (ele.fname || ele.FNAME) + '":"FIELD_VALUE"';
                                         else
-                                            _strFldDetails += ',"' + ele.fname + '":"FIELD_VALUE"';
+                                            _strFldDetails += ',"' + (ele.fname || ele.FNAME) + '":"FIELD_VALUE"';
                                         fldCnt++;
                                     }
                                 });
@@ -18620,7 +19641,7 @@ function publishAPIInputJSON(thisFldid) {
                             UpdateFieldArray("apirequeststring000F1", "0", $("#apirequeststring000F1").val(), "parent", "AutoComplete");
                             UpdateAllFieldValues("apirequeststring000F1", $("#apirequeststring000F1").val());
 
-                            $("#apisuccess000F1").val('{"success":true,"result":"' + formName + ' Saved,recordid=1720660000001"}');                           
+                            $("#apisuccess000F1").val('{"success":true,"result":"' + formName + ' Saved,recordid=1720660000001"}');
                             UpdateFieldArray("apisuccess000F1", "0", $("#apisuccess000F1").val(), "parent", "AutoComplete");
                             UpdateAllFieldValues("apisuccess000F1", $("#apisuccess000F1").val());
 
@@ -18705,6 +19726,15 @@ function publishAPIInputJSON(thisFldid) {
                         _paramJson = "";
                     }
                 });
+            } else if ($("#apitype000F1").val() != null && $("#apitype000F1").val() == "Execute script" && $("#structcapui000F1").val() != null && $("#structcapui000F1").val() != "" && $("#unameui000F1").val() != null && $("#unameui000F1").val() != "" && $("#scriptcap000F1").val() != null && $("#scriptcap000F1").val() != "") {
+                let strtrId = $("#structcapuiname000F1").val();
+                let _scriptcap = $("#scriptcap000F1").val();
+
+                $("#apirequeststring000F1").val('{"secretkey":"","publickey":"","Project":"' + proj + '","executescript":{"script":"' + _scriptcap + '","type": "form","name":"' + strtrId + '","recordid":"0","trace":"false"}}');
+
+                $("#apisuccess000F1").val('{"status":"success","msg":"Script executed successfully"}');
+
+                $("#apierror000F1").val('{"status":"failed","result":"Script \"' + _scriptcap + '\" execution failed, Recordid not defined to create PDF file"}');
             }
         }
     } catch (ex) { }
@@ -18734,7 +19764,10 @@ function saveFillgridColResize(_thisDcno, _thisFillgridCaption, _thisFillgridNam
                 setTimeout(function () {
                     FillGrid(_thisDcno, '', _thisFillgridName);
                 }, 100);
-            } else {
+            } else if (result != undefined && result.startsWith("error:")) {
+                showAlertDialog('error', result.replace(/^error:/, ''));
+            }
+            else {
                 showAlertDialog('error', "There was an error please try again");
             }
         } catch (ex) {
@@ -18746,9 +19779,13 @@ function saveFillgridColResize(_thisDcno, _thisFillgridCaption, _thisFillgridNam
     }
 }
 function clearCacheReloadForm(_thisTrId) {
+    if (CheckBtnReadOnly(`clearCacheReloadForm('${_thisTrId}')`)) {
+        return;
+    }
     let appSUrl = top.window.location.href.toLowerCase().substring("0", top.window.location.href.indexOf("/aspx/"));
     try {
         ShowDimmer(true);
+        callParentNew("clearKeysByFormat(tstDDFVal♠" + proj + "♦" + _thisTrId + "♦♣♦" + appSUrl + "♥)", "function");
         let _thisKey = callParentNew("getKeysWithPrefix(tstHtml♠" + _thisTrId + "-" + appSUrl + "♥)", "function");
         if (_thisKey.length > 0) {
             for (const val of _thisKey) {
@@ -18870,6 +19907,9 @@ function BindAxpFilesonDep(_thisFldName, _thisfldValue) {
 
 //Function to open the list view on click of listview button in the toolbar.
 function CallEntityList(tid) {
+    if (CheckBtnReadOnly(`CallEntityList('${tid}')`)) {
+        return;
+    }
     if (typeof AxRulesBtnConMsg != "undefined" && AxRulesBtnConMsg == "true") {
         if (!AxRulesBtnConMsgParser(event.currentTarget)) {
             return;
@@ -18903,9 +19943,9 @@ function CallEntityList(tid) {
                         ShowDimmer(true);
                         window.parent.listViewPage = "0";
                         if (frameElement.name == "axpiframe" && $(frameElement).hasClass("frameSplited")) {
-                            callParentNew(`OpenOnPropertyBase(Entity.aspx?tstid=${tid}&ename=${tstructCaption}&isDupTab=${callParentNew('isDuplicateTab')})`, 'function');
+                            callParentNew(`OpenOnPropertyBase(Entity.aspx?tstid=${tid}&isDupTab=${callParentNew('isDuplicateTab')})`, 'function');
                         } else {
-                            window.document.location.href = `./Entity.aspx?tstid=${tid}&ename=${tstructCaption}&isDupTab=${callParentNew('isDuplicateTab')}`;
+                            window.document.location.href = `./Entity.aspx?tstid=${tid}&isDupTab=${callParentNew('isDuplicateTab')}`;
                         }
                         SetFormDirty(false);
                         window.parent.isSessionCleared = true;
@@ -18929,9 +19969,9 @@ function CallEntityList(tid) {
         window.parent.listViewPage = "0";
         ShowDimmer(true);
         if (frameElement.name == "axpiframe" && $(frameElement).hasClass("frameSplited")) {
-            callParentNew(`OpenOnPropertyBase(Entity.aspx?tstid=${tid}&ename=${tstructCaption}&isDupTab=${callParentNew('isDuplicateTab')})`, 'function');
+            callParentNew(`OpenOnPropertyBase(Entity.aspx?tstid=${tid}&isDupTab=${callParentNew('isDuplicateTab')})`, 'function');
         } else {
-            window.document.location.href = `./Entity.aspx?tstid=${tid}&ename=${tstructCaption}&isDupTab=${callParentNew('isDuplicateTab')}`;
+            window.document.location.href = `./Entity.aspx?tstid=${tid}&isDupTab=${callParentNew('isDuplicateTab')}`;
         }
         window.parent.isSessionCleared = true;
     }
@@ -18961,10 +20001,1812 @@ function CheckTransReadOnly() {
             $(".dz-hidden-input").prop("disabled", true);
             $(".fldImageCamera").addClass('disabled');
             $(".fileuploadmore").prop("disabled", true);
-            $("#icons,#btnSaveTst,.BottomToolbarBar a").css({
+            $("#icons,#btnSaveTst,.BottomToolbarBar a,a.tstformbutton,a.axpBtnCustom,.formLabelParent a").css({
                 "pointer-events": "none"
+            });
+
+            $("a.tstformbutton,a.axpBtnCustom,.formLabelParent a").addClass('disabled');
+            $("a.tstformbutton,a.axpBtnCustom,.formLabelParent a").attr('disabled', true);
+            $("a.tstformbutton,a.axpBtnCustom,.formLabelParent a").attr('tabindex', -1);
+            $("a.tstformbutton,a.axpBtnCustom,.formLabelParent a").removeAttr("onclick");
+        }
+    } catch (ex) {
+    }
+}
+
+var userVType = "";
+var userTypePrev = "";
+function UserActivateBtns(_fieldID) {
+    if (transid == 'axurg' && _fieldID == 'pusername000F1') {
+        $("#btn17").removeAttr("onclick");
+        $("#btn17").attr("onclick", "UserActivation();");
+        $("#btn18").removeAttr("onclick");
+        $("#btn18").attr("onclick", "UserDeactivate();");
+        $("#btn19").removeAttr("onclick");
+        $("#btn19").attr("onclick", "UserUpdate();");
+        userVType = "";
+        userTypePrev = "";
+        if ($("#authkey000F1").val() != "" && $("#userkey000F1").val()!="") {
+            GetALCUserInfo();
+        }
+        else {
+            if ($("#authkey000F1").val() == "" && $("#userkey000F1").val() == "" && $("#IsActive000F1").val() == "T") {
+                $("#IsActive000F1").val('F');
+                $("#IsActive000F1").prop("checked", false);
+            }
+            if ($("#IsActive000F1").val() == "T" && $("#authkey000F1").val() != "") {
+                if ($("#usertype000F1").val() == "")
+                    $("#usertype000F1").val("N");
+                $("#btn18").parent("div").removeClass("d-none");
+                $("#btn19").parent("div").addClass("d-none");
+                $("#btn17").parent("div").addClass("d-none");
+            } else if ($("#IsActive000F1").val() != "" && ($("#IsActive000F1").val() == "F" || $("#authkey000F1").val() == "")) {
+                if ($("#usertype000F1").val() == "")
+                    $("#usertype000F1").val("N");
+                $("#btn17").parent("div").removeClass("d-none");
+                $("#btn19").parent("div").addClass("d-none");
+                $("#btn18").parent("div").addClass("d-none");
+            } else {
+                $("#btn19").parent("div").addClass("d-none");
+                $("#btn18").parent("div").addClass("d-none");
+                $("#btn17").parent("div").addClass("d-none");
+            }
+        }
+    }
+}
+
+function GetALCUserInfo() {
+    try {
+        AxWaitCursor(true);
+        ShowDimmer(true);
+        const _pUser = GetFieldValue("pusername000F1");
+        const _puserkey = GetFieldValue("userkey000F1");
+        const _pauthkey = GetFieldValue("authkey000F1");
+        ASB.WebService.GetUserKeyInfo(_pUser, _puserkey, _pauthkey, SuccGetALCUserInfo, OnException);
+    } catch (ex) {
+        AxWaitCursor(false);
+        ShowDimmer(false);
+        showAlertDialog("error", ServerErrMsg);
+    }
+}
+function SuccGetALCUserInfo(result, eventArgs) {
+    if (result == "") {
+        AxWaitCursor(false);
+        ShowDimmer(false);
+        showAlertDialog("error", ServerErrMsg);
+        return;
+    }
+    if (CheckSessionTimeout(result))
+        return;
+
+    AxWaitCursor(false);
+    ShowDimmer(false);
+    if (result.startsWith("error:")) {
+        userVType = "";
+        userTypePrev = "";
+        if ($("#IsActive000F1").val() == "T" && $("#authkey000F1").val() != "") {
+            if ($("#usertype000F1").val() == "")
+                $("#usertype000F1").val("N");
+            $("#btn18").parent("div").removeClass("d-none");
+            $("#btn19").parent("div").addClass("d-none");
+            $("#btn17").parent("div").addClass("d-none");
+        } else if ($("#IsActive000F1").val() != "" && ($("#IsActive000F1").val() == "F" || $("#authkey000F1").val() == "")) {
+            if ($("#usertype000F1").val() == "")
+                $("#usertype000F1").val("N");
+            $("#btn17").parent("div").removeClass("d-none");
+            $("#btn19").parent("div").addClass("d-none");
+            $("#btn18").parent("div").addClass("d-none");
+        } else {
+            $("#btn19").parent("div").addClass("d-none");
+            $("#btn18").parent("div").addClass("d-none");
+            $("#btn17").parent("div").addClass("d-none");
+        }
+    } else {
+        const userValidType = result.split("#")[0];
+        const userTypeKey = result.split("#")[1];
+        userVType = userValidType;
+        userTypePrev = userTypeKey;
+        if (userValidType == "false" && $("#authkey000F1").val() != "") {
+            $("#btn19").parent("div").removeClass("d-none");
+            $("#btn19").attr("title", "Validity is over and needs to be updated for the user.");
+            $("#btn18").parent("div").addClass("d-none");
+            $("#btn17").parent("div").addClass("d-none");
+            if ($("#usertype000F1").val() == "")
+                $("#usertype000F1").val("N");
+        } else if ($("#authkey000F1").val() != "" && $("#usertype000F1").val() != userTypeKey) {
+            if ($("#usertype000F1").val() == "")
+                $("#usertype000F1").val("N");
+            $("#btn19").parent("div").removeClass("d-none");
+            if ($("#usertype000F1").val() != "" && $("#usertype000F1").val()=="p")
+                $("#btn19").attr("title", "User type has changed from Noraml user to Portal user.");
+            else
+                $("#btn19").attr("title", "User type has changed from Portal user to Normal user.");
+            $("#btn18").parent("div").addClass("d-none");
+            $("#btn17").parent("div").addClass("d-none");
+        } else if (userValidType == "true" && $("#IsActive000F1").val() == "T" && $("#authkey000F1").val() != "") {
+            if ($("#usertype000F1").val() == "")
+                $("#usertype000F1").val("N");
+            $("#btn18").parent("div").removeClass("d-none");
+            $("#btn19").parent("div").addClass("d-none");
+            $("#btn17").parent("div").addClass("d-none");
+        } else if (userValidType == "true" && $("#IsActive000F1").val() == "F" && $("#authkey000F1").val() != "") {
+            if ($("#usertype000F1").val() == "")
+                $("#usertype000F1").val("N");
+            $("#btn17").parent("div").removeClass("d-none");
+            $("#btn19").parent("div").addClass("d-none");
+            $("#btn18").parent("div").addClass("d-none");
+        } else {
+            $("#btn19").parent("div").addClass("d-none");
+            $("#btn18").parent("div").addClass("d-none");
+            $("#btn17").parent("div").addClass("d-none");
+        }
+    }
+}
+
+function UserActivation() {
+    try {
+        AxWaitCursor(true);
+        ShowDimmer(true);
+        const _pUser = GetFieldValue("pusername000F1");
+        let _pUserType = GetFieldValue("usertype000F1");
+        if (_pUserType != "" && _pUserType=="N") {
+            _pUserType = "";
+        }
+        const _pUserActive = GetFieldValue("IsActive000F1");
+        ASB.WebService.UserActivation(_pUser, _pUserType, _pUserActive, SuccUserActivation, OnException);
+    } catch (ex) {
+        AxWaitCursor(false);
+        ShowDimmer(false);
+        showAlertDialog("error", ServerErrMsg);
+    }
+}
+function SuccUserActivation(result, eventArgs) {
+    if (result == "") {
+        AxWaitCursor(false);
+        ShowDimmer(false);
+        showAlertDialog("error", ServerErrMsg);
+        return;
+    }
+    if (CheckSessionTimeout(result))
+        return;
+
+    AxWaitCursor(true);
+    ShowDimmer(true);
+    if (window.opener)
+        GetFormLoadData("AxIsPop=true", "", "true");
+    else
+        GetFormLoadData("", "", "true");
+    if (result.startsWith("Error:")) {
+        let errorMsg = result.replace("Error:", "");
+        ShowDialog('error', errorMsg);
+    }
+    else
+        showAlertDialog('success', result);
+}
+function UserDeactivate() {
+    try {
+        AxWaitCursor(true);
+        ShowDimmer(true);
+        const _pUser = GetFieldValue("pusername000F1");
+        /*const _pUserType = GetFieldValue("usertype000F1");*/
+        let _pUserType = GetFieldValue("usertype000F1");
+        if (_pUserType != "" && _pUserType == "N") {
+            _pUserType = "";
+        }
+        const _pUserActive = GetFieldValue("IsActive000F1");
+        ASB.WebService.UserDeactivate(_pUser, _pUserType, _pUserActive, SuccUserDeactivate, OnException);
+    } catch (ex) {
+        AxWaitCursor(false);
+        ShowDimmer(false);
+        showAlertDialog("error", ServerErrMsg);
+    }
+}
+function SuccUserDeactivate(result, eventArgs) {
+    if (result == "") {
+        AxWaitCursor(false);
+        ShowDimmer(false);
+        showAlertDialog("error", ServerErrMsg);
+        return;
+    }
+    if (CheckSessionTimeout(result))
+        return;
+
+    AxWaitCursor(true);
+    ShowDimmer(true);
+    if (window.opener)
+        GetFormLoadData("AxIsPop=true", "", "true");
+    else
+        GetFormLoadData("", "", "true");
+    if (result.startsWith("Error:")) {
+        let errorMsg = result.replace("Error:", "");
+        ShowDialog('error', errorMsg);
+    }
+    else
+        showAlertDialog('success', result);
+}
+
+function UserUpdate() {
+    try {
+        AxWaitCursor(true);
+        ShowDimmer(true);
+        const _pUser = GetFieldValue("pusername000F1");
+        /* const _pUserType = GetFieldValue("usertype000F1");*/
+        let _pUserType = GetFieldValue("usertype000F1");
+        if (_pUserType != "" && _pUserType == "N") {
+            _pUserType = "";
+        }
+        const _pUserActive = GetFieldValue("IsActive000F1");
+        ASB.WebService.UserUpdate(_pUser, _pUserType, _pUserActive, userTypePrev, userVType, SuccUserUpdate, OnException);
+    } catch (ex) {
+        AxWaitCursor(false);
+        ShowDimmer(false);
+        showAlertDialog("error", ServerErrMsg);
+    }
+}
+function SuccUserUpdate(result, eventArgs) {
+    if (result == "") {
+        AxWaitCursor(false);
+        ShowDimmer(false);
+        showAlertDialog("error", ServerErrMsg);
+        return;
+    }
+    if (CheckSessionTimeout(result))
+        return;
+
+    AxWaitCursor(true);
+    ShowDimmer(true);
+    if (window.opener)
+        GetFormLoadData("AxIsPop=true", "", "true");
+    else
+        GetFormLoadData("", "", "true");
+    if (result.startsWith("Error:")) {
+        let errorMsg = result.replace("Error:", "");
+        ShowDialog('error', errorMsg);
+    }
+    else
+        showAlertDialog('success', result);
+}
+
+function axDeveloperStudioTstToolbar() {
+    try {
+        if (typeof axpertDevTstList != "undefined" && axpertDevTstList.indexOf(transid) > -1) {
+            $(".toolbarRightMenu a[title='List View'],.toolbarRightMenu a#tasks,.toolbarRightMenu a#design,.toolbarRightMenu a[title='print'],.toolbarRightMenu a[title='Print'],.toolbarRightMenu a[title='attach'],.toolbarRightMenu a[title='preview'],.toolbarRightMenu a[title='Preview']").addClass("d-none");
+            $(".toolbarRightMenu a[onclick='javascript:OpenPdfDocList();']").addClass("d-none");
+            $("#btnAppsHeader").parent().addClass('d-none');
+            if ($("#btnAppsHeader").parent().find(".menu a[onclick^=\"javascript:CallAction('iSave',\"]").length > 0) {
+                let _isaveclick = $("#btnAppsHeader").parent().find(".menu a[onclick^=\"javascript:CallAction('iSave',\"]").attr("onclick");
+                $("#ftbtn_iSave").removeAttr("onclick").attr("onclick", _isaveclick);
+                $("#ftbtn_iSave").removeClass("d-none");
+            }
+            if ($("#btnAppsHeader").parent().find(".menu .menu-sub-dropdown a[onclick^=\"javascript:CallAction('iRemove',\"]").length > 0) {
+                let _iremoveclick = $("#btnAppsHeader").parent().find(".menu .menu-sub-dropdown a[onclick^=\"javascript:CallAction('iRemove',\"]").attr("onclick");
+                $(".toolbarRightMenu").find("[onclick='javascript:DeleteTstruct();']").removeAttr("onclick").attr("onclick", _iremoveclick);
+            }
+            if ((transid == "axvar" || transid == "ad_db") && $(".toolbarRightMenu").find("a#axdevList").length == 0) {
+                $(".toolbarRightMenu").append(`<a id="axdevList" onclick='callParentNew("loadFrame();","function");parent.LoadIframeac("ivtoivload.aspx?ivname=axvars");callParentNew("closeFrame();","function");' title="List" href="javascript:void(0)" class="btn btn-icon btn-white btn-color-gray-600 btn-active-primary shadow-sm me-2 btn-sm"><span class="material-icons material-icons-style material-icons-2">view_list</span></a>`);
+                if (transid == "ad_db") {
+                    $("#btn18").attr("onclick", "javascript:GetAppDbVars();");
+                    $("#btn18").attr("title", "Click here to get defined DB level variables.");
+                }
+            } else if (transid == "ctype" && $(".toolbarRightMenu").find("a#axdevList").length == 0) {
+                $(".toolbarRightMenu").append(`<a id="axdevList" onclick='callParentNew("loadFrame();","function");parent.LoadIframeac("ivtoivload.aspx?ivname=cdlist");callParentNew("closeFrame();","function");' title="List" href="javascript:void(0)" class="btn btn-icon btn-white btn-color-gray-600 btn-active-primary shadow-sm me-2 btn-sm"><span class="material-icons material-icons-style material-icons-2">view_list</span></a>`);
+            } else if (transid == "axpub" && $(".toolbarRightMenu").find("a#axdevList").length == 0) {
+                $(".toolbarRightMenu").append(`<a id="axdevList" onclick='callParentNew("loadFrame();","function");parent.LoadIframeac("ivtoivload.aspx?ivname=publist");callParentNew("closeFrame();","function");' title="List" href="javascript:void(0)" class="btn btn-icon btn-white btn-color-gray-600 btn-active-primary shadow-sm me-2 btn-sm"><span class="material-icons material-icons-style material-icons-2">view_list</span></a>`);
+            } else if (transid == "ad_lg" && $(".toolbarRightMenu").find("a#axdevList").length == 0) {
+                $(".toolbarRightMenu").append(`<a id="axdevList" onclick='callParentNew("loadFrame();","function");parent.LoadIframeac("ivtoivload.aspx?ivname=axlangs");callParentNew("closeFrame();","function");' title="List" href="javascript:void(0)" class="btn btn-icon btn-white btn-color-gray-600 btn-active-primary shadow-sm me-2 btn-sm"><span class="material-icons material-icons-style material-icons-2">view_list</span></a>`);
+            } else if (transid == "job_s" && $(".toolbarRightMenu").find("a#axdevList").length == 0) {
+                $(".toolbarRightMenu").append(`<a id="axdevList" onclick='callParentNew("loadFrame();","function");parent.LoadIframeac("ivtoivload.aspx?ivname=jobtsk");callParentNew("closeFrame();","function");' title="List" href="javascript:void(0)" class="btn btn-icon btn-white btn-color-gray-600 btn-active-primary shadow-sm me-2 btn-sm"><span class="material-icons material-icons-style material-icons-2">view_list</span></a>`);
+            } else if (transid == "axstc" && $(".toolbarRightMenu").find("a#axdevList").length == 0) {
+                $(".toolbarRightMenu").append(`<a id="axdevList" onclick='callParentNew("loadFrame();","function");parent.LoadIframeac("ivtoivload.aspx?ivname=dop_list");callParentNew("closeFrame();","function");' title="List" href="javascript:void(0)" class="btn btn-icon btn-white btn-color-gray-600 btn-active-primary shadow-sm me-2 btn-sm"><span class="material-icons material-icons-style material-icons-2">view_list</span></a>`);
+            } else if (transid == "b_sql" && $(".toolbarRightMenu").find("a#axdevList").length == 0) {
+                $(".toolbarRightMenu").append(`<a id="axdevList" onclick='callParentNew("loadFrame();","function");parent.LoadIframeac("ivtoivload.aspx?ivname=csqlist");callParentNew("closeFrame();","function");' title="List" href="javascript:void(0)" class="btn btn-icon btn-white btn-color-gray-600 btn-active-primary shadow-sm me-2 btn-sm"><span class="material-icons material-icons-style material-icons-2">view_list</span></a>`);
+            } else if (transid == "sect" && $(".toolbarRightMenu").find("a#axdevList").length == 0) {
+                $(".toolbarRightMenu").append(`<a id="axdevList" onclick='callParentNew("loadFrame();","function");parent.LoadIframeac("ivtoivload.aspx?ivname=hplist");callParentNew("closeFrame();","function");' title="List" href="javascript:void(0)" class="btn btn-icon btn-white btn-color-gray-600 btn-active-primary shadow-sm me-2 btn-sm"><span class="material-icons material-icons-style material-icons-2">view_list</span></a>`);
+                if (typeof parent._pageName != "undefined" && parent._pageName.startsWith("tsect&")) {
+                    $(".toolbarRightMenu").addClass('d-none');
+                    $("#ftbtn_iNew").remove();
+                }
+            } else if (transid == "apidg" && $(".toolbarRightMenu").find("a#axdevList").length == 0) {
+                $(".toolbarRightMenu").append(`<a id="axdevList" onclick='callParentNew("loadFrame();","function");parent.LoadIframeac("ivtoivload.aspx?ivname=exapidef");callParentNew("closeFrame();","function");' title="List" href="javascript:void(0)" class="btn btn-icon btn-white btn-color-gray-600 btn-active-primary shadow-sm me-2 btn-sm"><span class="material-icons material-icons-style material-icons-2">view_list</span></a>`);
+            } else if (transid == "axeml" && $(".toolbarRightMenu").find("a#axdevList").length == 0) {
+                $(".toolbarRightMenu").append(`<a id="axdevList" onclick='callParentNew("loadFrame();","function");parent.LoadIframeac("ivtoivload.aspx?ivname=emaildef");callParentNew("closeFrame();","function");' title="List" href="javascript:void(0)" class="btn btn-icon btn-white btn-color-gray-600 btn-active-primary shadow-sm me-2 btn-sm"><span class="material-icons material-icons-style material-icons-2">view_list</span></a>`);
+            } else if (transid == "a__td" && $(".toolbarRightMenu").find("a#axdevList").length == 0) {
+                $(".toolbarRightMenu").append(`<a id="axdevList" onclick='callParentNew("loadFrame();","function");parent.LoadIframeac("ivtoivload.aspx?ivname=ad___tbd");callParentNew("closeFrame();","function");' title="List" href="javascript:void(0)" class="btn btn-icon btn-white btn-color-gray-600 btn-active-primary shadow-sm me-2 btn-sm"><span class="material-icons material-icons-style material-icons-2">view_list</span></a>`);
+            } else if (transid == "astcp" && $(".toolbarRightMenu").find("a#axdevList").length == 0) {
+                $(".toolbarRightMenu").append(`<a id="axdevList" onclick='callParentNew("loadFrame();","function");parent.LoadIframeac("ivtoivload.aspx?ivname=dop_list");callParentNew("closeFrame();","function");' title="Developer Options List" href="javascript:void(0)" class="btn btn-icon btn-white btn-color-gray-600 btn-active-primary shadow-sm me-2 btn-sm"><span class="material-icons material-icons-style material-icons-2">view_list</span></a>`);
+                $(".toolbarRightMenu").append(`<a id="axdevListConfig" onclick='callParentNew("loadFrame();","function");parent.LoadIframeac("ivtoivload.aspx?ivname=ivconfdt");callParentNew("closeFrame();","function");' title="List" href="javascript:void(0)" class="btn btn-icon btn-white btn-color-gray-600 btn-active-primary shadow-sm me-2 btn-sm"><span class="material-icons material-icons-style material-icons-2">book</span></a>`);
+            }
+            else if (transid == "ad__q" && $(".toolbarRightMenu").find("a#axdevList").length == 0) {
+                let _iframes = parent.document.getElementsByTagName("iframe");
+                if (typeof _iframes != "undefined" && _iframes[0].id == "axpiframeac")
+                    $(".toolbarRightMenu").append(`<a id="axdevList" onclick='callParentNew("loadFrame();","function");parent.LoadIframeac("ivtoivload.aspx?ivname=ad__qls");callParentNew("closeFrame();","function");' title="Queue listing" href="javascript:void(0)" class="btn btn-icon btn-white btn-color-gray-600 btn-active-primary shadow-sm me-2 btn-sm"><span class="material-icons material-icons-style material-icons-2">view_list</span></a>`);
+                else
+                    $(".toolbarRightMenu").append(`<a id="axdevList" onclick='callParentNew("loadFrame();","function");parent.parent.LoadIframeac("ivtoivload.aspx?ivname=ad__qls");callParentNew("closeFrame();","function");' title="Queue listing" href="javascript:void(0)" class="btn btn-icon btn-white btn-color-gray-600 btn-active-primary shadow-sm me-2 btn-sm"><span class="material-icons material-icons-style material-icons-2">view_list</span></a>`);
+            }
+            else if (transid == "a__qm" && $(".toolbarRightMenu").find("a#axdevList").length == 0) {
+                let _iframes = parent.document.getElementsByTagName("iframe");
+                if (typeof _iframes != "undefined" && _iframes[0].id == "axpiframeac")
+                    $(".toolbarRightMenu").append(`<a id="axdevList" onclick='callParentNew("loadFrame();","function");parent.LoadIframeac("ivtoivload.aspx?ivname=ad__qls");callParentNew("closeFrame();","function");' title="Queue listing" href="javascript:void(0)" class="btn btn-icon btn-white btn-color-gray-600 btn-active-primary shadow-sm me-2 btn-sm"><span class="material-icons material-icons-style material-icons-2">view_list</span></a>`);
+                else
+                    $(".toolbarRightMenu").append(`<a id="axdevList" onclick='callParentNew("loadFrame();","function");parent.parent.LoadIframeac("ivtoivload.aspx?ivname=ad__qls");callParentNew("closeFrame();","function");' title="Queue listing" href="javascript:void(0)" class="btn btn-icon btn-white btn-color-gray-600 btn-active-primary shadow-sm me-2 btn-sm"><span class="material-icons material-icons-style material-icons-2">view_list</span></a>`);
+            } else if (transid == "a__iq" && $(".toolbarRightMenu").find("a#axdevList").length == 0) {
+                let _iframes = parent.document.getElementsByTagName("iframe");
+                if (typeof _iframes != "undefined" && _iframes[0].id == "axpiframeac")
+                    $(".toolbarRightMenu").append(`<a id="axdevList" onclick='callParentNew("loadFrame();","function");parent.LoadIframeac("ivtoivload.aspx?ivname=ad__qls");callParentNew("closeFrame();","function");' title="Queue listing" href="javascript:void(0)" class="btn btn-icon btn-white btn-color-gray-600 btn-active-primary shadow-sm me-2 btn-sm"><span class="material-icons material-icons-style material-icons-2">view_list</span></a>`);
+                else
+                    $(".toolbarRightMenu").append(`<a id="axdevList" onclick='callParentNew("loadFrame();","function");parent.parent.LoadIframeac("ivtoivload.aspx?ivname=ad__qls");callParentNew("closeFrame();","function");' title="Queue listing" href="javascript:void(0)" class="btn btn-icon btn-white btn-color-gray-600 btn-active-primary shadow-sm me-2 btn-sm"><span class="material-icons material-icons-style material-icons-2">view_list</span></a>`);
+            } else if (transid == "a__rp" && $(".toolbarRightMenu").find("a#axdevList").length == 0) {
+                $(".toolbarRightMenu").append(`<a id="axdevList" onclick='callParentNew("loadFrame();","function");parent.LoadIframeac("ivtoivload.aspx?ivname=a__rplst");callParentNew("closeFrame();","function");' title="List" href="javascript:void(0)" class="btn btn-icon btn-white btn-color-gray-600 btn-active-primary shadow-sm me-2 btn-sm"><span class="material-icons material-icons-style material-icons-2">view_list</span></a>`);
+                if (typeof parent._pageName != "undefined" && parent._pageName.startsWith("ta__rp&")) {
+                    $(".toolbarRightMenu").addClass('d-none');
+                    $("#ftbtn_iNew").remove();
+                }
+            }
+            $(".toolbarRightMenu").css({ "padding-right": "45px" });
+
+            AxDevStudioHelper(transid);
+        }
+
+        if (typeof transid != "undefined" && transid == "ad_af") {
+            $("#ftbtn_iSave").removeClass("d-none");
+            $('.toolbarRightMenu a[onclick^="javascript:CallAction(\'usave\'"]').addClass("d-none");
+            //if (typeof recordid != "undefined" && (recordid == "" || recordid == "0"))
+            $('.toolbarRightMenu').addClass("d-none");
+            $('.toolbarRightMenu #design').addClass("d-none");
+            $('.toolbarRightMenu').addClass("me-10");
+            $("#ftbtn_iNew").addClass("d-none");
+            $("#ftbtn_iDiscard").addClass("d-none");
+            $("#ftbtn_iSave").removeAttr("onclick");
+            $("#ftbtn_iSave").attr("onclick", "saveAddFieldRuntime()");
+            if (typeof recordid != "undefined" && recordid != "" && recordid != "0") {
+                $("#ftbtn_iRemove").removeClass("d-none");
+                $("#ftbtn_iRemove").removeAttr("onclick");
+                $("#ftbtn_iRemove").attr("onclick", "removeAddFieldRuntime()");
+            }
+        }
+
+        if (typeof transid != "undefined" && transid == "ad_pr") {
+            $("#btn18").removeAttr("onclick");
+            $("#btn18").attr("onclick", "AlertNoAction();");
+        }
+    } catch (ex) { }
+}
+
+function axdevSturioCustomValidationFn(textarea) {
+    var jsonData = "";
+    var webServiceName = "";
+    var textSqlandExpression = textarea.value;
+    if (textSqlandExpression.length <= 0) {
+        return;
+    }
+    if (textarea.id.toLocaleLowerCase().startsWith("sql_editor") || textarea.id.toLocaleLowerCase().startsWith("exp_editor") || GetDWBFieldType(GetFieldsName(textarea.id)) == "SQL Editor" || GetDWBFieldType(GetFieldsName(textarea.id)) == "Expression Editor") {
+        var sourcefield = "", sourcetable = "", Axp_Web_SqlExp_Val_Def_RestRad = "";
+        var calfrom = "", fgname = "";
+        var fieldname = "", fldordno = "", datatype = "", fieldType = "", sfrom = "", expression = "", validateExpression = "", transid = "", savenorm = "", refresh = "", autoselect = "", combobox = "", sql = "", iviewparams = "", pmetadata = "", sourcefieldid = "", sourcetableid = "";
+        var dcNo = "";
+
+        fieldType = GetFieldValue(GetComponentName("type", GetDcNo("type"))) || "";
+        fieldname = GetFieldValue(GetComponentName("name", GetDcNo("name"))) || "";
+        fldordno = GetFieldValue(GetComponentName("fldordno", GetDcNo("fldordno"))) || "";
+        datatype = GetFieldValue(GetComponentName("datatype", GetDcNo("datatype"))) || "";
+
+        if (fieldType.toLowerCase() === "field") {
+            sfrom = GetFieldValue(GetComponentName("modeofentry", GetDcNo("modeofentry"))) || "";
+        } else if (fieldType.toLowerCase() === "fill grid") {
+            sfrom = "fillgrid";
+        }
+        transid = GetFieldValue(GetComponentName("stransid", GetDcNo("stransid"))) || callParentNew("transid");
+        expression = GetFieldValue(GetComponentName("exp_editor_expression", GetDcNo("exp_editor_expression"))) || "";
+        validateExpression = GetFieldValue(GetComponentName("exp_editor_validateexpression", GetDcNo("exp_editor_validateexpression"))) || "";
+
+
+        sfrom = sfrom.toLowerCase();
+        if (sfrom === "accept") {
+            sql = GetFieldValue(GetComponentName("sql_editor_detail", GetDcNo("sql_editor_detail"))) || "";
+        }
+        else if (sql == "") {
+            sql = textSqlandExpression;
+        }
+        if (transid == "axvar" || transid == "axeml")
+            Axp_Web_SqlExp_Val_Def_RestRad = "online";
+        else
+            Axp_Web_SqlExp_Val_Def_RestRad = GetFieldValue(GetComponentName("Axp_Web_SqlExp_Val_Def_RestRad", GetDcNo("Axp_Web_SqlExp_Val_Def_RestRad"))) || "";
+
+        let paramsForSQL = "";
+
+        if (textarea.id.toLocaleLowerCase().startsWith("sql_editor") || GetDWBFieldType(GetFieldsName(textarea.id)) == "SQL Editor") {
+            if (transid == "b_sql") {
+                sfrom = "iview";
+
+                if (transid == "b_sql") {
+                    paramsForSQL = $("#sqlparams000F1").val() || "";
+                } else {
+                    paramsForSQL = $("#Def_Table_params000F1").val() || $("#Def_Table_paramsmain000F1").val() || "";// "puser~Character~admin,abcd~Character~";
+                }
+
+                if (paramsForSQL) {
+                    paramsForSQL = `{${paramsForSQL.split(',').map(par => par.split('~').map((pars, ind, allPars) => {
+                        if (ind == 0) {
+                            return allPars.length == 1 ? `"${pars}":""` : `"${pars}":`
+                        }
+                        else if (ind == 1) {
+                            return `"${(pc = pars[0]?.toLowerCase()) ? `${pc}~` : ""}`
+                        }
+                        else if (ind == 2) {
+                            return `${pars}"`;
+                        }
+                    }).join("")).join(",")}}`;
+                }
+            } 
+
+            jsonData = {
+                "_parameters": [{
+                    "tstructs": {
+                        "axpapp": callParentNew('mainProject'),
+                        "sessionid": callParentNew('mainSessionId'),
+                        "transid": transid,
+                        "fieldname": fieldname,
+                        "iviewparams": iviewparams,
+                        "fldordno": fldordno,
+                        "datatype": datatype,
+                        "sfrom": sfrom,
+                        "expression": "",
+                        "validateexpression": "",
+                        "savenorm": savenorm,
+                        "refresh": refresh,
+                        "autoselect": autoselect,
+                        "combobox": combobox,
+                        "sql": sql,
+                        "sourcefield": sourcefield,
+                        "sourcetable": sourcetable,
+                        "Axp_Web_SqlExp_Val_Def_RestRad": Axp_Web_SqlExp_Val_Def_RestRad,
+                        "metadata": pmetadata,
+                        "sourcefieldid": sourcefieldid,
+                        "sourcetableid": sourcetableid,
+                        "trace": "",
+                        "scriptpath": ""
+                    }
+                }]
+            }
+            webServiceName = "ValidateSQL";
+        }
+        ShowDimmer(true);
+
+        if (actionCallFlag == actionCallbackFlag) {
+            actionCallFlag = Math.random();
+            $("#icons").css({ "pointer-events": "auto" });
+        } else {
+            $("#icons").css({ "pointer-events": "none" });
+            return;
+        }
+        try {
+            if ((typeof $(blurNextPreventElement).attr("id") != "undefined" && $(blurNextPreventElement).attr("id") == "tstlinkSqlConsole" && $(blurNextPreventElement).parent().hasClass("tstbtnSqlConsole")) || (typeof blurNextPreventId != "undefined" && blurNextPreventId == "tstlinkSqlConsole"))
+                callParentNew("beforeRestCallId=", "tstbtnSqlConsole");
+            callParentNew("sqlRestCallInitiated=", true);
+            ASB.WebService.CallRestWS(`${JSON.stringify(jsonData)}${paramsForSQL ? `*$*"params":${paramsForSQL}` : ""}`, webServiceName, SuccessCallbackAction, OnException);
+        }
+        catch (exp) {
+            actionCallbackFlag = actionCallFlag;
+            $("#icons,#btnSaveTst,.wizardNextPrevWrapper").css({ "pointer-events": "auto" });
+        }
+
+
+        function SuccessCallbackAction(result, eventArgs) {
+            callParentNew("sqlRestCallInitiated=", false);
+            actionCallbackFlag = actionCallFlag;
+            $("#icons,#btnSaveTst,.wizardNextPrevWrapper").css({ "pointer-events": "auto" });
+            ShowDimmer(false);
+            if (transid == "b_sql")
+                switchOffCacheData('');
+            try {
+                var json = $.parseJSON(result);
+                var msg = json["result"][0].msg;
+                var autofillsql = "", fldid = "";
+                var status = json["result"][0].status;
+
+                if (status.toLowerCase() == "failed") {
+                    callParentNew("beforeRestCallId=", "");
+                    msg = msg.replace('<error>', '').replace('</error>', '');
+                    showAlertDialog("warning", msg);
+                }
+            } catch (ex) { }
+
+        }
+
+        function OnException(result) {
+            actionCallbackFlag = actionCallFlag;
+            $("#icons,#btnSaveTst,.wizardNextPrevWrapper").css({ "pointer-events": "auto" });
+            ShowDimmer(false)
+        }
+    }
+}
+
+function switchOffCacheData(isShowMessage) {
+    try {
+        let _sqlText = $("#sqltext000F1").val();
+        if (typeof _sqlText != "undefined" && _sqlText != "" && _sqlText.toLowerCase().indexOf("--ax_") > -1 && $("#cachedata000F1").prop('checked')) {
+            $("#cachedata000F1").prop('checked', false);
+            $("#cacheinterval000F1").parents('.grid-stack-item').addClass('d-none')
+            SetFieldValue("cachedata000F1", "F");
+            UpdateFieldArray("cachedata000F1", "000", "F", "parent", "");
+            if (isShowMessage == "true") {
+                showAlertDialog("info", "Data can not be cache for dynamic SQL's");
+            }
+        }
+    } catch (ex) { }
+}
+
+function AxDevStudioHelper(_transid) {
+    try {
+        if (_transid == "sect") {
+            $("#wBdr").addClass("htmlPagesCls");
+            $("#wBdr").css({ "height": "85vh", "overflow": "auto" });
+            ToggleWizardDc("3", "hide");
+            if ($(".tstructMainBottomFooter .BottomToolbarBar").find("[onclick='previewHtmlPage();']").length == 0) {
+                var customButtons = `
+        <button onclick="previewHtmlPage();" class="btn btn-white btn-color-gray-700 btn-active-primary btn-sm d-inline-flex align-items-center shadow-sm me-2 dwbIvBtnbtm" type="button" id="previewHtmlPageId" title="Preview"><span class="material-icons">preview</span><span class="hpCustBtnsText">Preview</span></button>
+        
+        <button onclick="addCssJs(this.id);" class="btn btn-white btn-color-gray-700 btn-active-primary btn-sm d-inline-flex align-items-center shadow-sm me-2 dwbIvBtnbtm" type="button" id="addCssRow" title="Add Css"><span class="material-icons">code</span><span class="hpCustBtnsText">Add Css</span></button>
+
+        <button onclick="addCssJs(this.id);" class="btn btn-white btn-color-gray-700 btn-active-primary btn-sm d-inline-flex align-items-center shadow-sm me-2 dwbIvBtnbtm" type="button" id="addJsRow" title="Add Js"><span class="material-icons">code</span><span class="hpCustBtnsText">Add Js</span></button>
+        `;
+                $(".tstructMainBottomFooter .BottomToolbarBar").prepend(customButtons);
+            }
+            let HPImagePath = $("#hdnAxpertWebDirPath").val() + proj + "\\HTMLPages\\images\\*";
+            SetFieldValue("AxpFilePath_hpImages000F1", HPImagePath);
+            UpdateFieldArray("AxpFilePath_hpImages000F1", "000", HPImagePath, "parent", "");
+
+            if (recordid != "0") {
+                pageNo = GetFieldValue("pageno000F1");
+                loadcontentsFromFile();
+                $(`#${htmlObj.fields.templateBtn}`).prop("disabled", true);
+            }
+            else if (recordid == "0") {
+                pageNo = Date.now().toString();
+                SetFieldValue("pageno000F1", pageNo);
+                UpdateFieldArray("pageno000F1", GetFieldsRowNo("pageno000F1"), pageNo, "parent");
+                $(`#${htmlObj.fields.templateBtn}`).removeAttr("onclick").attr("onclick", "selectTemplate()");                
+            }
+            htmlObj.template.name = GetFieldValue(`${htmlObj.fields.template}`);
+            if (htmlObj.template.name != "" && !+recordid) {
+                htmlObj.template.flag = true;
+                SetFieldValue(`${htmlObj.fields.template}`, htmlObj.template.name);
+                UpdateFieldArray(`${htmlObj.fields.template}`, GetFieldsRowNo(`${htmlObj.fields.template}`), htmlObj.template.name, "parent");
+                /*$("#DivFrame3").hide();*/
+                $("#DivFrame3").show();
+                $("#DivFrame3").removeClass('d-none');
+                $("#DivFrame3 .gridIconBtns").addClass('d-none');
+                loadcontentsFromFile();
+                htmlCodeMirror.getDoc().setValue($(`#${htmlObj.fields.htmlCm}`).val());
+                htmlObj.template.files.html = htmlObj.template.files.html == "" ? $(`#${htmlObj.fields.htmlCm}`).val() : htmlObj.template.files.html;
+            } else if (recordid == "0" || (recordid != "0" && DCHasDataRows[2].toLowerCase() == "false")) {
+                $("#DivFrame3").hide();
+                $("#DivFrame3").addClass('d-none');
+            }
+            else {
+                $("#DivFrame3").show();
+                $("#DivFrame3").removeClass('d-none');
+                $("#DivFrame3 .gridIconBtns").addClass('d-none');
+            }
+        }
+        if (_transid == "a__rp") {
+            $("#wBdr").addClass("htmlPagesCls");
+            $("#wBdr").css({ "height": "85vh", "overflow": "auto" });
+            ToggleWizardDc("3", "hide");
+            if ($(".tstructMainBottomFooter .BottomToolbarBar").find("[onclick='previewReactPage();']").length == 0) {
+                var customButtons = `
+        <button onclick="previewReactPage();" class="btn btn-white btn-color-gray-700 btn-active-primary btn-sm d-inline-flex align-items-center shadow-sm me-2 dwbIvBtnbtm" type="button" id="previewReactPageId" title="Preview"><span class="material-icons">preview</span><span class="hpCustBtnsText">Preview</span></button>
+        
+        <button onclick="addCssJs(this.id);" class="btn btn-white btn-color-gray-700 btn-active-primary btn-sm d-inline-flex align-items-center shadow-sm me-2 dwbIvBtnbtm" type="button" id="addCssRow" title="Add Css"><span class="material-icons">code</span><span class="hpCustBtnsText">Add Css</span></button>
+
+        <button onclick="addCssJs(this.id);" class="btn btn-white btn-color-gray-700 btn-active-primary btn-sm d-inline-flex align-items-center shadow-sm me-2 dwbIvBtnbtm" type="button" id="addJsRow" title="Add Js"><span class="material-icons">code</span><span class="hpCustBtnsText">Add Js</span></button>
+        `;
+                $(".tstructMainBottomFooter .BottomToolbarBar").prepend(customButtons);
+            }
+            let HPImagePath = $("#hdnAxpertWebDirPath").val() + proj + "\\HTMLPages\\images\\*";
+            SetFieldValue("AxpFilePath_hpImages000F1", HPImagePath);
+            UpdateFieldArray("AxpFilePath_hpImages000F1", "000", HPImagePath, "parent", "");
+
+            if (recordid != "0") {
+                pageNo = GetFieldValue("pageno000F1");
+                loadcontentsFromFileReact();
+                $(`#${htmlObj.fields.templateBtn}`).prop("disabled", true);
+            }
+            else if (recordid == "0") {
+                pageNo = Date.now().toString();
+                SetFieldValue("pageno000F1", pageNo);
+                UpdateFieldArray("pageno000F1", GetFieldsRowNo("pageno000F1"), pageNo, "parent");
+                $(`#${htmlObj.fields.templateBtn}`).removeAttr("onclick").attr("onclick", "selectTemplate()");
+            }
+            htmlObj.template.name = GetFieldValue(`${htmlObj.fields.template}`);
+            if (htmlObj.template.name != "" && !+recordid) {
+                htmlObj.template.flag = true;
+                SetFieldValue(`${htmlObj.fields.template}`, htmlObj.template.name);
+                UpdateFieldArray(`${htmlObj.fields.template}`, GetFieldsRowNo(`${htmlObj.fields.template}`), htmlObj.template.name, "parent");
+                /*$("#DivFrame3").hide();*/
+                $("#DivFrame3").show();
+                $("#DivFrame3").removeClass('d-none');
+                $("#DivFrame3 .gridIconBtns").addClass('d-none');
+                loadcontentsFromFileReact();
+                htmlCodeMirror.getDoc().setValue($(`#${htmlObj.fields.htmlCm}`).val());
+                htmlObj.template.files.html = htmlObj.template.files.html == "" ? $(`#${htmlObj.fields.htmlCm}`).val() : htmlObj.template.files.html;
+            } else if (recordid == "0" || (recordid != "0" && DCHasDataRows[2].toLowerCase() == "false")) {
+                $("#DivFrame3").hide();
+                $("#DivFrame3").addClass('d-none');
+            }
+            else {
+                $("#DivFrame3").show();
+                $("#DivFrame3").removeClass('d-none');
+                $("#DivFrame3 .gridIconBtns").addClass('d-none');
+            }
+        }
+
+        if (_transid == 'b_sql') {
+            $("#sqlparams000F1").addClass("fldCustTable");
+            var dfName = GetFieldsName("sqlparams000F1");
+            var dfldIndex = $j.inArray(dfName, FNames);
+            var tjson = "{\"props\":{\"type\":\"table\",\"colcount\":\"3\",\"rowcount\":\"1\",\"addrow\":\"f\",\"deleterow\":\"f\",\"valueseparator\":\"~\",\"rowseparator\":\",\"},\"columns\":{\"1\":{\"caption\":\"Parameter Name\",\"name\":\"paraname\",\"value\":\"\",\"source\":\"\",\"exp\":\"\",\"vexp\":\"\"},\"2\":{\"caption\":\"Data Type\",\"name\":\"datatypefld\",\"value\":\"\",\"source\":\"ddldatatype\",\"exp\":\"\",\"vexp\":\"\"},\"3\":{\"caption\":\"Value\",\"name\":\"valuefld\",\"value\":\"\",\"source\":\"\",\"exp\":\"\",\"vexp\":\"\"}}}";
+            FTableTypeVal[dfldIndex] = tjson;
+            $("#sqltext000F1").on("focusout", function (event) {
+                var sqlParStr = "";
+                try {
+                    if ($(this).val() != "" && ($(this).val().replace(/'(.*?)'/g, "''").match(/(:)+[a-zA-Z0-9_]{1,}/g) || []).filter(v => v.indexOf("::") != 0).length > 0) {
+                        sqlParStr = _.uniqBy($(this).val().replace(/'(.*?)'/g, "''").match(/(:)+[a-zA-Z0-9_]{1,}/g).filter(v => v.indexOf("::") != 0).map((val) => val.replace(/[:\s]/g, ""))).join(",");
+                    }
+                    if ($(this).val() != "" && ($(this).val().replace(/'(.*?)'/g, "''").match(/(\{(?:\[??[^\[]*?\}))*/g) || []).filter(v => v).length > 0) {
+                        sqlParStr = (sqlParStr ? (sqlParStr + ",") : "") + _.uniqBy($(this).val().replace(/'(.*?)'/g, "''").match(/(\{(?:\[??[^\[]*?\}))*/g).map((val) => val.replace(/[{\s]/g, "").replace(/[}\s]/g, ""))).filter(v => v).join(",");
+                    }
+                    sqlParStr = sqlParStr.split(",").map(par => par && `${par}`).join(",");
+                } catch (error) {
+
+                }
+
+                if (sqlParStr == "") {
+                    SetFieldValue("sqlparams000F1", sqlParStr);
+                    UpdateFieldArray("sqlparams000F1", GetFieldsRowNo("sqlparams000F1"), sqlParStr, "parent");
+                }
+                if ($("#paramcal000F1").val() != sqlParStr) {
+                    SetFieldValue("paramcal000F1", sqlParStr);
+                    UpdateFieldArray("paramcal000F1", GetFieldsRowNo("paramcal000F1"), sqlParStr, "parent");
+                    SetFieldValue("sqlparams000F1", sqlParStr);
+                    UpdateFieldArray("sqlparams000F1", GetFieldsRowNo("sqlparams000F1"), sqlParStr, "parent");
+
+                    if (sqlParStr != "") {
+                        if (parent.$("#actbtn_nextclk.dwbIvBtnbtm:visible").length > 0 || parent.$("#btn_nxclkDuplicate.dwbIvBtnbtm:visible").length > 0) {
+                            parent.$("#actbtn_nextclk.dwbIvBtnbtm").hide();
+                            $(callParentNew("btn_nxclkDuplicate")).show();
+                        }
+
+                        FieldTypeTable(event, $("#sqlparams000F1"));
+                    } else {
+                        customValidationFn($("#sqltext000F1")[0]);
+                    }
+                } else {
+                    customValidationFn($("#sqltext000F1")[0]);
+                }
+            });
+        }
+
+        if (_transid == "ad_lg") {
+            $("#btn24").addClass("d-none");
+            $("#btn25").addClass("d-none");
+            //$("#btn22").removeAttr('onclick').attr("onclick", "btn22langDownload()");
+            $("#btn23").removeAttr('onclick').attr("onclick", "btn23langUpload()");
+            $('[onclick="FormSubmit()"]').addClass("d-none");
+        }
+
+        if (_transid == "apidg") {
+            $("#btn17").attr("onclick", "javascript:ExecuteOnClick()");
+            $("#APIAxpertSample000F1").val("{\"data\":[{\"i\":\"admin\",\"v\":\"\"},{\"i\":\"User1\",\"v\":\"\"},{\"i\":\"User2\",\"v\":\"\"}]}");
+            $("#APIAxpertSample000F1").attr('readonly', true);
+            GetInterExterResources();
+        }
+    } catch (ex) { }
+}
+
+/* save redirection for htmlpages and hyperlinks in iview builder */
+function htmlCustomSaveRedirect() {
+    if (transid == "sect") {
+        var htmlContent = htmlCodeMirror.getValue();
+        htmlContent = htmlContent.replace(/&/g, '&amp;');
+        var domParser = new DOMParser();
+        var dom = "";
+        if (htmlContent.trim() != "") {
+            dom = domParser.parseFromString(htmlContent, 'text/html');
+        }
+        var cssContents = [], jsContents = [], isNewPage = true;
+        var headTag = dom.getElementsByTagName('head')[0];
+        var bodyTag = dom.getElementsByTagName('body')[0];
+        let HtmlDirPath = "../../" + callParentNew("mainProject") + "/HTMLPages/";
+        $(".formGridRow").each(function () {
+            var fileExt = $(this).find("[id^='filetype']").val().toLowerCase();
+            var fileName = $(this).find("[id^='filename']").val().replace(/ /g, "_") + "_" + pageNo + "." + fileExt;
+            var content = $(this).find("textarea[id^='css_js_src']").val();
+            if (fileExt == "css") {
+                cssFileName.push(fileName);
+                cssContents.push(content);
+
+                $(headTag).find("link[href*='/" + fileName + "']").remove();
+
+                var linkTag = dom.createElement("link");
+                linkTag.setAttribute("type", "text/css");
+                linkTag.setAttribute("rel", "stylesheet");
+                linkTag.setAttribute("href", HtmlDirPath + "Css/" + fileName + "?v=" + (new Date()).getTime());
+                headTag.append("\t");
+                headTag.appendChild(linkTag);
+                headTag.append("\n");
+            }
+            else if (fileExt == "js") {
+                jsFileName.push(fileName);
+                jsContents.push(content);
+
+                $(bodyTag).find("script[src*='/" + fileName + "']").remove();
+
+                var scriptTag = dom.createElement("script");
+                scriptTag.setAttribute("type", "text/javascript");
+                scriptTag.setAttribute("src", HtmlDirPath + "Js/" + fileName + "?v=" + (new Date()).getTime());
+                bodyTag.append("\t");
+                bodyTag.appendChild(scriptTag);
+                bodyTag.append("\n");
+            }
+        });
+
+        htmlContent = dom.documentElement.outerHTML;
+        pageCaption = GetFieldValue("caption000F1");
+        var addToMenu = GetFieldValue("isacoretrans000F1") == "Yes" ? true : false;
+        if (recordid != "0") {
+            isNewPage = false;
+        }
+        try {
+            $.ajax({
+                type: "POST",
+                url: "tstruct.aspx/htmlPagePublish",
+                data: JSON.stringify({
+                    htmlContent, cssFileName, cssContents, jsFileName, jsContents, pageCaption, addToMenu, pageNo, isNewPage
+                }),
+                contentType: "application/json; charset=utf-8",
+                dataType: "json",
+                success: function (response) {
+                    if (response.d == "done") {
+                        cssFileName = [], cssContents = [], jsFileName = [], jsContents = [];
+                        SetFormDirty(false);
+                        //if (typeof parent._pageName != "undefined" && parent._pageName.startsWith("tsect&")) {
+                        //    parent.parent.window.location.reload();
+                        //}
+                        parent.parent.window.location.reload();
+                    }
+                    else {
+                        ShowDialog("error", response.d);
+                        SetFormDirty(false);
+                    }
+                },
+                error: function (error) {
+                    ShowDialog("error", "Error occurred while saving..!");
+                }
+            });
+        }
+        catch (e) {
+            ShowDialog("error", "Exception occurred while saving");
+        }
+    }
+}
+
+function htmlCustomSaveRedirectReact() {
+    if (transid == "a__rp") {
+        var htmlContent = htmlCodeMirror.getValue();
+        htmlContent = htmlContent.replace(/&/g, '&amp;');
+        var domParser = new DOMParser();
+        var dom = "";
+        if (htmlContent.trim() != "") {
+            dom = domParser.parseFromString(htmlContent, 'text/html');
+        }
+        var cssContents = [], jsContents = [], isNewPage = true;
+        var headTag = dom.getElementsByTagName('head')[0];
+        var bodyTag = dom.getElementsByTagName('body')[0];
+        let HtmlDirPath = "../../ReactPages/" + callParentNew("mainProject") + "/";
+        $(".formGridRow").each(function () {
+            var fileExt = $(this).find("[id^='filetype']").val().toLowerCase();
+            var content = $(this).find("textarea[id^='css_js_src']").val();
+            if (fileExt == "css") {
+                var fileName = $(this).find("[id^='filename']").val().replace(/ /g, "_") + "_" + pageNo + "." + fileExt;
+                cssFileName.push(fileName);
+                cssContents.push(content);
+
+                $(headTag).find("link[href*='/" + fileName + "']").remove();
+
+                var linkTag = dom.createElement("link");
+                linkTag.setAttribute("type", "text/css");
+                linkTag.setAttribute("rel", "stylesheet");
+                linkTag.setAttribute("href", HtmlDirPath + "Css/" + fileName + "?v=" + (new Date()).getTime());
+                headTag.append("\t");
+                headTag.appendChild(linkTag);
+                headTag.append("\n");
+            }
+            else if (fileExt == "js") {
+                var fileName = $(this).find("[id^='filename']").val().replace(/ /g, "_") + "_" + pageNo + ".jsx";
+                jsFileName.push(fileName);
+                jsContents.push(content);
+
+                $(bodyTag).find("script[src*='/" + fileName + "']").remove();
+
+                var scriptTag = dom.createElement("script");
+                scriptTag.setAttribute("type", "text/babel");
+                scriptTag.setAttribute("src", HtmlDirPath + "Js/" + fileName + "?v=" + (new Date()).getTime());
+                bodyTag.append("\t");
+                bodyTag.appendChild(scriptTag);
+                bodyTag.append("\n");
+            }
+        });
+
+        htmlContent = dom.documentElement.outerHTML;
+        pageCaption = GetFieldValue("caption000F1");
+        var addToMenu = GetFieldValue("isacoretrans000F1") == "Yes" ? true : false;
+        if (recordid != "0") {
+            isNewPage = false;
+        }
+        try {
+            $.ajax({
+                type: "POST",
+                url: "tstruct.aspx/reactPagePublish",
+                data: JSON.stringify({
+                    htmlContent, cssFileName, cssContents, jsFileName, jsContents, pageCaption, addToMenu, pageNo, isNewPage
+                }),
+                contentType: "application/json; charset=utf-8",
+                dataType: "json",
+                success: function (response) {
+                    if (response.d == "done") {
+                        cssFileName = [], cssContents = [], jsFileName = [], jsContents = [];
+                        SetFormDirty(false);
+                        //if (typeof parent._pageName != "undefined" && parent._pageName.startsWith("ta__rp&")) {
+                        //    parent.parent.window.location.reload();
+                        //}
+                        parent.parent.window.location.reload();
+                    }
+                    else {
+                        ShowDialog("error", response.d);
+                        SetFormDirty(false);
+                    }
+                },
+                error: function (error) {
+                    ShowDialog("error", "Error occurred while saving..!");
+                }
+            });
+        }
+        catch (e) {
+            ShowDialog("error", "Exception occurred while saving");
+        }
+    }
+}
+/* delete redirection for htmlpages and hyperlinks in iview builder */
+function htmlCustomDeleteRedirect() {
+    if (transid == "sect") {
+        if (pageNo != "") {
+            try {
+                $.ajax({
+                    type: "POST",
+                    url: "tstruct.aspx/removeFromMenuAndFolder",
+                    data: JSON.stringify({
+                        pageNo
+                    }),
+                    contentType: "application/json; charset=utf-8",
+                    dataType: "json",
+                    success: function (response) {
+                        if (response.d == "done") {
+                            window.location.href = "ivtoivload.aspx?ivname=hplist";
+                            setTimeout(function () {
+                                parent.parent.reloadPluginCustomPage(false);
+                            }, 0);
+                        }
+                        else {
+                            ShowDialog("error", response.d);
+                        }
+                    },
+                    error: function (error) {
+                        ShowDialog("error", "Error while removing the file..!");
+                    }
+                });
+            }
+            catch (ex) {
+                ShowDialog("error", "Error while removing the file..! " + ex);
+            }
+        }
+        else {
+            ShowDialog("error", "page number not found");
+        }
+    }
+    else if (transid == "a__rp") {
+        if (pageNo != "") {
+            try {
+                $.ajax({
+                    type: "POST",
+                    url: "tstruct.aspx/removeFromMenuAndFolderReact",
+                    data: JSON.stringify({
+                        pageNo
+                    }),
+                    contentType: "application/json; charset=utf-8",
+                    dataType: "json",
+                    success: function (response) {
+                        if (response.d == "done") {
+                            window.location.href = "ivtoivload.aspx?ivname=a__rplst";
+                            setTimeout(function () {
+                                parent.parent.reloadPluginCustomPage(true);
+                            }, 0);
+                        }
+                        else {
+                            ShowDialog("error", response.d);
+                        }
+                    },
+                    error: function (error) {
+                        ShowDialog("error", "Error while removing the file..!");
+                    }
+                });
+            }
+            catch (ex) {
+                ShowDialog("error", "Error while removing the file..! " + ex);
+            }
+        }
+        else {
+            ShowDialog("error", "page number not found");
+        }
+    }
+}
+
+function btn22langDownload() {
+    if (transid == "ad_lg") {
+        if ($("#exportto000F1").val() != "" && $("#language000F1").val() != "") {
+            let srptPath = $("#exportto000F1").val();
+            let axLang = $("#language000F1").val();
+            srptPath += "\\" + axLang;
+
+            try {
+                var curWin = window.open('OpenFiles.aspx?alPath=' + srptPath, '_self', 'width=400,height=300,scrollbars=yes,resizable=yes');
+            } catch (ex) {
+                showAlertDialog("warning", 'This file does not exist.');
+            }
+        }
+    }
+}
+var isAxLangUploaded = "false";
+function btn23langUpload() {
+    if (transid == "ad_lg") {
+        if ($("#exportto000F1").val() != "" && $("#language000F1").val() != "" && $("#uploadfilename000F3").val() != "") {
+            let srptPath = $("#exportto000F1").val();
+            let axLang = $("#language000F1").val();
+            srptPath += "\\" + axLang;
+
+            let upFileType = $("#uploadfilename000F3").val();
+            isAxLangUploaded = "false";
+            var src = "./axlangupload.aspx?fpath=" + srptPath + "&upfiletype=" + upFileType;
+            displayBootstrapModalDialog("Axpert Language", "lg", "200px", true, src, "", "", CallbackImportFunction);
+        }
+    }
+
+    function CallbackImportFunction() {
+        try {
+            if (isAxLangUploaded == "true") {
+                let upFileType = $("#uploadfilename000F3").val();
+                if (upFileType != "") {
+                    upFileType = upFileType + ".xlsx";
+                    //upFileType = upFileType + ".xls";
+                    $("#uploadedfile000F3").val(upFileType);
+                    UpdateFieldArray("uploadedfile000F3", GetFieldsRowNo("uploadedfile000F3"), upFileType, "parent");
+
+                    $("#btn25").click();
+                }
+            }
+
+        } catch (ex) { }
+    }
+}
+
+function ExecuteOnClick() {
+    let apimethod = $("#ExecAPIMethod000F1").val();
+    if (apimethod == "") {
+        ShowDialog("error", "Select API Method.");
+        return;
+    }
+    let apiresp = $("#APIResponseFormat000F1").val();
+    let apivalue = $("#ExecAPIURL000F1").val();
+    if (apivalue == "") {
+        ShowDialog("error", "API URL should not empty.");
+        return;
+    }
+
+    ASB.WebService.GetDataFromExternalAPI(apivalue, apimethod, apiresp, SuccessGetExternalApi, OnException);
+
+    //APIResponseString000F1
+}
+
+function SuccessGetExternalApi(result, eventArgs) {
+    if (result != "") {
+        $("#APIResponseString000F1").val(result);
+        $("#APIResponseString000F1").attr('readonly', true);
+    }
+}
+
+function saveAddFieldRuntime() {
+    if (!ValidateBeforeSubmit()) {
+        return;
+    } else {
+        const currentUrl = window.location.href;
+        const urlParams = new URL(currentUrl);
+        const _newform = urlParams.searchParams.get("newform");
+        const _formtype = urlParams.searchParams.get("formtype");
+        if (typeof addFieldReloaduri != "undefined")
+            addFieldReloaduri = "";
+        let _afdcName = '';
+        let _afTransid = '';
+        let _afFormCap = '';
+        let _fieldJson = '{';
+        let _addfieldExcludeList = ["axp_recid1", "disableform", "formcaption", "stransid", "formtype", "newform", "flddupchk", "fldctl", "rangeperiod", "autogenprefix", "autogenprefixfld", "autogensno", "autogenno", "acceptfld", "selectfld", "hidden", "masterdl", "sourcedl", "fType", "DSFormCaptionui", "DSFieldui", "defSrcFieldui"];
+        try {
+            AllFieldNames.forEach(function (_ele, _ind) {
+                let _thisFName = GetFieldsName(_ele);
+                if (typeof _thisFName != "undefined" && _thisFName != "" && typeof AllFieldValues[_ind] != "undefined" && AllFieldValues[_ind] != "") {
+                    if (_addfieldExcludeList.indexOf(_thisFName) == -1) {
+                        let _thisFVal = AllFieldValues[_ind];
+                        if (_thisFName == "exp_editor_formula")
+                            _thisFName = "expression";
+                        if (_thisFName == "exp_editor_valexpr")
+                            _thisFName = "validateExp";
+                        if (_thisFName == "flddecimal")
+                            _thisFName = "decimal";
+                        if (_thisFName == "defTable" && _thisFVal != "") {
+                            _fieldJson += "\"" + _thisFName + "\":" + JSON.stringify(_thisFVal) + ",";
+                        } else
+                            _fieldJson += "\"" + _thisFName + "\":\"" + _thisFVal + "\",";
+                        if (_thisFName == "dcName") {
+                            _afdcName = _thisFVal;
+                        }
+                    } else if (_thisFName == "stransid") {
+                        _afTransid = AllFieldValues[_ind];
+                    } else if (_thisFName == "formcaption") {
+                        _afFormCap = AllFieldValues[_ind];
+                        _afFormCap = _afFormCap.split('(')[0];
+                    }
+                }
+            });
+            if (_fieldJson.endsWith(',')) {
+                let _allowEmpty = GetFieldValueNew("allowEmpty000F1");
+                _fieldJson += "\"allowEmpty\":\"" + _allowEmpty + "\",";
+
+                let _allowDuplicate = GetFieldValueNew("allowDuplicate000F1")
+                _fieldJson += "\"allowDuplicate\":\"" + _allowDuplicate + "\",";
+
+                let _fldPosition = GetFieldValueNew("fldPosition000F1")
+                _fieldJson += "\"fldPosition\":\"" + _fldPosition + "\",";
+
+                _fieldJson = _fieldJson.slice(0, -1);
+            }
+        } catch (ex) { }
+        _fieldJson += "}";
+        if (_fieldJson == "{}") {
+            showAlertDialog("error", "Field JSON is not correct");
+            return;
+        }
+        let _formInfo = '';
+        if (_newform == "T")
+            _formInfo = "addform~" + _afTransid + "~" + _afFormCap + "~" + _formtype;
+        let _fldMode = "new";
+        if (typeof recordid != "undefined" && recordid != "" && recordid != "0")
+            _fldMode = "edit";
+
+        if (callParentNew("addFormRuntimeDcFlag") != "" && _afdcName != "dc1") {
+            alert("Header(dc1) should have at least one field to save the Form.");
+            return;
+        }
+        try {
+            $.ajax({
+                type: "POST",
+                url: "../WebService.asmx/AddFieldRuntimeWS",
+                data: JSON.stringify({ transid: _afTransid, formCap: _afFormCap, fieldJson: _fieldJson, fldMode: _fldMode, newform: _newform, formInfo: _formInfo }),
+                cache: false,
+                async: false,
+                contentType: "application/json;charset=utf-8",
+                dataType: "json",
+                success: function (data) {
+                    if (data.d != "") {
+                        if (data.d.startsWith("addform:")) {
+                            data.d = data.d.replace("addform:", "");
+                            let addFormJson = JSON.parse(data.d);
+                            callParentNew("addFormRuntimeDcFlag=", '');
+                            showAlertDialog("error", "Duplicate Form name. Cannot be saved.");
+                            getAxpertStudioAddFormData(_formInfo);
+
+                        } else {
+                            let addFieldJson = JSON.parse(data.d);
+                            if (addFieldJson.success) {
+                                addFieldReloaduri = callParentNew("addFormRuntimeDcFlag");
+                                if (_afdcName == "dc1")
+                                    callParentNew("addFormRuntimeDcFlag=", '');
+                                clearLShtmlkeyAddField(_afTransid);
+
+                                FormSubmit();                                
+                            } else {
+                                showAlertDialog("error", addFieldJson.message);
+                            }
+                        }
+                    } else {
+                        showAlertDialog("error", "Error while creating field, please try again.");
+                    }
+                },
+                error: function (error) {
+                    showAlertDialog("error", "Error while creating field, please try again.");
+                }
+            });
+        } catch (ex) { }
+    }
+}
+
+function clearLShtmlkeyAddField(addFldTid) {
+    try {
+        let appSUrl = top.window.location.href.toLowerCase().substring("0", top.window.location.href.indexOf("/aspx/"));
+        let _thisKey = getKeysWithPrefixTst("tstHtml♠" + addFldTid + "-" + appSUrl + "♥");
+        _TstlocalStorage = localStorage[_thisKey[0]];
+        if (typeof _TstlocalStorage == "undefined") {
+            _TstlocalStorage = "";
+        }
+
+        if (_TstlocalStorage != '') {
+            for (const val of _thisKey) {
+                localStorage.removeItem(val);
+            }
+        }
+    } catch (ex) { }
+}
+
+function getKeysWithPrefixTst(prefix) {
+    var allKeys = Object.keys(localStorage);
+    var matchingKeys = allKeys.filter(function (key) {
+        return key.startsWith(prefix);
+    });
+    return matchingKeys;
+}
+
+function removeAddFieldRuntime() {
+    try {
+        var rid = "0";
+        if ($j("#recordid000F0").val() != "0") {
+            rid = $j("#recordid000F0").val();
+        } else {
+            rid = $j("#recordid000F0").val();
+        }
+        if (rid == "0") {
+            showAlertDialog("warning", 2009, "client");
+        } else {
+
+            var cutMsg = eval(callParent('lcm[5]'));
+            var glType = eval(callParent('gllangType'));
+            var isRTL = false;
+            if (glType == "ar")
+                isRTL = true;
+            else
+                isRTL = false;
+            var DeleteTstructCB = $.confirm({
+                theme: 'modern',
+                closeIcon: false,
+                title: eval(callParent('lcm[155]')),
+                onContentReady: function () {
+                    disableBackDrop('bind');
+                },
+                backgroundDismiss: true,
+                escapeKey: 'buttonB',
+                rtl: isRTL,
+                content: cutMsg,
+                buttons: {
+                    buttonA: {
+                        text: eval(callParent('lcm[164]')),
+                        btnClass: 'btn btn-primary',
+                        action: function () {
+                            DeleteTstructCB.close();
+
+                            let _stransid = GetFieldValueNew("stransid000F1");
+                            let _fldName = GetFieldValueNew("name000F1");
+                            let _dcname = GetFieldValueNew("dcName000F1");
+                            $.ajax({
+                                type: "POST",
+                                url: "../WebService.asmx/DeleteFieldRuntimeWS",
+                                data: JSON.stringify({ transid: _stransid, fieldname: _fldName, dcname: _dcname }),
+                                cache: false,
+                                async: false,
+                                contentType: "application/json;charset=utf-8",
+                                dataType: "json",
+                                success: function (data) {
+                                    if (data.d != "") {
+                                        let delFieldJson = JSON.parse(data.d);
+                                        if (delFieldJson.success) {
+                                            var txt = '';
+                                            trace = traceSplitStr + "DeleteData-" + _stransid + traceSplitChar;
+                                            txt = txt + '<Transaction axpapp="' + proj + '" transid="ad_af" recordid="' + rid + '" action="delete" trace="' + trace + '" sessionid="' + sid + '" allowCancel="' + AxAllowCancel + '"> ';
+                                            try {
+                                                ASB.WebService.DeleteDataXML(rid, txt, tstDataId, AxAllowCancel, resTstHtmlLS, SucceededCallbackDelTst);
+                                            } catch (exp) {
+                                                AxWaitCursor(false);
+                                                var execMess = exp.name + "^♠^" + exp.message;
+                                                showAlertDialog("error", 2030, "client", execMess);
+                                            }
+                                        }
+                                        else
+                                            showAlertDialog("error", delFieldJson.message);
+                                    } else
+                                        showAlertDialog("error", "Error while deleting field, please try again.");
+                                }, error: function (error) {
+                                    showAlertDialog("error", "Error while deleting field, please try again.");
+                                }
+                            });
+                        }
+                    },
+                    buttonB: {
+                        text: eval(callParent('lcm[192]')),
+                        btnClass: 'btn btn-bg-light btn-color-danger btn-active-light-danger',
+                        action: function () {
+                            disableBackDrop('destroy');
+                        }
+                    },
+                }
             });
         }
     } catch (ex) {
+
+    }
+}
+
+
+function GetAppDbVars() {
+    try {
+        AxWaitCursor(true);
+        ShowDimmer(true);
+        var fname = $("#db_function000F1").val();
+        var fparams = $("#db_function_params000F1").val();
+        if (fname == "") {
+            showAlertDialog("error", "Please enter DB function name.");
+            AxWaitCursor(false);
+            ShowDimmer(false);
+            return;
+        }
+        $.ajax({
+            url: 'tstruct.aspx/GetFromDBJSON',
+            type: 'POST',
+            cache: false,
+            async: true,
+            data: JSON.stringify({
+                funName: fname, funParams: fparams
+            }),
+            dataType: 'json',
+            contentType: "application/json",
+            success: function (data) {
+                if (data.d != "") {
+                    var resJson = data.d;
+                    if (!resJson.startsWith("error:")) {
+                        var paramJson = JSON.parse(resJson.replace(/\\r\\n/g, ""));
+                        //var paramJson = JSON.parse(resJson);
+                        paramJson = paramJson[0];
+                        var indNo = 1
+                        try {
+                            $.each(paramJson, function (key, value) {
+                                var dataType = key.charAt(key.length - 1);
+                                var pname = key.substr(0, key.length - 1);
+                                var pvalue = value == null ? "" : value;
+                                if (gridDummyRowVal.length > 0) {
+                                    gridDummyRowVal.map(function (v) {
+                                        if (v.split("~")[0] == 2)
+                                            gridDummyRowVal.splice($.inArray(v, gridDummyRowVal), 1);
+                                    });
+                                }
+                                let rowNo = "";
+                                if (indNo.toString().length == 1)
+                                    rowNo = "00" + indNo;
+                                else if (indNo.toString().length == 2)
+                                    rowNo = "0" + indNo;
+                                else
+                                    rowNo = indNo;
+                                if (recordid != "0" && indNo == 1) {
+                                    var fDcRowCount = GetDcRowCount("2");
+                                    if (fDcRowCount > 0)
+                                        DeleteAllRows("2", fDcRowCount);
+                                    editTheRow('', 2, '', event);
+                                }
+                                if (indNo != 1)
+                                    editTheRow('', 2, '', event);
+
+                                $("#db_varname" + rowNo + "F2").val(pname);
+                                UpdateFieldArray("db_varname" + rowNo + "F2", rowNo, pname, "parent");
+                                $("#db_varval" + rowNo + "F2").val(pvalue);
+                                UpdateFieldArray("db_varval" + rowNo + "F2", rowNo, pvalue, "parent");
+                                $("#db_vartype" + rowNo + "F2").val(dataType);
+                                UpdateFieldArray("db_vartype" + rowNo + "F2", rowNo, dataType, "parent");
+                                UpdateFieldArray(axpIsRowValid + "2" + rowNo + "F2", GetDbRowNo(rowNo, "2"), "", "parent", "AddRow");
+
+                                indNo++;
+                            });
+                        } catch (ex) { }
+                    } else {
+                        showAlertDialog("error", resJson.replace("error:", ""));
+                    }
+                } else {
+                    showAlertDialog('error', 1031, "client");
+                }
+                AxWaitCursor(false);
+                ShowDimmer(false);
+            },
+            error: function (error) {
+                showAlertDialog('error', 1031, "client");
+                AxWaitCursor(false);
+                ShowDimmer(false);
+            }
+        });
+    } catch (exp) {
+        AxWaitCursor(false);
+        ShowDimmer(false);
+    }
+}
+
+function SaveMultiFrameDataJSON() {
+    let resSuccess = false;
+    if (!ValidateBeforeSubmit()) {
+        ShowDimmer(false);
+        AxWaitCursor(false);
+        return false;
+    }
+    let fldJSON = "\"recdata\":[";
+    let changedDcs = "";
+    DCName.forEach(function (ele) {
+        let _thisDcNo = ele.substring(2);
+        let _thisDcFld = GetGridFields(_thisDcNo);
+        if (!IsDcGrid(_thisDcNo)) {
+            let _RecVal = $("#axp_recid" + _thisDcNo + "000F" + _thisDcNo).val();
+            fldJSON += "{\"axp_recid" + _thisDcNo + "\":[{\"rowno\":\"001\",\"text\":\"" + _RecVal + "\",\"columns\":{";
+            let fldValJson = "";
+            _thisDcFld.forEach(function (flele) {
+                if (flele.startsWith('axp_recid'))
+                    return;
+                let _thisFld = flele + "000F" + _thisDcNo;
+                let _thisVal = GetFieldValue(_thisFld);
+                _thisVal = _thisVal.replace(/\\/g, '\\\\');
+                fldValJson += "\"" + flele + "\":\"" + _thisVal + "\",";
+            });
+            if (fldValJson != "")
+                fldJSON += fldValJson.substr(0, fldValJson.length - 1);
+            fldJSON += "}}]},";
+        } else {
+            var isExitDummy = false;
+            if (gridDummyRowVal.length > 0) {
+                gridDummyRowVal.map(function (v) {
+                    if (v.split("~")[0] == _thisDcNo) isExitDummy = true;
+                });
+            }
+            if (!isExitDummy) {
+                changedDcs += "\"dc" + _thisDcNo + "\":\"*\",";
+                fldJSON += "{\"axp_recid" + _thisDcNo + "\":[";
+                let _gridRows = false;
+                $("#gridHd" + _thisDcNo + " tbody tr").each(function (rind, rele) {
+                    _gridRows = true;
+                    let _thisRNo = $(rele).attr("id");
+                    _thisRNo = _thisRNo.substring(_thisRNo.indexOf('F'), _thisRNo.indexOf('F') - 3);
+                    let _thisDbrow = GetDbRowNo(_thisRNo, _thisDcNo);
+                    if (_thisDbrow.length == 1)
+                        _thisDbrow = "00" + _thisDbrow;
+                    else if (_thisDbrow.length == 2)
+                        _thisDbrow = "0" + _thisDbrow;
+                    let _RecVal = $("#axp_recid" + _thisDcNo + _thisRNo + "F" + _thisDcNo).val();
+                    fldJSON += "{\"rowno\":\"" + _thisDbrow + "\",\"text\":\"" + _RecVal + "\",\"columns\":{";
+                    let fldValJson = "";
+                    _thisDcFld.forEach(function (flele) {
+                        if (flele.startsWith('axp_recid'))
+                            return;
+                        let _thisFld = flele + _thisRNo + "F" + _thisDcNo;
+                        let _thisVal = GetFieldValue(_thisFld);
+                        _thisVal = _thisVal.replace(/\\/g, '\\\\');
+                        fldValJson += "\"" + flele + "\":\"" + _thisVal + "\",";
+                    });
+                    if (fldValJson != "")
+                        fldJSON += fldValJson.substr(0, fldValJson.length - 1);
+                    fldJSON += "}},";
+                });
+                if (_gridRows == true)
+                    fldJSON = fldJSON.substr(0, fldJSON.length - 1);
+                fldJSON += "]},";
+            }
+        }
+    });    
+
+    let rid = 0;
+    if ($j("#recordid000F0").length > 0)
+        rid = $j("#recordid000F0").val();
+
+    let files = UploadFiles();
+    let delRows = GetDeletedRows();
+    let chngRows = GetChangedRows();
+    $.ajax({
+        type: "POST",
+        url: "../WebService.asmx/MultiFrameUpdateDataXML",
+        cache: false,
+        async: false,
+        contentType: "application/json;charset=utf-8",
+        data: JSON.stringify({
+            fldArray: ChangedFields, fldDbRowNo: ChangedFieldDbRowNo, fldValueArray: ChangedFieldValues,
+            fldDeletedArray: DeletedDCRows, deletedFldArrayValues: DeletedFieldValue, files: files, rid: rid, delRows: delRows,
+            changedRows: chngRows, key: tstDataId, resTstHtmlLS: resTstHtmlLS
+        }),
+        dataType: "json",
+        success: function (data) {
+            let resultJson = data.d;
+            if (resultJson != "") {
+                if (resultJson.includes("♠*♠")) {
+                    tstDataId = resultJson.split("♠*♠")[0];
+                    resultJson = resultJson.split("♠*♠")[1];
+                }
+            }
+            if (resultJson === "true")
+                resSuccess= true;
+            else
+                resSuccess= false;
+        },
+        error: function (error) {
+            resSuccess= false;
+        }
+    });
+
+    if (changedDcs.endsWith(',')) {
+        changedDcs = changedDcs.slice(0, -1);
+    }
+    fldJSON = fldJSON.substr(0, fldJSON.length - 1);
+    fldJSON += "],\"recordid\":\"" + rid + "\",\"changedDcs\":{" + changedDcs + "},\"delRows\":\"" + delRows + "\",\"files\":\"" + files + "\",\"tstDataId\":\"" + tstDataId + "\"";
+
+    let formJson;
+    try {
+        formJson = JSON.parse("{" + fldJSON + "}");
+    } catch (e) {
+        return false;
+    }
+    let multiFormsJsonRaw = callParentNew("multiFormsJson");
+    let multiFormsJson = {};
+    if (multiFormsJsonRaw) {
+        if (typeof multiFormsJsonRaw === "string") {
+            try {
+                multiFormsJson = JSON.parse(multiFormsJsonRaw);
+            } catch (e) {
+                multiFormsJson = {};
+            }
+        } else if (typeof multiFormsJsonRaw === "object") {
+            multiFormsJson = multiFormsJsonRaw;
+        }
+    }
+    multiFormsJson[transid] = formJson;
+    callParentNew("multiFormsJson=", JSON.stringify(multiFormsJson));
+
+    return resSuccess;
+}
+function startBulkActivation() {
+    $.ajax({
+        url: "../WebService.asmx/BulkUserActivation",
+        method: 'POST',
+        contentType: 'application/json',
+        success: function (response) {
+            if (typeof response.d != "undefined" && typeof response.d != "") {
+                if (response.d.startsWith('Error:')) {
+                    ShowDimmer(false);
+                    let errorMsg = response.d.replace("Error:", "");
+                    showAlertDialog('error', errorMsg);
+                } else {
+                    var jobId = response.d.replace('JobQueued:', '');
+                    ShowDimmer(true);
+                    checkJobStatus(jobId);
+                }
+            }
+        }
+    });
+}
+function checkJobStatus(jobId) {
+    $.ajax({
+        url: "../WebService.asmx/GetBulkActivationStatus",
+        method: 'POST',
+        contentType: 'application/json',
+        data: JSON.stringify({ jobId: jobId }),
+        success: function (response) {
+            var status = response.d;
+            if (status.startsWith('Completed. ')) {
+                ShowDimmer(false);
+                let compMsg = status.replace("Completed. ", "");
+                showAlertDialog('success', compMsg);
+                setTimeout(function () {
+                    parent.LoadIframeac("tstruct.aspx?transid=axurg&act=open");
+                }, 300);
+            } else if (status.startsWith('Error:')) {
+                ShowDimmer(false);
+                let errorMsg = status.replace("Error:", "");
+                showAlertDialog('error', errorMsg);
+            } else if (status == "Pending") {
+                ShowDimmer(false);
+                showAlertDialog('error', "There is an error, please check logs and try again.");
+            }
+            else {
+                if (status.endsWith(' users activated.')) {
+                    showAlertDialog('success', status);
+                }
+                setTimeout(() => checkJobStatus(jobId), 5000);
+            }
+        }
+    });
+}
+$j(document).off("click", "#axurg .toolbarRightMenu .menu a[id='btn20']").on("click", "#axurg .toolbarRightMenu .menu a[id='btn20']", function (e) {
+    if (typeof transid != "undefined" && transid == "axurg") {
+        $.ajax({
+            url: "../WebService.asmx/GetInActiveUserCount",
+            method: 'POST',
+            contentType: 'application/json',
+            success: function (response) {
+                if (response.d != "" && !response.d.startsWith('Error: ')) {
+                    var count = parseInt(response.d, 10);
+                    if (count > 0) {
+                        let _mgsUser = "There are " + count + " inactive users. Do you want to activate?";
+                        if (count == 1)
+                            _mgsUser = "There is " + count + " inactive user. Do you want to activate?";
+                        if (confirm(_mgsUser)) {
+                            startBulkActivation();
+                        } else {
+                            //Donothing
+                        }
+                    } else {
+                        showAlertDialog('info', "No inactive users found.");
+                    }
+                } else if (response.d.startsWith('Error: ')) {
+                    let errorMsg = response.d.replace("Error: ", "");
+                    showAlertDialog('error', errorMsg);
+                }
+            },
+            error: function (xhr, status, error) {
+            }
+        });
+    }
+});
+
+function GetInterExterResources() {
+    try {
+        $.ajax({
+            url: 'tstruct.aspx/GetInterExterResources',
+            type: 'POST',
+            cache: false,
+            async: true,
+            dataType: 'json',
+            contentType: "application/json",
+            success: function (data) {
+                if (data != null && data.d != null) {
+                    interExterResourcesData = JSON.parse(data.d);
+                    let _existingUrl = $("#ExecAPIURL000F1").val();
+                    let objextres = interExterResourcesData.resources.extres;
+                    let objintres = interExterResourcesData.resources.intres;
+                    let mergedData = Object.assign({}, objintres, objextres);
+                    var _fld = $j("#config_url_name000F1");
+                    _fld.empty();
+                    _fld.append('<option value=""></option>');
+                    Object.keys(mergedData).forEach(function (key) {
+                        var value = mergedData[key];
+                        if (_existingUrl != "" && _existingUrl == value)
+                            _fld.append('<option value="' + value + '" selected="selected">' + key + '</option>');
+                        else
+                            _fld.append('<option value="' + value + '">' + key + '</option>');
+                    });
+                    _fld.select2();
+
+                    //let apitype = $("#APItype000F1").val();
+                    //if (apitype != null && (apitype == "General" || apitype == "Bind API to Dropdown field from Axpert")) {
+                    //    var dataObj = interExterResourcesData.resources.intres;
+                    //    var _fld = $j("#config_url_name000F1");
+                    //    _fld.empty();
+                    //    _fld.append('<option value=""></option>');
+                    //    Object.keys(dataObj).forEach(function (key) {
+                    //        var value = dataObj[key];
+                    //        if (_existingUrl != "" && _existingUrl == value)
+                    //            _fld.append('<option value="' + value + '" selected="selected">' + key + '</option>');
+                    //        else
+                    //            _fld.append('<option value="' + value + '">' + key + '</option>');
+                    //    });
+                    //    _fld.select2();
+
+                    //} else if (apitype != null && apitype == "Bind API to Dropdown field from External") {
+                    //    var dataObj = interExterResourcesData.resources.extres;
+                    //    var _fld = $j("#config_url_name000F1");
+                    //    _fld.empty();
+                    //    _fld.append('<option value=""></option>');
+                    //    Object.keys(dataObj).forEach(function (key) {
+                    //        var value = dataObj[key];
+                    //        if (_existingUrl != "" && _existingUrl == value)
+                    //            _fld.append('<option value="' + value + '" selected="selected">' + key + '</option>');
+                    //        else
+                    //            _fld.append('<option value="' + value + '">' + key + '</option>');
+                    //    });
+                    //    _fld.select2();
+                    //}
+                }
+            }, error: function (error) {
+
+            }
+        });
+
+    } catch (ex) {
+    }
+}
+
+function OnChangeApiType(_changeFldName) {
+    if (_changeFldName == "config_url_name000F1") {
+        let config_url_name = $("#config_url_name000F1").val();
+        $("#ExecAPIURL000F1").val(config_url_name);
+        SetFieldValue("ExecAPIURL000F1", config_url_name);
+        UpdateFieldArray("ExecAPIURL000F1", "0", config_url_name, "parent", "");
+    }
+
+    //if (_changeFldName == "APItype000F1") {
+    //    let apitype = $("#APItype000F1").val();
+    //    if (apitype != null && (apitype == "General" || apitype == "Bind API to Dropdown field from Axpert")) {
+    //        var dataObj = interExterResourcesData.resources.intres;
+    //        var _fld = $j("#config_url_name000F1");
+    //        _fld.empty();
+    //        _fld.append('<option value=""></option>');
+    //        Object.keys(dataObj).forEach(function (key) {
+    //            var value = dataObj[key];
+    //            _fld.append('<option value="' + value + '">' + key + '</option>');
+    //        });
+    //        _fld.select2();
+
+    //    } else if (apitype != null && apitype == "Bind API to Dropdown field from External") {
+    //        var dataObj = interExterResourcesData.resources.extres;
+    //        var _fld = $j("#config_url_name000F1");
+    //        _fld.empty();
+    //        _fld.append('<option value=""></option>');
+    //        Object.keys(dataObj).forEach(function (key) {
+    //            var value = dataObj[key];
+    //            _fld.append('<option value="' + value + '">' + key + '</option>');
+    //        });
+    //        _fld.select2();
+    //    }
+    //    $("#ExecAPIURL000F1").val("");
+    //    SetFieldValue("ExecAPIURL000F1", "");
+    //    UpdateFieldArray("ExecAPIURL000F1", "0", "", "parent", "");
+    //} else if (_changeFldName == "config_url_name000F1") {
+    //    let config_url_name = $("#config_url_name000F1").val();
+    //    $("#ExecAPIURL000F1").val(config_url_name);
+    //    SetFieldValue("ExecAPIURL000F1", config_url_name);
+    //    UpdateFieldArray("ExecAPIURL000F1", "0", config_url_name, "parent", "");
+    //}
+}
+
+function getDevOptionValue() {
+    var _hideCancelButton = "false";
+    try {
+        if (typeof tstConfigurations != "undefined" && tstConfigurations.config !== undefined && tstConfigurations.config.length > 0) {
+            let _finalJson = [];
+            try {
+                tstConfigurations.config.forEach(function (val) {
+                    var ret = {};
+                    $.map(val, function (value, key) {
+                        ret[key.toLowerCase()] = value;
+                    });
+                    _finalJson.push(ret);
+                });
+            } catch (ex) { }
+            const hideCancelButton = _finalJson.find(item => item.props?.trim().toLowerCase() === "hide cancel button in validation expression messages")?.propsval;
+            if (typeof hideCancelButton != "undefined" && hideCancelButton == "true") {
+                _hideCancelButton = "true";
+            }
+        }
+    } catch (ex) {
+        _hideCancelButton = "false";
+    }
+    return _hideCancelButton;
+}
+
+//function ClearRefreshOnSaveListLS() {
+//    try {
+//        const appUrl = top.window.location.href.toLowerCase().substring(0, top.window.location.href.indexOf("/aspx/"));
+//        const escapedUrl = appUrl.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+//        const pattern = new RegExp("^tstDDFVal♠" + proj + "♦" + transid + "♦[^♦]+♦true♦.*♦" + escapedUrl + "♥");
+//        Object.keys(localStorage).forEach(function (key) {
+//            if (pattern.test(key)) {
+//                localStorage.removeItem(key);
+//            }
+//        });
+//    } catch (ex) { }
+//}
+function ClearRefreshOnSaveListLS() {
+    try {
+        const appUrl = top.window.location.href.toLowerCase().substring(0, top.window.location.href.indexOf("/aspx/"));
+        const escapedUrl = appUrl.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+        const escapedProj = String(proj).replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+        const escapedTransid = String(transid).replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+        const pattern = new RegExp("^tstDDFVal♠" + escapedProj + "♦" + escapedTransid + "♦[^♦]+♦true♦.*♦" + escapedUrl + "♥");
+        if (typeof ddlMemoryCache != "undefined" && ddlMemoryCache) {
+            for (const key of ddlMemoryCache.keys()) {
+                if (pattern.test(key)) {
+                    ddlMemoryCache.delete(key);
+                }
+            }
+        }
+        if (typeof indexedDB == "undefined")
+            return;
+        initDdlIndexedDBCache().then(function (ready) {
+            if (!ready || !ddlIndexedDB)
+                return;
+            try {
+                const tx = ddlIndexedDB.transaction(DDL_IDB_STORE, "readwrite");
+                const store = tx.objectStore(DDL_IDB_STORE);
+                const request = store.openCursor();
+                request.onsuccess = function (event) {
+                    const cursor = event.target.result;
+                    if (cursor) {
+                        const key = cursor.primaryKey;
+                        if (typeof key == "string" && pattern.test(key)) {
+                            cursor.delete();
+                            if (typeof ddlMemoryCache != "undefined" && ddlMemoryCache) {
+                                ddlMemoryCache.delete(key);
+                            }
+                        }
+                        cursor.continue();
+                    } 
+                };
+                request.onerror = function (event) {
+                };
+                tx.oncomplete = function () {
+                };
+                tx.onerror = function (event) {
+                };
+
+            } catch (ex) {
+            }
+        });
+    } catch (ex) {
+    }
+}
+
+function DeleteAxpertJobs() {
+    if (typeof transid != "" && transid == "job_s") {
+        var period = $("#jobschedule000F1").val();
+        var tmpPeriod = period.toLowerCase().trim();
+        var sendOn = "";
+        if (tmpPeriod == "every week") {
+            sendOn = $("#weekday000F1").val()
+        }
+        else if (tmpPeriod == "every month" || tmpPeriod == "every quarter") {
+            sendOn = $("#jday000F1").val()
+        }
+        else if (tmpPeriod == "custom") {
+            sendOn = $("#noofmins000F1").val()
+        }
+        let _glCulture = eval(callParent('glCulture'));
+        let start_date = $("#jobstartfrom000F1").val();
+        if (_glCulture.toLowerCase() === "en-us" && start_date) {
+            let parts = start_date.split('/');
+            if (parts.length === 3) {
+                let month = parts[0];
+                let day = parts[1];
+                let year = parts[2];
+                start_date = day + '/' + month + '/' + year;
+            }
+        }
+        $.ajax({
+            type: "POST",
+            url: "../aspx/AxPEG.aspx/AxPushToQueue",
+            data: JSON.stringify({
+                queueName: "ARMAxpertJobsQueue",
+                queueJson: {
+                    "start_date": start_date,
+                    "period": period,
+                    "sendtime": $("#axptm_starttime000F1").val(),
+                    "sendon": sendOn,
+                    "project": $("#appname000F1").val(),
+                    "jobname": $("#jname000F1").val(),
+                    "jobid": $("#jobid000F1").val(), 
+                    "username": callParentNew("mainUserName")
+                }
+            }),
+            cache: false,
+            async: false,
+            dataType: 'json',
+            contentType: "application/json",
+            success: function (response) {
+            },
+            error: function (error) {
+            }
+        });
     }
 }

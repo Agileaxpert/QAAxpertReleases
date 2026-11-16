@@ -27,9 +27,10 @@
         SetAxCustomPath();
         GetAxApps();
         GetAxProps();
+        GetAxAppSettings();
         //GetAxpString();// its not required for concurrect user support
 
-        SetServerLicense();
+        //SetServerLicense();
 
         //For Bundling and Minification Support
         BundleConfig.RegisterBundles(System.Web.Optimization.BundleTable.Bundles);
@@ -49,12 +50,68 @@
         //To disable Minification in Bundling and Minification
         // System.Web.Optimization.BundleTable.Bundles.ToList().ForEach(b => b.Transforms.Clear());
 
-        FDW objFDW = FDW.Instance;
-        string strProj = ConfigurationManager.AppSettings["proj"];
-        objFDW.Initialize(strProj);
-        GetConfigurationDetails(objFDW);
+        //FDW objFDW = FDW.Instance;
+        //string strProj = ConfigurationManager.AppSettings["proj"];
+        //objFDW.Initialize(strProj);
+        //GetConfigurationDetails(objFDW);
     }
 
+    private static bool _isBaseUrlInitialized = false;
+    private static readonly object _lock = new object();
+
+    protected void Application_BeginRequest(object sender, EventArgs e)
+    {
+        if (!_isBaseUrlInitialized)
+        {
+            lock (_lock)
+            {
+                if (!_isBaseUrlInitialized)
+                {
+                    try
+                    {
+                        var context = System.Web.HttpContext.Current;
+                        if (context != null && context.Request != null && context.Request.Url != null)
+                        {
+                            var url = context.Request.Url.GetLeftPart(UriPartial.Authority);
+                            if (!string.IsNullOrWhiteSpace(url))
+                            {
+                                if (!url.EndsWith("/"))
+                                    url += "/";
+                                WebContextProvider.SetBaseUrl(url);
+                                _isBaseUrlInitialized = true;
+                            }
+                        }
+                    }
+                    catch
+                    {
+                    }
+                }
+            }
+        }
+        if (WebContextProvider.GetBaseUrlCallback == null)
+        {
+            WebContextProvider.GetBaseUrlCallback = () =>
+            {
+                var ctx = System.Web.HttpContext.Current;
+                if (ctx != null && ctx.Request != null && ctx.Request.Url != null)
+                    return ctx.Request.Url.GetLeftPart(UriPartial.Authority) + "/";
+                return WebContextProvider.GetBaseUrl();
+            };
+        }
+    }
+
+
+
+    private void GetAxAppSettings()
+    {
+        Util.Util uti = new Util.Util();
+        string appsettings = uti.GetAxAppSettings();
+        if (!string.IsNullOrEmpty(appsettings))
+        {
+            Application["AppSettingsIni"] = appsettings;
+        }
+
+    }
 
     private void GetAxpString()
     {
@@ -72,7 +129,7 @@
         asbWs.SetServerLicense();
     }
 
-    #endregion
+    #endregion    
 
     private void GetAxProps()
     {
@@ -104,12 +161,12 @@
             }
             Application["axProps"] = contents;
         }
-        catch (Exception ex) 
+        catch (Exception ex)
         {
             string axProps = "<axprops getfrom=\"\" setto=\"\"></axprops>";
             Application["axProps"] = axProps;
 
-            LogFile.ErrorLog errLogObj = new LogFile.ErrorLog();            
+            LogFile.ErrorLog errLogObj = new LogFile.ErrorLog();
             errLogObj.LogException(ex, "Application_Error - Global.asax", ex.Message);
         }
     }
@@ -218,7 +275,12 @@
                         if (configFileName == "") continue;
 
                         string configStr = string.Empty;
-                        configStr = fdrObj.StringFromRedis(Constants.CONFIGAPP_JSON_KEY, configFileName.ToLower());
+                        //configStr = fdrObj.StringFromRedis(Constants.CONFIGAPP_JSON_KEY, configFileName.ToLower());
+                        var _jsoncontents = fdrObj.HashGetAllKey(Constants.AX_COMMON_APPSETTING_KEY, configFileName.ToLower());
+                        if (_jsoncontents != null && _jsoncontents.ContainsKey(Constants.CONFIGAPP_JSON_KEY))
+                        {
+                            configStr = _jsoncontents[Constants.CONFIGAPP_JSON_KEY];
+                        }
                         if (configStr == string.Empty)
                             configStr = reader.ReadToEnd();
 
@@ -249,7 +311,8 @@
                         }
                         finally
                         {
-                            objFDW.SaveInRedisServer(Constants.CONFIGAPP_JSON_KEY, configStr + customDetails, Constants.CONFIGAPP_JSON_KEY, configFileName.ToLower());
+                            //objFDW.SaveInRedisServer(Constants.CONFIGAPP_JSON_KEY, configStr + customDetails, Constants.CONFIGAPP_JSON_KEY, configFileName.ToLower());
+                            objFDW.HashSetKeyWithSchema(Constants.AX_COMMON_APPSETTING_KEY, Constants.CONFIGAPP_JSON_KEY, configStr + customDetails, configFileName.ToLower());
                         }
                     }
                 }

@@ -8,7 +8,7 @@
     <meta name="description" content="Forgot Password">
     <meta name="keywords" content="Agile Cloud, Axpert,HMS,BIZAPP,ERP">
     <meta name="author" content="Agile Labs">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1"/>       
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
     <title><%=appTitle%></title>
 
 
@@ -16,7 +16,7 @@
         <%:Styles.Render(direction == "ltr" ? "~/UI/axpertUI/ltrBundleCss" : "~/UI/axpertUI/rtlBundleCss") %>
     </asp:PlaceHolder>
 
-    <meta name="viewport" content="width=device-width, initial-scale=1" />          
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
     <link rel="shortcut icon" href="../images/favicon.ico" />
 
 
@@ -36,9 +36,9 @@
 
     <script src="../Js/alerts.min.js?v=33" type="text/javascript"></script>
 
-    <script type="text/javascript" src="../Js/login.min.js?v=95"></script>
-    <script src="../Js/ForgotPassword.min.js?v=13" type="text/javascript"></script>
-    <script src="../Js/common.min.js?v=149" type="text/javascript"></script>
+    <script type="text/javascript" src="../Js/login.min.js?v=121"></script>
+    <script src="../Js/ForgotPassword.min.js?v=17" type="text/javascript"></script>
+    <script src="../Js/common.min.js?v=167" type="text/javascript"></script>
 
     <%--<script>
         if(typeof localStorage != "undefined"){
@@ -116,62 +116,62 @@
             <asp:Label ID="lblscript" runat="server" meta:resourcekey="lblscript">JavaScript is turned off in your web browser. Turn it on to take full advantage of this site, then refresh the page.</asp:Label>
         </div>
     </noscript>
-   <%-- <div id="login-container">
+    <%-- <div id="login-container">
 
 
         <div id="container-arrow">--%>
-            <form id="Form1" runat="server" class ="login-wrapper card login-inner w-lg-500px m-auto">
-            <%--<div class="d-none">--%>
-                
-            <%--<div id="login-box" <%--class="card"--%>
-               <%-- <div class="center-view">--%>
-               <div class="w-lg-500px p-8 p-lg-12 mx-auto">
-                                <div class="text-center mb-8">
-                                <div class="form-title">
+    <form id="Form1" runat="server" class="login-wrapper card login-inner w-lg-500px m-auto">
+        <%--<div class="d-none">--%>
+
+        <%--<div id="login-box" <%--class="card"--%>
+        <%-- <div class="center-view">--%>
+        <div class="w-lg-500px p-8 p-lg-12 mx-auto">
+            <div class="text-center mb-8">
+                <div class="form-title">
                     <img src="../images/loginlogo.png">
-                                   <div> <span id="lblSignin" class="form-label fs-1 fw-boldest text-dark">Forgot password</span></div>
+                    <div><span id="lblSignin" class="form-label fs-1 fw-boldest text-dark">Forgot password</span></div>
                     <%--<asp:Label ID="lblfrgotpwd" runat="server" meta:resourcekey="lblfrgotpwd">Forgot password</asp:Label>--%>
                 </div>
-                                    </div>
-                   <%--</div>--%>
-                <%--<div>--%>
-                    <div class="toplbl" id="projlbl" runat="server">
-                    </div>
-                    <div class="control-group fields" id="selectProj1" runat="server">
-                        <%--<asp:Label ID="lblproj" runat="server" meta:resourcekey="lblproj" class="control-label visible-ie8 visible-ie9">
+            </div>
+            <%--</div>--%>
+            <%--<div>--%>
+            <div class="toplbl" id="projlbl" runat="server">
+            </div>
+            <div class="control-group fields" id="selectProj1" runat="server">
+                <%--<asp:Label ID="lblproj" runat="server" meta:resourcekey="lblproj" class="control-label visible-ie8 visible-ie9">
                             Select Project</asp:Label>--%>
-                        <div class="controls field-wrapper">
-                            <div class="input-icon left">
-                                <%--<i class="icon-desktop"></i>--%>
-                                <input type='text' value='' id='axSelectProj' name="axSelectProj" runat="server" tabindex='2' placeholder='' class='m-wrap placeholder-no-fix new-search-input search-input' />
-                                <div class="field-placeholder">
-                                        
-                                            <asp:Label ID="lblproj" runat="server" meta:resourcekey="lblproj">
+                <div class="controls field-wrapper">
+                    <div class="input-icon left">
+                        <%--<i class="icon-desktop"></i>--%>
+                        <input type='text' value='' id='axSelectProj' name="axSelectProj" runat="server" tabindex='2' placeholder='' class='m-wrap placeholder-no-fix new-search-input search-input' />
+                        <div class="field-placeholder">
+
+                            <asp:Label ID="lblproj" runat="server" meta:resourcekey="lblproj">
                             Select Project</asp:Label>
-                                    </div>
-                                <i class="icon-cross" runat="server" title="Clear" onclick="$('#axSelectProj').val('').focus();"></i>
-                                <i class="icon-chevron-down autoClickddl" runat="server" title="Select Project" onclick="$('#axSelectProj').autocomplete('search','').focus();"></i>
-                            </div>
                         </div>
+                        <i class="icon-cross" runat="server" title="Clear" onclick="$('#axSelectProj').val('').focus();"></i>
+                        <i class="icon-chevron-down autoClickddl" runat="server" title="Select Project" onclick="$('#axSelectProj').autocomplete('search','').focus();"></i>
                     </div>
-                   <div class="control-group">
-                                    <div class= "fv-row mb-8 fv-plugins-icon-container">
-                                        <div class="input-icon left">
-                                            <asp:Label ID="lblusername"  class="form-label fs-6 fw-boldest text-dark" runat="server" meta:resourcekey="lblusername">
+                </div>
+            </div>
+            <div class="control-group">
+                <div class="fv-row mb-8 fv-plugins-icon-container">
+                    <div class="input-icon left">
+                        <asp:Label ID="lblusername" class="form-label fs-6 fw-boldest text-dark" runat="server" meta:resourcekey="lblusername">
                             User Name</asp:Label>
-                                            <input class="m-wrap my-4  placeholder-no-fix form-control form-control-lg form-control-solid" id="txtName" runat="server" type="text"
-                                                autocomplete="off" placeholder="" name="uname" title="Username" required>
-                                            <%--<div class="field-placeholder">--%>
-                                                
-                                            <%--</div>--%>
-                                        </div>
-                                    </div>
-                                </div>
-                   <%-- <div class=" control-group fields">
+                        <input class="m-wrap my-4  placeholder-no-fix form-control form-control-lg form-control-solid" id="txtName" runat="server" type="text"
+                            autocomplete="off" placeholder="" name="uname" title="Username" required>
+                        <%--<div class="field-placeholder">--%>
+
+                        <%--</div>--%>
+                    </div>
+                </div>
+            </div>
+            <%-- <div class=" control-group fields">
                         <div class="controls field-wrapper">
                             <div class="input-icon left">
                                 <%--<i class="icon-user"></i>--%>
-                                <%--<input type="text" id="txtName1" name="uname" runat="server" value="" tabindex="2"
+            <%--<input type="text" id="txtName1" name="uname" runat="server" value="" tabindex="2"
                                     size="15" autocomplete="off" class="loginContr" placeholder="" required />
                                 <div class="field-placeholder">
                                         
@@ -181,10 +181,10 @@
                             </div>
                         </div>
                     </div>--%>
-                    <div class="control-group">
-                                    <div class= "fv-row mb-8 fv-plugins-icon-container">
-                            <div class="input-icon left">
-                                <asp:Label ID="lblpwd"  class="form-label fs-6 fw-boldest text-dark" runat="server" meta:resourcekey="lblpwd">
+            <div class="control-group">
+                <div class="fv-row mb-8 fv-plugins-icon-container">
+                    <div class="input-icon left">
+                        <asp:Label ID="lblpwd" class="form-label fs-6 fw-boldest text-dark" runat="server" meta:resourcekey="lblpwd">
                             Email</asp:Label>
                         <input type="text" id="txtMl" name="email" runat="server" value="" tabindex="2"
                             class="loginContr my-4 m-wrap placeholder-no-fix form-control form-control-lg form-control-solid" placeholder="" required>
@@ -195,65 +195,78 @@
                 </div>
             </div>
 
-                     <%if (ConfigurationManager.AppSettings["enableCaptcha"] != null && ConfigurationManager.AppSettings["enableCaptcha"].ToString() == "true") { %>
-                        <div class="control-group">
-                            <div class= "fv-row mb-8 fv-plugins-icon-container">
-                                <div class="d-flex flex-stack">
-                                <asp:Label ID="lblcaptcha"  class="form-label fs-6 fw-boldest text-dark" runat="server" meta:resourcekey="lblcaptcha">
+            <%--  <%if (ConfigurationManager.AppSettings["enableCaptcha"] != null && ConfigurationManager.AppSettings["enableCaptcha"].ToString() == "true")
+                { %>
+            <div class="control-group">
+                <div class="fv-row mb-8 fv-plugins-icon-container">
+                    <div class="d-flex flex-stack">
+                        <asp:Label ID="lblcaptcha" class="form-label fs-6 fw-boldest text-dark" runat="server" meta:resourcekey="lblcaptcha">
                                     Captcha
-                                </asp:Label>
-                                    </div>
-                                <BotDetect:WebFormsCaptcha runat="server" ID="DynamicCaptcha" UserInputID="CaptchaCodeTextBox" CodeStyle="Alphanumeric" SoundEnabled="false" CodeLength="7" AutoReloadExpiredCaptchas="true" AutoReloadTimeout="7200" />
-                                <asp:TextBox ID="CaptchaCodeTextBox" runat="server" CssClass="m-wrap placeholder-no-fix form-control form-control-solid"></asp:TextBox>
-                            </div>
+                        </asp:Label>
+                    </div>
+                    <BotDetect:WebFormsCaptcha runat="server" ID="DynamicCaptcha" UserInputID="CaptchaCodeTextBox" CodeStyle="Alphanumeric" SoundEnabled="false" CodeLength="7" AutoReloadExpiredCaptchas="true" AutoReloadTimeout="7200" />
+                    <asp:TextBox ID="CaptchaCodeTextBox" runat="server" CssClass="m-wrap placeholder-no-fix form-control form-control-solid"></asp:TextBox>
+                </div>
+            </div>
+            <%  } %>--%>
+            <asp:Panel ID="pnlCaptcha" runat="server" Visible="false">
+                <div class="control-group">
+                    <div class="fv-row mb-8 fv-plugins-icon-container">
+                        <div class="d-flex flex-stack">
+                            <asp:Label ID="lblcaptcha" class="form-label fs-6 fw-boldest text-dark" runat="server" meta:resourcekey="lblcaptcha">
+                         Captcha
+                            </asp:Label>
                         </div>
-                    <%  } %>
+                        <BotDetect:WebFormsCaptcha runat="server" ID="DynamicCaptcha" UserInputID="CaptchaCodeTextBox" CodeStyle="Alphanumeric" SoundEnabled="false" CodeLength="7" AutoReloadExpiredCaptchas="true" AutoReloadTimeout="7200" />
+                        <asp:TextBox ID="CaptchaCodeTextBox" runat="server" CssClass="m-wrap placeholder-no-fix form-control form-control-solid" placeholder="Enter captcha" aria-label="Enter captcha"></asp:TextBox>
+                    </div>
+                </div>
+            </asp:Panel>
 
-                   <div class="d-flex flex-row flex-column-fluid">
-                       <div class="d-flex flex-row-fluid">
-                            <button type="submit" class="divbutton btn btn-lg btn-primary mb-5 w-100" id="btnSubmit" onclick="javascript: ForgotPwd(); return false;">
-                                <span class="indicator-label">Send Password</span>
-                                <span class="indicator-progress">
-                                    Please wait...
+            <div class="d-flex flex-row flex-column-fluid">
+                <div class="d-flex flex-row-fluid">
+                    <button type="submit" class="divbutton btn btn-lg btn-primary mb-5 w-100" id="btnSubmit" onclick="javascript: ForgotPwd(); return false;">
+                        <span class="indicator-label">Send Password</span>
+                        <span class="indicator-progress">Please wait...
                                     <span class="spinner-border spinner-border-sm align-middle ms-2"></span>
-                                </span>
-                            </button>
-                           </div>
-                    <%--<div class="divbutton">
+                        </span>
+                    </button>
+                </div>
+                <%--<div class="divbutton">
                         <input type="submit" title="Send password" id="btnSubmit1" value="Send password" class="hotbtn btn" tabindex="3"
                             onclick="javascript: ForgotPwd();" />
                     </div>--%>
-                   <div class="Backlink d-flex flex-row-fluid ms-5">
-                            <!--<div class="d-flex flex-row-auto ms-2 mt-1">-->
-                            <a href="#" onclick="OpenSigninPage();" class="btn btn-text-primary btn-active-light-primary btn-lg mb-5 w-100  "><span  ID="lbllogin" runat="server" meta:resourcekey="lbllogin" class="indicator-label ">Go Back To Login</span></a>
-                        </div>
-                    <%--<div class="Backlink">
+                <div class="Backlink d-flex flex-row-fluid ms-5">
+                    <!--<div class="d-flex flex-row-auto ms-2 mt-1">-->
+                    <a href="#" onclick="OpenSigninPage();" class="btn btn-text-primary btn-active-light-primary btn-lg mb-5 w-100  "><span id="lbllogin" runat="server" meta:resourcekey="lbllogin" class="indicator-label ">Go Back To Sign In</span></a>
+                </div>
+                <%--<div class="Backlink">
                         <a onclick="OpenSigninPage();" href="javascript:void(0)">
                             <asp:Label ID="lbllogin1" runat="server" meta:resourcekey="lbllogin">Go back to login</asp:Label></a>
                     </div>--%>
-                       </div>
-                </div>
+            </div>
+        </div>
 
-                <label runat="server" id="lblMessage">
-                </label>
-                <asp:Label runat="server" Text="" ID="Label2" CssClass="lblMsg"></asp:Label>
-            <%--</div>--%>
-                   <%-- </div>
+        <label runat="server" id="lblMessage">
+        </label>
+        <asp:Label runat="server" Text="" ID="Label2" CssClass="lblMsg"></asp:Label>
+        <%--</div>--%>
+        <%-- </div>
                 </div>--%>
-           <%--</div>--%>
-       <%-- </div>
+        <%--</div>--%>
+        <%-- </div>
     </div>--%>
-    
+
         <input type="hidden" id="hdnLangs" runat="server" />
         <div>
             <asp:Button ID="btnReset" class="hotbtn btn" runat="server" OnClick="btnReset_Click" />
         </div>
         <asp:ScriptManager ID="ScriptManager1" runat="server">
-                                <Services>
-                                    <asp:ServiceReference Path="../WebService.asmx" />
-                                    <asp:ServiceReference Path="../CustomWebService.asmx" />
-                                </Services>
-                            </asp:ScriptManager>
+            <Services>
+                <asp:ServiceReference Path="../WebService.asmx" />
+                <asp:ServiceReference Path="../CustomWebService.asmx" />
+            </Services>
+        </asp:ScriptManager>
         <asp:HiddenField ID="hdnUsrName" runat="server" />
         <asp:HiddenField ID="hdnMl" runat="server" />
         <asp:HiddenField ID="hdnAxProjs" runat="server" />
@@ -263,6 +276,6 @@
 
         <%--<label runat="server" id="Label1">
         </label>--%>
-    </form>   
+    </form>
 </body>
 </html>

@@ -2,7 +2,7 @@ class HomePageCards {
     constructor() {
         this.html = {
             HomePageCards: `
-			<div class="mt-3 widgetWrapper htmlDomWrapper col-lg-3 col-md-3 col-sm-12 col-xs-3" id="HP_cards_list" data-cardname="{{caption}}">
+			<div class="mt-3 widgetWrapper htmlDomWrapper col-lg-3 col-md-6 col-sm-12 col-xs-12" id="HP_cards_list" data-cardname="{{caption}}">
                     <div class="Home-cards-list" style="background:{{colorcode}}">
                         <div class="Hp-card-icon attendicon">
                             <img alt="" class="w-60px cardsIcons ax-card-nav"
@@ -29,7 +29,7 @@ class HomePageCards {
             </div>
             `,
             HomePageMenuOptionCards: `
-			<div class="mt-3 widgetWrapper htmlDomWrapper col-lg-3 col-md-3 col-sm-12 col-xs-3" id="HP_cards_list" data-cardname="{{caption}}">
+			<div class="mt-3 widgetWrapper htmlDomWrapper col-lg-3 col-md-6 col-sm-12 col-xs-12" id="HP_cards_list" data-cardname="{{caption}}">
                     <div class="Home-cards-list" style="background:{{colorcode}}">
                         <div class="Hp-card-icon attendicon">
                             <img alt="" class="w-60px cardsIcons ax-card-nav"
@@ -56,187 +56,15 @@ class HomePageCards {
                     </div>
             </div>
             `,
-            ActiveList: `
-            <div id="ProcessFlow_New" class="header-fixed header-tablet-and-mobile-fixed aside-fixed">
-            <!--begin::Content-->
-            <div class="content d-flex flex-column flex-column-fluid ">
-                <!--begin::Container-->
-                <div id="kt_content_container" class="">
-                    <!--begin::Row-->
-        
-                    <div class="row " id="ProcessFlow_New-overalldiv">
-                        <div class="Page-Title-Bar">
-                            <div class="d-flex align-items-center flex-wrap d-grid gap-2 ">
-                                <div class="Page-Title">
-                                    My List
-                                    <div class="Tkts-toolbar-Left">
-                                        <button id="" type="submit" class="btn btn-icon btn-white btn-color-gray-600 btn-active-primary shadow-sm  tb-btn btn-sm">
-                                            <span class="material-icons material-icons-style material-icons-2">filter_alt</span>
-                                        </button>
-                                        <button type="submit" class="btn btn-icon btn-white btn-color-gray-600 btn-active-primary shadow-sm  tb-btn btn-sm" id="">
-                                            <span class="material-icons material-icons-style material-icons-2">checklist</span>
-                                        </button>
-                                        <button type="submit" class="btn btn-icon btn-white btn-color-gray-600 btn-active-primary shadow-sm  tb-btn btn-sm" id="">
-                                            <span class="material-icons material-icons-style material-icons-2">search</span>
-                                        </button>
-                                    </div>
-                                </div>
-                                <div class="row" id="Process-stepper">
-                                    <div class="col-md-12">
-                                        <!-- Stepers Wrapper -->
-                                        <ul class="stepper stepper-horizontal">                                 
-                                        </ul>
-                                        <!-- /.Stepers Wrapper -->
-                                    </div>
-                                </div>
-                                <div class="Tkts-toolbar-Right">
-                                    <button id="" type="submit" class="btn btn-sm btn-icon btn-primary btn-active-primary btn-custom-border-radius">
-                                        <span class="material-icons material-icons-style material-icons-2">add_task</span>
-                                    </button>
-                                    <button type="submit" id="" class="btn btn-icon btn-white btn-color-gray-600 btn-active-primary shadow-sm tb-btn btn-sm">
-                                        <span class="material-icons material-icons-style material-icons-2">refresh</span>
-                                    </button>
-        
-        
-                                    <button type="submit" id="" class="btn btn-icon btn-white btn-color-gray-600 btn-active-primary shadow-sm  tb-btn btn-sm">
-                                        <span class="material-icons material-icons-style material-icons-2">history_toggle_off</span>
-                                    </button>
-                                </div>
+            HTMLPanel: `
+                    <div class="col-xs-12 col-sm-12 col-md-6 col-lg-3 mt-3 widgetWrapper htmlDomWrapper">
+                        <div class="card rounded-1 h-100 shadow-sm">
+                            <div class="card-body p-0 h-300px heightControl pt-0---">
+                                <bodyContent></bodyContent>
                             </div>
                         </div>
-                        <!--begin:::Col-->
-                        <div class="col-xl-3 col-md-3 d-flex flex-column flex-column-fluid vh-100 min-vh-100" id="ProcessFlow_New_Left">
-                            <div class="card card-xl-stretch  flex-root h-1px  ">
-        
-        
-                                <div class="card-header">
-                                    <ul class="nav nav-tabs nav-line-tabs nav-line-tabs-2x mb-5 fs-6">
-                                        <li class="nav-item">
-                                            <a class="nav-link active" data-bs-toggle="tab" href="#Tickets_Pending"><span class="material-icons material-icons-style material-icons-2 text-warning">add_task</span> Pending</a>
-                                        </li>
-                                        <li class="nav-item">
-                                            <a class="nav-link " data-bs-toggle="tab" href="#Tickets_Completed"><span class="material-icons material-icons-style material-icons-2 text-success">add_task</span> Completed</a>
-                                        </li>
-                                    </ul>
-                                </div>
-        
-                                <!--begin::Body-->
-                                <div class="card-body h-300px ">
-                                    <div id="ProcessFlow_New-container">
-        
-                                        <div class="tab-content" id="ProcessFlow_Content">
-                                            <div class="tab-pane fade active show" role="tabpanel" id="Tickets_Pending">
-                                            </div>
-                                            <div class="tab-pane fade" role="tabpanel" id="Tickets_Completed">
-                                                <div class="ProcessFlow_New-List-Items">
-                                                    <div class="d-flex align-items-center Ticket-Num ">
-                                                        <div class="symbol symbol-30px me-5">
-                                                            <span class="symbol-label">
-                                                                <span class="material-icons material-icons-style text-success">add_task</span>
-                                                            </span>
-                                                        </div>
-                                                        <div class=" d-flex flex-column">
-                                                            <a href="#" class="ProcessFlow_New-List-Title">#TKT00013</a>
-                                                        </div>
-                                                    </div>
-                                                    <div class=" ms-14 Ticket-Description">Writing headlines for blog posts is as much an art as it is a science, and probably warrants its own post, but for now, all I�d advise is experimenting with what works for your audience, especially if it�s not resonating with your audience </div>
-                                                    <div class="Ticket-Details ms-14 ">
-                                                        <div class="Ticket-Value">
-                                                            <span class="Assigned-By"><span class="material-icons material-icons-style material-icons-2">person</span>Mohankumar </span>
-                                                        </div>
-                                                        <div class="Ticket-Value">
-                                                            <span class="Assigned-Date">
-                                                                <span class="material-icons material-icons-style material-icons-2">today</span>
-                                                                24/07/23
-                                                            </span>
-                                                            <span class="Assigned-Date">
-                                                                <span class="material-icons material-icons-style material-icons-2">schedule</span>
-                                                                11:30pm
-                                                            </span>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <!--end::Body-->
-                                </div>
-        
-                            </div>
-                            <!--end::Table Widget 1-->
-                        </div>
-                        <!--end:::Col-->
-                        <!--begin:::Col-->
-                        <div id="ProcessFlow_New_Right" class="col-xl-7  col-md-7 d-flex flex-column flex-column-fluid vh-100 min-vh-100">
-                            <div class="card card-xl-stretch  flex-root h-1px  ">
-                                <!--begin::Body-->
-                                <div class="card-body p-9 " id="Tickets_details_view">
-        
-                                    <!--end::Card body-->
-                                </div>
-                                <iframe data-ignore-history="true" class="d-none" style="height: calc(100% - 0px);width: calc(100% - 0px);" id="rightIframe" src="about:blank"></iframe>
-        
-                            </div>
-                            <!--end:::Col-->
-                        </div>
-                        <div id="ProcessFlow_New_Right_Last" class="col-xl-2 col-md-2 d-flex flex-column flex-column-fluid vh-100 min-vh-100">
-                            <div class="card card-xl-stretch  flex-root h-1px  ">
-        
-                                <!--begin::Body-->
-                                <div class="card-body h-300px ">
-                                    <div class="row">
-                                        <div class="col-xl-12 col-md-4 d-flex flex-column flex-column-fluid KPI_Section  ">
-                                            <div class="card ">
-                                                <div class="card-header collapsible cursor-pointer " data-bs-toggle="collapse" aria-expanded="false" data-bs-target="#KPI-1">
-                                                    <h3 class="card-title">KPI Title</h3>
-                                                    <div class="card-toolbar rotate-180">
-                                                        <span class="material-icons material-icons-style material-icons-2">
-                                                            expand_circle_down
-                                                        </span>
-                                                    </div>
-                                                </div>
-                                                <div class="collapse show" style="" id="KPI-1">
-                                                    <div class="card-body">
-                                                        <figure>
-                                                            <img class="img-fluid" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAOEAAADhCAMAAAAJbSJIAAAAw1BMVEX////DIC8mMlL/PzTnLDX99fa/AAm/ABD24+WGi5kYJ0t7gJDr7/D/Oi3/LR7/09Hzo6bmGyfnJS/rYWbajZHBDSLr2Nfk1Nf/r6z/MiTtcnbnDx4AGUPR1tu1vMDa3d/Fys7g4+Sqsbf19/gAAAC/xcipsbaNkJbXhIn67e4KIEgVJUr/6ej/GwCdpqyOmaD2u73wj5LmAADsVlsAAjtyeIl1eH6Dh40mLz8WIjUAABwiLDxHTVdfY2w2PEkAACEEFyxohIB5AAAC50lEQVR4nO3dDU/TQByA8fMFUDgR8F28l3J0Q9ThCxbUbfr9P5XtTIS1S2+DHtdbnl8II8s/Wx+2NeFyG0IAAAAAAAAAAAAAAAAAAAAAAADAIxdCG2F0+ZOJfSxByCOhRZ7lQmth5f+rXSniUXWqbBPGmqowu/YgrlGhFkofiYE2prwAAAC4rY2T5w0n72MfVZc2Nl80bD6KfVRd2ti817BFYVIoTB+F6aMwffEKTSakFUJJ7+TtRCvMsoHULs/Lb2HvKFqh1IOssZoYQrRCa7QbKKvU4Oo6J2X3z9l4r0NZPjvl7CsszqXpozB9FArx+HS77nQn1uHewBKFH+7Xba9Z4TaF/UYhhf1HIYX9RyGF/Uchhf0XrdBpfTd7E6MV5tY2VoQjrZcGKrROGVvbIxxEvNehVcLkd7DPmzMNhf1HIYX9RyGF/df3wtcLfFzpFvpeuPum4dPTlW6h74VPHjTsUjiPQgpDo9CPQgpvYamdeykXqpGY7b5sXy9NuNCpXC6xXppwobJnUkvvLuiEC6tXoFTenexJFy6FQvH5bdOX6wPJF+4dHtTtP7s+kH7h/sO6AwoppLBTFFJIYYXCsCikkMIKhWFRSGHk/aVaZ1l5sa6Fwpp/66XZ1XU3WC/tb6FQxs32l7YvJyZcKAe5U9o5bVvHEi5cEoUUUlihMCwKKaSwQmFYFFJIYYXCsCikkMJK4ELP+4DTL/S9l3u3af49M3tfDxu+zRduNcx/rv7O+bu68+8dFl7tL62WS+teLjA3kL1aYG7CO2BUk1lwLPJGn5bL/3sCAABYI3rom7BFYdsn3EWRtU/kRaFWOKhOXU59nyY1OhLH7RM/rPnZPjEcyV+R/nmvKvSZZ2Q0nrQ/znLqvZuhXuLJEsbFdHzpGfE+hu539bdaq7JwOFrtyLpy7MTU8/QZTc7+tE9cjCeT9onhuPD9IgNx5RnC91l10nhfQdJzoilvwzcBAAAAAAAAAACAyP4CTKCchAxIOYAAAAAASUVORK5CYII=">
-                                                        </figure>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            <div class="card ">
-                                                <div class="card-header collapsible cursor-pointer" data-bs-toggle="collapse" aria-expanded="true" data-bs-target="#KPI-2">
-                                                    <h3 class="card-title">KPI Title</h3>
-                                                    <div class="card-toolbar rotate-180">
-                                                        <span class="material-icons material-icons-style material-icons-2">
-                                                            expand_circle_down
-                                                        </span>
-                                                    </div>
-                                                </div>
-                                                <div class="collapse show" style="" id="KPI-2">
-                                                    <div class="card-body">
-                                                        <figure>
-                                                            <img class="img-fluid" src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTvyClOEGXUMdXM2DezoaC8GkYJ_Oo6BOSQAg&amp;usqp=CAU">
-                                                        </figure>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <!--end::Container-->
                     </div>
-        
-        
-                </div>
-            </div>
-        </div>`,
-            dashboard: `<h1>Welcome To ActiveList</h1>
-            <div>{{caption}}</div>`,
-            calender: `<h1>Welcome To ActiveList</h1>
-            <div>{{caption}}</div>`
-
+                    `
         };
         this.arrMoreOptions = [];
         this.arrDsNames = [];
@@ -263,7 +91,12 @@ class HomePageCards {
                 }
                 let dataResult = _this.dataConvert(json, "ARM");
                 if (dataResult.length > 0) {
-                    dataResult = _this.JSON_Lower_keys(dataResult);                    
+                    dataResult = _this.JSON_Lower_keys(dataResult);
+                    dataResult = dataResult.sort((a, b) => {
+                        const nameA = a.grppageid || '';
+                        const nameB = b.grppageid || '';
+                        return nameA.localeCompare(nameB);
+                    });
                     _this.constructCards(dataResult);
                 }
                 else {
@@ -272,8 +105,10 @@ class HomePageCards {
                     }
                     else {
                         const tabContainer = document.querySelector(`.HomePageMenuOptionCards`);
-                        tabContainer.innerHTML = '';
-                        tabContainer.appendChild(`<h1>Home Page configuration is not available.</h1>`);
+                        if (typeof tabContainer != "undefined" && tabContainer != null) {
+                            tabContainer.innerHTML = '';
+                            tabContainer.appendChild(`<h1>Home Page configuration is not available.</h1>`);
+                        }
                     }
                 }
             }
@@ -294,6 +129,19 @@ class HomePageCards {
     }
 
     constructCards(cardData) {
+        let _this = this;
+        _this.constructMenuFolderCards(cardData.filter(card => card.paneltype === "Menu folder"));
+        _this.constructHTMLPanels(cardData.filter(card => card.paneltype === "HTML panel"));
+        _this.constructMenuOptionCards(cardData.filter(card => card.paneltype === "Menu option"));
+
+        try {
+            AxAfterConstructCards();
+
+        }
+        catch { }
+    }
+
+    constructMenuFolderCards(cardData) {
         let _this = this;
         let generatedHTML = '';
         let generatedHTMLGroup = '';
@@ -319,11 +167,11 @@ class HomePageCards {
         }
         catch { }
 
-        cardData.filter(card => card.paneltype === "Menu folder").forEach((rowData, index) => {  
+        cardData.forEach((rowData, index) => {
             try {
                 if (rowData.target && rowData.target.indexOf("tstruct.aspx") > -1) {
 
-                    if (typeof isAxOldModel != "undefined" && isAxOldModel == "true") {
+                    if (typeof axOldModelFlag != "undefined" && axOldModelFlag == "true") {
                         if (listviewAsDefault.length > 0) {
                             if (openListviewConf = listviewAsDefault.filter(list => list.structname == findGetParameter("transid", rowData.target))?.[0]) {
                             } else if (openListviewConf = listviewAsDefault.filter(list => list.structname == "ALL Forms")?.[0]) {
@@ -344,30 +192,29 @@ class HomePageCards {
                             if (!openListviewConf)
                                 openListviewConf = listviewAsDefault.filter(list => list.structname == "ALL Forms")?.[0]
 
-                            if (openListviewConf?.propsval == "false") {
-                                rowData.target += `&openerIV=${findGetParameter("transid", rowData.target)}&isIV=false`;
-                            } else {
-                                rowData.target = rowData.target.replace("tstruct.aspx?transid=", "Entity.aspx?tstid=") + "&ename=" + rowData.caption;
-                            }
+                        if (openListviewConf?.propsval == "false") {
+                            rowData.target += `&openerIV=${findGetParameter("transid", rowData.target)}&isIV=false`;
                         } else {
-                            rowData.target = rowData.target.replace("tstruct.aspx?transid=", "Entity.aspx?tstid=") + "&ename=" + rowData.caption;
+                            rowData.target = rowData.target.replace("tstruct.aspx?transid=", "Entity.aspx?tstid=");
                         }
+                    } else {
+                        rowData.target = rowData.target.replace("tstruct.aspx?transid=", "Entity.aspx?tstid=");
+}
                     }
                 }
             } catch (ex) { }
-            
+
             if (rowData.grppageid == '' || rowData.grppageid == null)
                 generatedHTML += Handlebars.compile(this.html["HomePageCards"])(rowData);
             else {
-                var rowUniqueId = `${rowData.grppageid ?? ""}_${rowData.groupfolder?.replaceAll(" ", "") ?? ""}`;
-                if (rowUniqueId != curgrppageid) {
+                if (rowData.grppageid != curgrppageid) {
                     if (generatedHTMLGroup != '')
                         generatedHTMLGroup += `</div></div></div></div>`;
                     const divOpen = `<div class="card rounded-1 shadow-sm mt-3 col-md-3"><div class="menucard-wrapper"><div class="card-header min-h-40px px-6"><div class="card-title"><h4 class="fw-bolder">` + rowData.groupfolder + `</h4></div></div><div class="card-body px-6 py-2 mb-3"><div class="row d-flex">`;
                     generatedHTMLGroup += divOpen + Handlebars.compile(this.html["HomePageCards"])(rowData);
                 } else
                     generatedHTMLGroup += Handlebars.compile(this.html["HomePageCards"])(rowData);
-                curgrppageid = rowUniqueId;
+                curgrppageid = rowData.grppageid;
             }
         });
         if (generatedHTMLGroup != '')
@@ -381,14 +228,37 @@ class HomePageCards {
             const tabContainer = document.querySelector(`.HomePageCards`);
             tabContainer.innerHTML = generatedHTMLGroup;
         }
+    }
 
-        _this.constructMenuOptionCards(cardData.filter(card => card.paneltype === "Menu option"));
+    constructHTMLPanels(htmlPanels) {
+     
+        let _this = this;
+        htmlPanels.forEach((htmlPanel, index) => {
+            try {
+                htmlPanel = AxBeforeHTMLPanelRender(htmlPanel);
+            }
+            catch { }
 
-        try {
-            AxAfterConstructCards();
-             
-        }
-        catch { }
+            if (htmlPanel?.cardhide != "T") {
+                let panelElement = $(_this.html.HTMLPanel).attr("htmlpanel-index", index).data("htmlpanel-index", index);
+                panelElement.attr("htmlpanel-name", htmlPanel["caption"]).data("htmlpanel-name", htmlPanel["caption"]);
+                $(".HtmlPanelCards .row").append(panelElement);
+                panelElement.find("bodyContent").replaceWith(`<div class="body-content"></div>`);
+                var shadowDomEle = $(panelElement.find(".body-content"))[0];
+                let panelHtml = htmlPanel["html_editor_card"];
+
+                var shadowAtt = shadowDomEle.attachShadow({ mode: 'open' });
+                shadowAtt.innerHTML = panelHtml;
+            }
+
+            try {
+                htmlPanel.index = index;
+                htmlPanel = AxAfterHTMLPanelRender(htmlPanel);
+            }
+            catch { }
+
+        });
+
     }
 
 
@@ -421,11 +291,11 @@ class HomePageCards {
             tabContainer.classList.add("d-none")
         }
         try {
-            
+
         }
         catch { }
     }
-    
+
     moreOptionsPopover(count) {
         var popover = document.querySelector(`[data-fetching^="rowcount-${count}"]`);
         if (!popover.classList.contains("data-fetched")) {
@@ -783,7 +653,7 @@ function navigateFromCard(caption, id) {
         catch { }
 
 
-        if (typeof isAxOldModel != "undefined" && isAxOldModel == "true") {
+        if (typeof axOldModelFlag != "undefined" && axOldModelFlag == "true") {
             if (listviewAsDefault.length > 0) {
                 let openListviewConf = listviewAsDefault.filter(list => list.structname == form)?.[0];
                 if (!openListviewConf)
@@ -820,7 +690,6 @@ function navigateFromCard(caption, id) {
         LoadIframe(`htmlPages.aspx?loadcaption=${form}`);
     }
 }
-
 
 /*
  * CSP event bridge
@@ -970,3 +839,11 @@ function navigateFromCard(caption, id) {
 })();
 
 var objHomePageCards = new HomePageCards();
+
+function AxBeforeHTMLPanelRender(htmlPanel) {
+    return htmlPanel;
+}
+
+function AxAfterHTMLPanelRender(htmlPanel) {
+    return htmlPanel;
+}

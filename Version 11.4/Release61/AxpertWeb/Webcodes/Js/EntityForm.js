@@ -1,10 +1,222 @@
 ﻿var iframeindex = -1;
-var _subEntity;
 var _entityForm;
 var _entityCommon;
 
-class SubEntity {
+//++ Variables from main-tstruct.js
+var isMozilla;
+var objDiv = null;
+var originalDivHTML = "";
+var DivID = "";
+var over = false;
+var addHeader = "";
+var fillGridDatatbl = "";
+var shouldFaceUser = false;
+var flipCamera = false;
+var gridDummyRows = false;
+var gridDummyRowVal = new Array;
+var AxpGridForm = "popup";
+var fldmultiSelectdep = false;
+var depNotBoundFld = "";
+var axplatlongFldName = "";
+var axpfilepathold = "";
+var axpScanBarFldFocus = "";
+var axpScriptaddrowres = "";
+var axpScriptIsAddrow = true;
+var dcLayoutType = "default";
+var isDcLayoutSelected = false;
+var formLabelJSON = [];
+var buttonFieldFontJSON = [];
+var regVarFldExp = new Array();
+var select2EventType = "";
+var select2IsOpened = false;
+var select2IsFocused = false;
+var setDesProp = {};
+var forceRowedit = false;
+var isGridFileUploadOnLoad = false;
+var wizardHidenDcNos = [];
+var gridRowEditOnLoad = false;
+var AxRulesDefValidation = "false";
+var AxRulesDefFilter = "false";
+var AxRuesDefFormcontrol = "false";
+var AxRulesDefComputescript = "false";
+var AxRulesDefAllowdup = "false";
+var AxRulesDefAllowEmpty = "false";
+var AxRulesDefIsAppli = "false";
+
+var AxRulesDefScriptOnLoad = "false";
+var AxRulesDefOnSubmit = "false";
+var AxRuesDefScriptFormcontrol = "false";
+var AxRuesDefScriptFCP = "false";
+
+var AxpDcstateVal = "";
+var AxAllowEmptyFlds = new Array;
+var isScriptFormLoad = "false";
+var callGetTab = false;
+var AxFldExpOnAddRow = "";
+var AxpFillDepFieldsClient = "";
+var AxFldBlured = "";
+var AxFldBlurFromSelect = "";
+var AxDoPegApprovalSave = "";
+var AxPegFinalApproval = "false";
+var AxAmendmentReadOnly = "false";
+var AxPegAmdreadOnly = "false";
+var isAddRowWsCalled = "false";
+var isExcelImpDelWS = "false";
+var isPegApproveConfirm = "";
+var AxPegLevelNo = "";
+var AxSetFldCaption = new Array();
+var AxDiscardNxtPrevFc = new Array();
+var MultiFillgridSldIndex = new Array();
+var addFieldReloaduri = "";
+var fldsHideOnPage = "false";
+var iststddlcheck = false;
+var interExterResourcesData = "";
+//-- Variables from main-tstruct.js
+
+class EntityForm {
     constructor() {
+        this.components = {
+            "N": {
+                "html": `<input type="number" class="inputcontent1" value="{{value}}" readonly id="{{fieldid}}">`,
+            },
+            "ST": {
+                "html": `<div class="inputcontent"  readonly id="{{fieldid}}">{{value}}</div>`,
+            },
+            "S": {
+                "html": `<div class="inputcontent"  readonly id="{{fieldid}}">{{v}}</div>`,
+            },
+            "M": {
+                "html": `<div class="inputcontent"  readonly>{{v}}</div>`,
+            },
+            "C": {
+                "html": `<div class="inputcontent"  readonly id="{{fieldid}}">{{v}}</div>`,
+            },
+            "RT": {
+                "html": `<p class="add-read-more show-less-content" id="{{fieldid}}">{{value}}</p><br>`,
+            },
+            "LT": {
+                "html": `<p class="add-read-more show-less-content" id="{{fieldid}}">{{value}}</p><br>`,
+            },
+            "D": {
+                "html": `<input type="date" class="form-control form-control-sm w-auto" value="{{value}}" readonly id="{{fieldid}}"/>`,
+            },
+            "ATT": {
+                "html": ` <div id="{{fieldid}}" custom-id="{{customid}}" class="Files-Attached ATT float-start" onclick="_entityForm.downloadFileAttachment('{{v}}','{{filepath}}')" data-filename="{{v}}" data-filepath="{{filepath}}" role="button">
+                                  {{componentimg}}
+                               <div class="mx-3 fw-semibold attachmenttxt">
+                               <a class="attached-filename" data-bs-toggle="tooltip" data-bs-placement="bottom" title="{{v}}">{{v}}</a>
+                            </div>
+                       </div>`
+            },
+            "AXPFILE_ATT": {
+                "html": ` <div id="{{fieldid}}" custom-id="{{customid}}" class="Files-Attached AXPFILE_ATT float-start" onclick="_entityForm.downloadAxpFileAttachment('{{fieldid}}','{{v}}','{{scriptspath}}/axpert/{{sid}}/{{v}}',event, this)" data-filename="{{v}}" data-filepath="{{filepath}}" role="button">
+                                  {{componentimg}}
+                               <div class="mx-3 fw-semibold attachmenttxt">
+                               <a class="attached-filename" data-bs-toggle="tooltip" data-bs-placement="bottom" title="{{v}}">{{v}}</a>
+                            </div>
+                       </div>`
+            },
+            "GRID_ATT": {
+                "html": ` <div id="{{fieldid}}" custom-id="{{customid}}" class="Files-Attached GRID_ATT float-start" onclick="_entityForm.showGridAttLink('{{v}}')" data-filename="{{v}}" role="button">
+                                  {{componentimg}}
+                               <div class="mx-3 fw-semibold attachmenttxt">
+                               <a class="attached-filename" data-bs-toggle="tooltip" data-bs-placement="bottom" title="{{v}}">{{v}}</a>
+                            </div>
+                       </div>`
+            },
+
+            "Image": {
+                "html": `<img src="{{src}}" style="width:150px;" height="100" onerror="this.onerror=null;this.src='../images/no image.png';" id="{{fieldid}}">`
+            },
+            "togglebutton": {
+                "html": `<div class="form-check form-switch" id="{{fieldid}}">
+                  <input class="form-check-input" type="checkbox" role="switch" {{checked}} onclick="return false;" />
+                </div>`
+            }
+        };
+        this.fldtype = ["N", "ST", "D", "LT", "RT", "ATT", "Image", "table", "togglebutton"];
+        this.flds = {};
+        this.entityFormJson = {};
+        this.pageSize = 5;
+        this.emptyRowsHtml = `No data found`;
+        this.hideControls = [];
+        this.connectedData = {};
+        this.connectedData.accordion =
+            `<div class="Project_items">
+                <div class="card  ">
+                    <div class="col-xl-12 col-md-12 d-flex flex-column flex-column-fluid   ">
+                        <div class="page-Header">
+                            <div class="card-title collapsible cursor-pointer rotate" data-bs-toggle="collapse"
+                                aria-expanded="true" data-bs-target="#Sub-Entity_wrapper">
+                                <div class="symbol symbol-25px symbol-circle initialized"
+                                    onclick="_entityForm.openEntityPage('{{transid}}')" data-toggle="tooltip" >
+                                    <span class="symbol-label bg-warning text-inverse-warning fw-bold"
+                                        style="height:30px !important; width:30px !important;">{{initial}}</span>
+                                </div>
+                                <span class="Project_title"
+                                    onclick="_entityForm.fetchConnectedDataRecords('{{caption}}', '{{transid}}')">{{caption}}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class=" row">
+                    <div class="col">Count :</div>
+                    <div class="col fw-bold" >{{totrec}}</div>
+                </div>
+            </div>`;
+
+        this.connectedData.accordionWrapper =
+            `<div class="row connecteddata-accordions" style="position: relative; right: 3px;" data-transid="{{transid}}" data-name="{{transid}}">
+                <div class="dc-heading card-title cursor-pointer collapsible  rotate  collapsed " data-bs-toggle="collapse"
+                    aria-expanded="true" data-bs-target="#sub-entitycontainer-{{transid}}" data-transid="{{transid}}">
+                    <span class="material-icons material-icons-style material-icons-2 rotate-180">expand_circle_down
+                    </span>
+                    <span class="material-icons material-icons-style material-icons-2">account_tree</span>
+                    <label class="dccaption">{{caption}}</label>
+                    <span class="badge badge-dark mx-5">{{totrec}}</span>
+                    <div class="card-toolbar">
+                        <div class="Tkts-toolbar-Right">
+
+                            <button type="button" data-transid="{{transid}}" data-caption="{{caption}}" id="SubEntity-add-btn-{{transid}}" class="btn btn-icon btn-white btn-color-gray-600 btn-active-primary shadow-sm  tb-btn btn-sm subentity-add" data-toggle="tooltip" title="New">
+                                <span class="material-icons material-icons-style material-icons-2">add
+                                </span>
+                            </button>
+
+                            <button type="button" data-transid="{{transid}}" data-caption="{{caption}}"  id="SubEntity-list-btn-{{transid}}" class="btn btn-icon btn-white btn-color-gray-600 btn-active-primary shadow-sm  tb-btn btn-sm  subentity-list" data-toggle="tooltip" title="List View">
+                                <span class="material-icons material-icons-style material-icons-2">format_list_bulleted
+                                </span>
+                            </button>
+
+                        </div>
+                    </div>
+                    <!--end::Toolbar-->
+
+                </div>
+
+                <div id="sub-entitycontainer-{{transid}}" class="row sub-entity-row collapse">
+                    <div class="Entity_Form_SubEntity body_Container">
+                    </div>
+                </div>
+
+            </div>`;
+
+        this.connectedData.tabMenu =
+            `<li class="nav-item w-100 me-0 mb-md-2" role="presentation">
+                <a class="nav-link w-100 btn btn-flex btn-active-light-primary" data-bs-toggle="tab"
+                    href="#kt_vtab_pane_{{transid}}" aria-selected="true" role="tab">
+                    <i class="ki-duotone ki-icons/duotune/general/gen001.svg fs-2 text-primary me-3"></i> <span
+                        class="d-flex flex-column align-items-start">
+                        <span class="fs-4 fw-bold">{{caption}} ({{transid}})</span>
+                    </span>
+                </a>
+            </li>`;
+
+        this.connectedData.tabBody =
+            `<div class="tab-pane fade" id="kt_vtab_pane_{{transid}}" role="tabpanel">
+                <div class="table-responsive" id="connecteddata-fieldslist-{{transid}}">                                        
+                </div>
+            </div>`;
+
         this.entityName = '';
         this.entityTransId = '';
         this.recordId = '';
@@ -24,23 +236,102 @@ class SubEntity {
         this.selectedChartsObj = {};
         this.activitiesExpanded = false;
         this.isSubEntitiesAvailable = true;
-        this.kpiFilter = "";
         this.emptyRowsHtml = `No data found`;
         this.editable = true;
+        this.keyField = "";
+        this.connectedDataFields = {};
+        this.customHyperLinks = [];
+        this.customDataSource = false;
+        this.relatedDataFields = "";
+        this.relatedDataDisplayFields = "";
+        this.relatedDataDisplayGridFields = "";
+        this.formControlActions = {
+            "expandcollapse": {}
+        };
+        this.cancelRemarks = "";
     }
-
-
 
     init() {
         let _this = this;
-        _this.getUrlParams();
-        if (_this.inValid(_this.entityName)) {
-            _this.catchError("Invalid Entity details");
-            return;
-        }
-        document.querySelector("#EntityTitle").innerHTML = `${_this.entityName} - ${_this.keyValue}`;
-
         try {
+            const queryString = window.location.search;
+            const urlParams = new URLSearchParams(queryString);
+            this.entityTransId = urlParams.get('tstid');
+            this.recordId = urlParams.get('recid') || urlParams.get('recordid') || "0";
+
+            var entityFormMetaData = JSON.parse(document.querySelector("#hdnEntityFormPageMetaData").value);
+            var entityFormPageData = document.querySelector("#hdnEntityFormPageData").value;
+            var dataStr = entityFormPageData.split("*$*")[1].replaceAll("<br/>", "").replaceAll("<br />", "").replaceAll("<br>", "");
+            var entityFormData = JSON.parse(dataStr);
+            _this.hideControls = entityFormData.data.find(i => i.n?.toLowerCase() == 'axro_hidecontrols')?.v?.toLowerCase().split(',') || [];
+            _this.entityFormJson.data = entityFormData.data;
+            _this.entityFormJson.metadata = entityFormMetaData.result.data.FormMetaData;
+            _this.entityFormJson.error = entityFormData.error;
+            _this.metaData = entityFormMetaData.result.data.SubEntityMetaData;
+            _this.properties = entityFormMetaData.result.data.Properties;
+            _this.entityName = entityFormMetaData.result.data.EntityName;
+            _this.keyField = entityFormMetaData.result.data.KeyField;
+            _this.customDataSource = entityFormMetaData.result.data.DataSource;
+            _this.entityTransId = entityFormMetaData.result.data.TransId;
+            
+            if (_entityCommon.isValid(_this.properties.CONNECTEDDATA_CONFIG)) {
+                let configData = JSON.parse(_this.properties.CONNECTEDDATA_CONFIG);
+
+                _this.connectedDataFields = configData.CONNECTEDDATA_METRICS || {};
+                _this.customHyperLinks = configData.HYPERLINKS || [];
+                _this.relatedDataFields = configData.RELATEDDATAFIELDS || "";
+                _this.relatedDataDisplayFields = configData.DISPLAYFIELDS || "";
+                _this.relatedDataDisplayGridFields = configData.DISPLAYGRIDFIELDS || "";
+            }
+
+            if (_this.customDataSource || !_entityCommon.inValid(_this.properties.CONNECTEDDATA_CONFIG)) {
+
+                var validRightPanelData = Object.values(JSON.parse(_this.properties.CONNECTEDDATA_CONFIG)).some(value => {
+                    if (Array.isArray(value)) return value.length > 0;
+                    if (typeof value === 'object' && value !== null) return Object.keys(value).length > 0;
+                    return !!value; // handles strings, numbers, booleans
+                });
+
+                if (validRightPanelData) {
+
+                    $("#Entity_management_Left").toggleClass("col-xl-8 col-md-7 col-xl-12 col-md-12");
+                    $("#Entity_management_Right").removeClass("d-none");
+                }
+            }
+
+            if (_entityCommon.isValid(_this.connectedDataFields) && Object.keys(_this.connectedDataFields).length  > 0) {
+                document.querySelector('#KPI-2').classList.remove("d-none");
+                document.querySelector('#NO-KPI-Items').classList.add("d-none");
+                document.querySelector('.right-connectedpagesdata').classList.remove("d-none");
+            }
+
+            _this.recordId = _this.entityFormJson.data.find(i => i.n == "axp_recid1").v;
+
+            if (_entityCommon.inValid(_this.keyField)) {
+                _this.keyField = _this.getKeyField(_this.entityTransId)?.fldname || _this.entityFormJson.data[2]?.n || "axp_recid1";
+            }
+
+            _this.keyValue = _this.entityFormJson.data.find(i => i.n == _this.keyField).v;
+            _this.keyValue = _entityCommon.replaceSpecialChars(_this.keyValue)
+
+            try {
+                AxBeforeDataPageLoad(_this);
+            }
+            catch {
+            }
+
+            try {
+                if ($("#hdnTstPermission").length > 0 && $("#hdnTstPermission").val() != "" && $("#hdnTstPermission").val() != "no permission applied") {
+                    tstPermissions = $("#hdnTstPermission").val();
+                    $("#hdnTstPermission").val('');
+                }
+            } catch (ex) { }
+
+            _this.constructEntityFormHTML();
+            _this.applyFormControlActions(entityFormPageData);
+
+            document.querySelector("#EntityTitle").innerHTML = _this.entityName + (_this.keyValue ? " - " + _this.keyValue : "");
+
             if (axDisallowCreate) {
                 var transids = axDisallowCreate.split(",");
                 if (transids.indexOf(this.entityTransId) > -1) {
@@ -49,118 +340,67 @@ class SubEntity {
                 }
             }
 
-            subEntityMetaData = subEntityMetaData.replaceAll(`"{`, `{`).replaceAll(`}"`, `}`);
-            subEntityMetaData = JSON.parse(subEntityMetaData);
-            _this.metaData = subEntityMetaData.result.metadata;
+            _this.parseSubEntityMetaDataJSON();          
+            _this.constructRightPanel();
+            _this.bindEvents();
+            _this.applyTheme();
+            tstExcludeElements();
+            DoScriptFormControl("", "On Data Load");
 
-            if (_subEntity.inValid(_this.recordId) || _this.recordId == "0") {
-                _this.recordId = _entityForm.recordId;
+            try {
+                AxAfterDataPageLoad(_this);
+            }
+            catch {
             }
 
-            _this.parseSubEntityMetaDataJSON();
-            _this.initCharts()
-            _this.bindEvents();
-            _entityForm.getRelatedEntityListData();
-            _entityForm.constructFormRelatedDataAccordions();
+            if (entityFormPageData.indexOf("{\"command\":[{\"cmd\":\"canceled\",\"cmdval\":\"yes\"") > -1) {
+                _this.bindCancelationMessage(entityFormPageData);
+            }
         }
-        catch {
+        catch (ex) {
             showAlertDialog("error", "Error occurred. Please check with administrator.");
+            console.log(ex);
         }
+        ShowHideDimmer(false);
     }
 
-    bindEvents() {
-
-        $('#sub-entityhdr').on('shown.bs.collapse', function () {
-            _subEntity.activitiesExpanded = true;
-
-            if (document.querySelector("#sub-entitycontainer").classList.contains('data-fetched'))
-                return;
-
-            _subEntity.getSubEntityListData(1);
-        })
-
-        $('#sub-entityhdr').on('hide.bs.collapse', function () {
-            _subEntity.activitiesExpanded = false;
-        })
-
-        const checkEntities = document.querySelectorAll(".chk-entities");
-        checkEntities.forEach((checkbox) => {
-            checkbox.addEventListener("change", function (event) {
-                if (checkEntities.length == document.querySelectorAll(".chk-entities:checked").length)
-                    document.querySelector("#check-all").checked = true;
-                else
-                    document.querySelector("#check-all").checked = false;
-
-            });
-        });
-
-        const checkAllCheckbox = document.getElementById("check-all");
-        checkAllCheckbox.addEventListener("change", function (event) {
-            const isChecked = checkAllCheckbox.checked;
-            checkEntities.forEach((checkbox) => {
-                checkbox.checked = isChecked;
-            });
-        });
-    }
-
-    //getNearestRecords(currentRow) {
-    //    let _this = this;
-    //    const currentIndex = _this.listJson.findIndex(record => record.rno === currentRow);
-
-    //    if (currentIndex === -1) {
-    //        return [];
-    //    }
-
-    //    let startIndex = Math.max(0, currentIndex - 5);
-    //    let endIndex = Math.min(_this.listJson.length - 1, currentIndex + 4);
-
-    //    if (currentIndex - startIndex < 5) {
-    //        endIndex = Math.min(_this.listJson.length - 1, startIndex + 9);
-    //    }
-
-    //    if (endIndex - currentIndex < 5) {
-    //        startIndex = Math.max(0, endIndex - 9);
-    //    }
-
-    //    return _this.listJson.slice(startIndex, endIndex + 1);
-    //}
-
-    getNearestRecords(currentRow) {
+    constructRightPanel() {
         let _this = this;
-        let filteredList = _this.listJson.filter(record => _this.inValid(record[record.keycol]) === false);
-        let currentIndex = filteredList.findIndex(record => record.rno === currentRow);
 
-        if (currentIndex === -1) {
-            return [];
-        }
+        if (_this.customDataSource)
+            _this.constructCustomDataSourceAccordion();
 
-        let nearestRecords = [];
+        if (_this.customHyperLinks.length > 0)
+            _this.constructCustomHyperLinkAccordions();
 
-        // Add the previous record if it exists
-        if (currentIndex > 0) {
-            let prevRecord = { ...filteredList[currentIndex - 1], navtype: 'prev' };
-            nearestRecords.push(prevRecord);
-        }
-
-        let currentRecord = { ...filteredList[currentIndex], navtype: 'current' };
-        nearestRecords.push(currentRecord);
-
-        // Add the next record if it exists
-        if (currentIndex < filteredList.length - 1) {
-            let nextRecord = { ...filteredList[currentIndex + 1], navtype: 'next' };
-            nearestRecords.push(nextRecord);
-        }
-
-        return nearestRecords;
+        _this.getConnectedData();
+        //_this.constructFormRelatedDataAccordions();
     }
 
 
-    hideChartsMenu() {
-        document.querySelector("#add_chart")?.click();
+    bindCancelationMessage(entityFormPageData) {
+        let _this = this;
+        var pageDataArray = entityFormPageData.split("*$*");
+        for (var i = 0; i < pageDataArray.length; i++) {
+            var dataObj = JSON.parse(pageDataArray[i]);
+            if (typeof dataObj.command != "undefined") {
+                for (var j = 0; j < dataObj.command.length; j++) {
+                    var cmdObj = dataObj.command[j];
+                    if (typeof cmdObj.cmd != "undefined" && cmdObj.cmd == "canceled" && cmdObj?.cmdval == "yes") {
+                        if (typeof cmdObj.reason != "undefined") {
+                            _this.cancelRemarks = cmdObj.reason; 
+                        }
+                    }
+                }
+            }
+        }
+
+        document.getElementById("cancelremarks").innerHTML = `<div id="dvMessage" class="AXinfo ps-5 p-0" style="display: block; font-weight: 700; color: rgb(104, 76, 23);"><table><tbody><tr><td>This transaction has been cancelled. ${_this.cancelRemarks}</td></tr></tbody></table></div>`;
     }
 
-    openNewTstruct() {        
-        parent.LoadIframe(`../aspx/tstruct.aspx?transid=${this.entityTransId}&dummyload=false`)
+    openNewTstruct() {
+        _entityCommon.loadHyperLink(`../aspx/tstruct.aspx?transid=${this.entityTransId}&isDupTab=${callParentNew('isDuplicateTab')}&dummyload=false`)
+        return true;        
     }
 
     openSubEntityTstruct(transId) {
@@ -168,55 +408,36 @@ class SubEntity {
         let params = "";
         if (_this.subEntityMapping[transId]?.["mapfield"] && _this.subEntityMapping[transId]?.["mapsrcdata"]) {
             params = `act=open&${_this.subEntityMapping[transId]?.["mapfield"]}=${_this.subEntityMapping[transId]?.["mapsrcdata"]}`;
-        }
+        }       
 
-        
-        parent.LoadIframe(`../aspx/tstruct.aspx?transid=${transId}&${params}&dummyload=false`)
+        _entityCommon.loadHyperLink(`../aspx/tstruct.aspx?transid=${transId}&${params}&isDupTab=${callParentNew('isDuplicateTab')}&dummyload=false`)
+        return true;
+
     }
 
     editEntity() {
-        var _this = this;
-        let inputJson = { page: "EntityForm", transId: _this.entityTransId, recordId: this.recordId };
-        var editable = _entityCommon.getEntityEditableFlag(inputJson);
-
-        if (editable) {
-            parent.LoadIframe(`../aspx/tstruct.aspx?transid=${this.entityTransId}&act=load&recordid=${this.recordId}&dummyload=false`)
-            return true;
-        }
-        else {
-            showAlertDialog("error", "User does not have 'Edit' access for this record. Please check with administrator.");
-            return false;
-        }
-        
+        _entityCommon.loadHyperLink(`../aspx/tstruct.aspx?transid=${this.entityTransId}&act=load&recordid=${this.recordId}&isDupTab=${callParentNew('isDuplicateTab')}&dummyload=false`)
+        return true;
     }
 
     editSubEntity(entityTransId, recordId) {
-        let inputJson = { page: "EntityForm", transId: entityTransId, recordId: recordId };
-        var editable = _entityCommon.getEntityEditableFlag(inputJson);
-
-        if (editable) {
-            parent.LoadIframe(`../aspx/tstruct.aspx?transid=${entityTransId}&act=load&recordid=${recordId}&dummyload=false`);
-            return true;
-        }
-        else {
-            showAlertDialog("error", "User does not have 'Edit' access for this record. Please check with administrator.");
-            return false;
-        }
+        _entityCommon.loadHyperLink(`../aspx/tstruct.aspx?transid=${entityTransId}&act=load&recordid=${recordId}&isDupTab=${callParentNew('isDuplicateTab')}&dummyload=false`);
+        return true;
     }
 
     reloadEntityPage() {
-        
-        parent.LoadIframe(`../aspx/EntityForm.aspx?ename=${this.entityName}&tstid=${this.entityTransId}&recid=${this.recordId}&keyval=${this.keyValue}`)
+
+        _entityCommon.loadHyperLink(`../aspx/EntityForm.aspx?tstid=${this.entityTransId}&recid=${this.recordId}`)
     }
 
     openEntityForm(entityName, transId, recordId, keyValue, rowNo) {
-        if (rowNo) {
-            let _this = this;
-            _this.updateRelatedData(transId, rowNo)
-        }
-        
-        var url = `../aspx/EntityForm.aspx?ename=${entityName}&tstid=${transId}&recid=${recordId}&keyval=${keyValue}`;
-        parent.LoadIframe(url);
+        //if (rowNo) {
+        //    let _this = this;
+        //    _this.updateRelatedData(transId, rowNo)
+        //}
+
+        var url = `../aspx/EntityForm.aspx?tstid=${transId}&recid=${recordId}`;
+        _entityCommon.loadHyperLink(url);
     }
 
     updateRelatedData(transId, rowNo) {
@@ -226,7 +447,7 @@ class SubEntity {
 
         let tmpArr = _this.getNearestRecords(rowNo);
         tmpArr.forEach(rowData => {
-            if (_this.inValid(rowData.entityname)) {
+            if (_entityCommon.inValid(rowData.entityname)) {
                 rowData.entityname = _this.subEntityList[rowData.transid];
             }
         });
@@ -235,209 +456,12 @@ class SubEntity {
         window.top.entityNavList.lastCaption = `${_this.keyValue}`;
     }
 
-    openEntityPage(entityName, entityTransId) {
-        
-        parent.LoadIframe(`../aspx/Entity.aspx?ename=${entityName}&tstid=${entityTransId}`)
-    }
-
-    getSubEntityKPIFilter() {
+    openEntityPage(entityTransId) {
         let _this = this;
-        let strFilter = "";
-        Object.entries(_this.subEntityMapping).forEach(([key, value]) => {
-            let mapVal = value["mapdatavalue"];
-            let mapFld = value["mapfield"];
-            strFilter += `${key}~~~~${value.mapfieldjson.normalized || "F"}~${value.mapfieldjson.srctable || ""}~${value.mapfieldjson.srcfield || ""}~${value.mapfieldjson.allowempty || "F"}~${value.mapfieldjson.tablename || ""}~${mapFld}~'${mapVal}'^`;
-        });
+        if (_entityCommon.inValid(entityTransId))
+            entityTransId = _this.entityTransId;
 
-        if (strFilter.endsWith("^"))
-            return strFilter.substr(0, strFilter.length - 1);
-        else
-            return strFilter
-    }
-
-    getSubEntityFilter() {
-        let _this = this;
-        let strFilter = "";
-        let selectedEntities = [];
-
-        const chkSelectedEntities = document.querySelectorAll(".chk-entities:checked");
-        if (chkSelectedEntities.length == 0) {
-            showAlertDialog("error", "Error: No filters selected.");
-            return false;
-        }
-
-        chkSelectedEntities.forEach((checkbox) => {            
-            var val = checkbox.value;
-            let subEntity = _this.subEntityMapping[val];
-            let subEntityMapFldJson = subEntity.mapfieldjson;
-            let mapVal = subEntity["mapdatavalue"];
-            let mapFld = subEntity["mapfield"];
-            strFilter += `${val}=All=${subEntityMapFldJson.tablename}.${mapFld}~'${mapVal}'~${subEntityMapFldJson.tablename}~${subEntityMapFldJson.normalized}~${subEntityMapFldJson.srctable}~${subEntityMapFldJson.srcfield}~${subEntityMapFldJson.allowempty}++`;
-            selectedEntities.push(val);
-        });
-
-        if (strFilter.endsWith("++"))
-            strFilter = strFilter.substr(0, strFilter.length - 2);
-
-        _this.subEntityFilter = strFilter;
-        _this.selectedSubEntities = selectedEntities.join(',');
-        return true;
-    }
-
-    getSubEntityListData(pageNo) {
-        let _this = this;
-        if (!_this.getSubEntityFilter())
-            return;
-
-        parent.ShowDimmer(true);
-        let url = "../aspx/EntityForm.aspx/GetSubEntityListDataWS";
-        let data = { entityName: _subEntity.entityName, transId: _this.entityTransId, recordId: _this.recordId, fields: _this.subEntityFilter, pageNo: pageNo, pageSize: _this.pageSize, metaData: false, subEntityList: _this.selectedSubEntities };
-        _this.callAPI(url, data, false, result => {
-            parent.ShowDimmer(false);
-            if (result.success) {
-                let subEntityListDataJson = JSON.parse(JSON.parse(result.response).d);
-                subEntityListDataJson = subEntityListDataJson.result.list ?? [];
-                try {
-                    if (subEntityListDataJson.constructor != Array)
-                        subEntityListDataJson = JSON.parse(subEntityListDataJson);
-                }
-                catch {
-                    showAlertDialog("error", "Error occurred in data fetch.");
-                    return;
-                }
-
-                if ((subEntityListDataJson.length || 0) == 0) {
-                    if (pageNo == 1) {
-                        _this.listJson = [];
-                        document.querySelector("#body_Container").innerHTML = _this.emptyRowsHtml;
-                        return;
-                    }
-
-                    noMoreRecordsMessage.style.display = 'block';
-                    setTimeout(function () {
-                        noMoreRecordsMessage.style.display = 'none';
-                    }, 3000);
-                }
-                else {
-                    try {
-                        if (pageNo == 1) {
-                            _this.listJson = [];
-                            _this.entityWiseFields = {}
-                            document.querySelector("#body_Container").innerHTML = "";
-                        }
-                        var newListJson = [];
-                        subEntityListDataJson.forEach(item => {
-                            newListJson.push(item.data_json);
-                        })
-                        _this.listJson.push(...newListJson);
-                        _this.maxPageNumber = getMaxPageNumber(_this.listJson);
-                        noMoreRecordsMessage.style.display = 'none';
-                        createListHTML(_this.listJson, pageNo);
-                        document.querySelector("#sub-entitycontainer").classList.add('data-fetched');
-                        setTimeout(function () {
-                            document.querySelector("#activities-link").click();
-                        }, 100);
-                    }
-                    catch {
-
-                        $('#body_Container').append(JSON.parse(result.response).d);
-                    }
-                }
-            }
-        });
-
-        //this.getSubEntityPaginationData(1);
-        //subEntityListDataJson = subEntityListDataJson.replaceAll(`"{`, `{`).replaceAll(`}"`, `}`);
-        //subEntityListDataJson = JSON.parse(subEntityListDataJson);
-
-        //this.metaDataObject = new SubEntityMetaData(subEntityListDataJson.result.metadata);
-        //this.listJson = subEntityListDataJson.result.list;
-        //this.maxPageNumber = getMaxPageNumber(this.listJson);
-        ////Hardcoded Header Added
-        //createListHTML(this.listJson, pageNo);
-
-    }
-    getSubEntityPaginationData(pageNo) {
-        let _this = this;
-        let url = "../aspx/EntityForm.aspx/GetSubEntityListDataWS";
-
-        let data = { entityName: _subEntity.entityName, transId: _this.entityTransId, recordId: _this.recordId, fields: _this.subEntityFilter, pageNo: pageNo, pageSize: this.pageSize, metaData: false };
-        this.callAPI(url, data, true, result => {
-            if (result.success) {
-                let listJson = JSON.parse(JSON.parse(result.response).d);
-                if ((listJson?.result?.list?.length || 0) == 0) {
-                    noMoreRecordsMessage.style.display = 'block';
-                    // Hide the message after 3 seconds (3000 milliseconds)
-                    setTimeout(function () {
-                        noMoreRecordsMessage.style.display = 'none';
-                    }, 3000);
-                }
-                else {
-                    _this.maxPageNumber = pageNo;
-                    noMoreRecordsMessage.style.display = 'none';
-                    listJson.result.list.forEach(item => {
-                        item.data_json = JSON.parse(item.data_json);
-                    });
-
-                    _this.listJson.push(...listJson.result.list);
-                    createListHTML(_this.listJson, pageNo);
-                }
-            }
-        });
-    }
-
-    initCharts() {
-        let _this = this;
-
-        _this.getSubEntityChartsData('General');
-        //_this.createChartsFieldsForSelection();
-        //_this.getSelectedCharts();
-    }
-
-    //getSubEntitychartsMetaData() {
-    //    let _this = this;
-    //    let url = "../aspx/EntityForm.aspx/GetSubEntitychartsMetaDataWS";
-    //    let data = { entityName: _this.entityName, transId: _this.entityTransId };
-    //    this.callAPI(url, data, true, result => {
-    //        if (result.success) {
-    //            let metaDataJson = JSON.parse(JSON.parse(result.response).d);
-    //            _this.chartsMetaData = metaDataJson.result.metadata;
-    //            _this.parseSubEntityMetaDataJSON();
-    //            _this.createChartsFieldsForSelection();
-
-    //            _this.getSelectedCharts();
-    //        }
-    //    });
-    //}
-
-    createChartsFieldsForSelection() {
-        let _this = this;
-        const subEntSelect = document.getElementById('subEnt');
-
-        _this.populateSubEnt();
-        subEntSelect.addEventListener('change', function () {
-            const selectedEntity = this.value;
-            _this.populateGroupAndAggFields(selectedEntity);
-        });
-
-        document.getElementById('aggFld').addEventListener('change', function () {
-            const aggCondSelect = document.getElementById('aggCond');
-            if (this.value === 'count') {
-                aggCondSelect.value = 0;
-                aggCondSelect.disabled = true;
-            } else {
-                aggCondSelect.value = "sum";
-                aggCondSelect.disabled = false;
-            }
-        });
-
-        if (document.querySelectorAll('#subEnt option').length > 1) {
-            var formFld = document.querySelector('#subEnt')
-            formFld.selectedIndex = 1;
-            var event = new Event('change');
-            formFld.dispatchEvent(event);
-        }
-
+        _entityCommon.loadHyperLink(`../aspx/Entity.aspx?tstid=${entityTransId}`)
     }
 
     parseSubEntityMetaDataJSON() {
@@ -455,7 +479,7 @@ class SubEntity {
             if (!entityWiseMetaData[item.ftransid])
                 entityWiseMetaData[item.ftransid] = {};
 
-            if (!_this.inValid(item.entityrelfld)) {
+            if (!_entityCommon.inValid(item.entityrelfld)) {
                 if (!subEntityMapping[item.ftransid])
                     subEntityMapping[item.ftransid] = {};
 
@@ -507,9 +531,10 @@ class SubEntity {
         _this.subEntityMapping = subEntityMapping;
         _this.entityWiseMetaData = entityWiseMetaData;
         _this.subEntityList = subEntityList;
-        _this.getActivitiesBtnsHTML();
+        //_this.getActivitiesBtnsHTML();
         _this.getSubEntityKeyFields();
     }
+
 
     getSubEntityKeyFields() {
         let _this = this;
@@ -520,1189 +545,92 @@ class SubEntity {
             if (result.success) {
                 let keyfields = JSON.parse(result.response).d;
                 _this.subEntityKeyFields = JSON.parse(keyfields);
-                ShowDimmer(false);
+                ShowHideDimmer(false);
             } else {
-                ShowDimmer(false);
+                ShowHideDimmer(false);
             }
         });
-    }
-
-    populateSubEnt() {
-        let _this = this;
-        const subEntSelect = document.getElementById('subEnt');
-
-        for (const [key, value] of Object.entries(_this.subEntityList)) {
-            //console.log(`Key: ${key}, Value: ${value}`);
-            const option = document.createElement('option');
-            option.value = key;
-            option.text = `${value}(${key})`;
-            option.dataset.form = value;
-            subEntSelect.appendChild(option);
-        }
-
-    }
-
-    populateGroupAndAggFields(selectedEntity) {
-        let _this = this;
-        const grpFldSelect = document.getElementById('grpFld');
-        const aggFldSelect = document.getElementById('aggFld');
-        grpFldSelect.innerHTML = ''; // Clear existing options
-        aggFldSelect.innerHTML = ''; // Clear existing options
-
-        // Add "Select Field" option with value 0 to both dropdowns
-        const defaultOption = document.createElement('option');
-        defaultOption.value = 0;
-        defaultOption.text = 'Select Field';
-        grpFldSelect.appendChild(defaultOption);
-
-        const countOption = document.createElement('option');
-        countOption.value = "count";
-        countOption.text = 'Count';
-        aggFldSelect.appendChild(countOption);
-
-        const aggCondSelect = document.getElementById('aggCond');
-        aggCondSelect.value = 0;
-        aggCondSelect.disabled = true;
-
-        if (selectedEntity == 0)
-            return;
-
-        for (const [key, value] of Object.entries(_this.entityWiseMetaData[selectedEntity])) {
-            if (value.hide === 'F') {
-                if (value.grpfield === 'T') {
-                    const option = document.createElement('option');
-                    option.value = value.fldname;
-                    option.text = `${value.fldcap || ''}(${value.fldname})`;
-                    grpFldSelect.appendChild(option);
-                }
-
-                if (value.aggfield === 'T') {
-                    const option = document.createElement('option');
-                    option.value = value.fldname;
-                    option.text = `${value.fldcap || ''}(${value.fldname})`;
-                    aggFldSelect.appendChild(option);
-                }
-            }
-        }
-    }
-
-    getSelectedCharts() {
-        let _this = this;
-        let url = "../aspx/EntityForm.aspx/GetSelectedSubEntityChartsWS";
-        let data = { transId: _this.entityTransId };
-        this.callAPI(url, data, true, result => {
-            if (result.success) {
-                _this.selectedCharts = JSON.parse(result.response).d;
-                if (_this.selectedCharts != "") {
-                    _this.getSubEntityChartsData('Custom');
-                    _this.getChartCaptions();
-                    document.querySelector(".NO-KPI-Items").classList.add("d-none");
-                }
-                else {
-                    document.querySelector(".NO-KPI-Items").classList.remove("d-none");
-                }
-                ShowDimmer(false);
-            } else {
-                ShowDimmer(false);
-            }
-        });
-    }
-
-    deleteChart(chart) {
-        if (!confirm("Delete this chart?"))
-            return;
-
-        let _this = this;
-
-        if (_this.selectedCharts) {
-            var chartsArr = _this.selectedCharts.split(',');
-            chartsArr = chartsArr.filter(item => item !== chart);
-            _this.selectedCharts = chartsArr.join(",");
-        }
-        else
-            _this.selectedCharts = "";
-
-        if (_this.selectedCharts == "") {
-            _this.selectedChartsObj = {};
-            let url = "../aspx/EntityForm.aspx/GetSelectedSubEntityChartsWS";
-            let data = { transId: _this.entityTransId, charts: "" };
-            this.callAPI(url, data, true, result => {
-                _this.hideChartsMenu();
-            });
-            document.querySelector("#Homepage_CardsList_Wrapper").innerHTML = "";
-            document.querySelector(".NO-KPI-Items").classList.remove("d-none");
-        }
-        else {
-            _this.setSelectedCharts();
-            document.querySelector(".NO-KPI-Items").classList.add("d-none");
-        }
-
-    }
-
-    getSelectedChartsCriteria() {
-        let _this = this;
-        let criteriaArr = [];
-        _this.selectedCharts.split(",").forEach((chart) => {
-            var chartItems = chart.split("~~");
-            const entTransId = chartItems[0];
-            const grpFldVal = chartItems[1];
-            const grpFldData = _this.entityWiseMetaData[entTransId][grpFldVal]
-
-            let mapVal = _this.subEntityMapping[entTransId]["mapdatavalue"];
-            let mapFld = _this.subEntityMapping[entTransId]["mapfield"];
-
-            criteriaArr.push(`${chart}~~${grpFldData.normalized}~~${grpFldData.srctable || ""}~~${grpFldData.srcfield || ""}~~${grpFldData.allowempty}~~${mapFld}~~${mapVal}`);
-        })
-        return criteriaArr.join(",");
-    }
-
-    getChartCriteria(criteria) {
-        let parts = criteria.split("~~");
-        let result = parts.slice(0, 4).join("~~");
-        return result;
-    }
-
-    getSubEntityChartsData(condition) {
-        let _this = this;
-        let url = "../aspx/EntityForm.aspx/GetSubEntityChartsDataWS";
-        var criteria = ""
-        if (condition == "General") {
-            criteria = _this.getSubEntityKPIFilter();
-            _this.kpiFilter = criteria;
-        }
-        else {
-            criteria = _this.getSelectedChartsCriteria();
-        }
-
-        let data = { entityName: _this.entityName, transId: _this.entityTransId, condition: condition, criteria: criteria, recordId: _this.recordId, keyValue: _this.keyValue };
-        this.callAPI(url, data, true, result => {
-            if (result.success) {
-                if (condition == "General") {
-                    _this.kpiJson = JSON.parse(JSON.parse(result.response).d);
-                    var kpiJson = _this.kpiJson.result.charts;
-                    if (kpiJson.length) {
-                        _this.isSubEntitiesAvailable = true;
-                        var html = _this.generateGeneralKPIHTML(kpiJson);
-                        
-                        if (html) {
-                            document.querySelector('#KPI-2 .row').innerHTML = html;
-                            document.querySelector('#KPI-2').classList.remove("d-none");
-                        }
-                    }
-                    else {
-                        _this.isSubEntitiesAvailable = false;
-                        document.querySelector("#sub-entitycontainer").classList.add('data-fetched');
-                        document.querySelector("#body_Container").innerHTML = _this.emptyRowsHtml;
-                        document.querySelector("#sub-entityhdr .Tkts-toolbar-Right").classList.add('d-none');
-                    }
-                    return;
-                }
-                else {
-                    document.querySelector("#Homepage_CardsList_Wrapper").innerHTML = "";
-                    _this.chartsJson = JSON.parse(JSON.parse(result.response).d);
-                    //var chartsJson = JSON.parse(_this.chartsJson.result.charts[0].data_json);      
-
-                    var finalDataObj = [];
-
-                    _this.chartsJson.result.charts.forEach(chartsData => {
-                        let criteria = _this.getChartCriteria(chartsData.criteria);
-                        var chartJson = JSON.parse(chartsData.data_json).map(item => {
-                            return { data_label: item.keyname, value: item.keyvalue };
-                        });
-
-                        finalDataObj.push({
-                            "chartsid": criteria,
-                            "charttype": "chart",
-                            "chartjson": JSON.stringify(chartJson),
-                            "chartname": `${_this.selectedChartsObj[criteria]}`
-
-                        });
-                    });
-
-                    _this.chartsJson = finalDataObj;
-                }
-                var LoadIframe = callParentNew("LoadIframe");
-                var cardsData = {}, cardsDesign = {}, xmlMenuData = "", menuJson = "";
-
-                let cardsDashboardObj = {
-                    dirLeft: true,
-                    enableMasonry: false,
-                    homePageType: "cards",
-                    isCardsDashboard: true,
-                    isMobile: isMobileDevice(),
-                };
-                var files = {
-                    css: [],
-                    js: []
-                };
-
-                files.js.push("/ThirdParty/lodash.min.js");
-                files.js.push("/ThirdParty/deepdash.min.js");
-
-                files.js.push("/Js/handlebars.min.js?v=3");
-                files.js.push("/Js/handleBarsHelpers.min.js");
-
-                files.js.push("/ThirdParty/Highcharts/highcharts-3d.js");
-                files.js.push("/ThirdParty/Highcharts/highcharts-more.js");
-                files.js.push("/ThirdParty/Highcharts/highcharts.js");
-                files.js.push("/ThirdParty/Highcharts/highcharts-exporting.js");
-                files.js.push("/Js/high-charts-functions.min.js?v=20");
-                files.js.push("/Js/AxInterface.js?v=10");
-
-                files.js.push("/ThirdParty/DataTables-1.10.13/media/js/jquery.dataTables.js");
-                files.js.push("/ThirdParty/DataTables-1.10.13/media/js/dataTables.bootstrap.js");
-
-                files.js.push("/ThirdParty/DataTables-1.10.13/extensions/Extras/moment.min.js");
-                files.css.push("/ThirdParty/fullcalendar/lib/main.min.css");
-                files.js.push("/ThirdParty/fullcalendar/lib/main.min.js");
-
-                if (cardsDashboardObj.isMobile) {
-                    files.js.push("/ThirdParty/jquery-ui-touch-punch-master/jquery.ui.touch-punch.min.js");
-                }
-
-                if (cardsDashboardObj.enableMasonry) {
-                    files.js.push("/ThirdParty/masonry/masonry.pkgd.min.js");
-                }
-
-                files.js.push(`/js/entity-charts.min.js?v=3`);
-
-                if (document.getElementsByTagName("body")[0].classList.contains("btextDir-rtl")) {
-                    cardsDashboardObj.dirLeft = false;
-                }
-
-                loadAndCall({
-                    files: files,
-                    callBack: () => {
-
-                        $(function () {
-
-                            ShowDimmer(true);
-                            deepdash(_);
-                            var cardVisibleArray = [];
-                            //var chartsJson = _entity.getEntityChartsData();
-
-
-                            cardsData.value = JSON.stringify(_this.chartsJson);
-                            cardsDesign.value = JSON.stringify(cardVisibleArray);
-                            xmlMenuData = "";
-
-                            //start cards dasboard Init
-
-                            if (xmlMenuData != "") {
-                                xmlMenuData = xmlMenuData.replace(/'/g, "'");
-                                var xml = parseXml(xmlMenuData)
-                                var xmltojson = xml2json(xml, "");
-                                menuJson = JSON.parse(xmltojson);
-                            }
-                            appGlobalVarsObject._CONSTANTS.menuConfiguration = $.extend(true, {},
-                                appGlobalVarsObject._CONSTANTS.menuConfiguration, {
-                                menuJson: menuJson,
-                            });
-                            // try {
-
-                            appGlobalVarsObject._CONSTANTS.cardsPage = {
-                                setCards: false,
-                                cards: []
-                            }
-
-                            $.axpertUI.options.cardsPage.cards = [];
-                            appGlobalVarsObject._CONSTANTS.cardsPage = $.extend(true, {},
-                                appGlobalVarsObject._CONSTANTS.cardsPage, {
-                                setCards: true,
-                                cards: (JSON.parse(cardsData.value !== "" ? ReverseCheckSpecialChars(cardsData.value) : "[]",
-                                    function (k, v) {
-                                        try {
-                                            return (typeof v === "object" || isNaN(v) || v.toString().trim() === "") ? v : (typeof v == "string" && (v.startsWith("0") || v.startsWith("-")) ? parseFloat(v, 10) : JSON.parse(v));
-                                        } catch (ex) {
-                                            return v;
-                                        }
-                                        //0 & - starting with does not gets parsed in json.parse
-                                        //json.parse is used because it porcess int, float and boolean together
-                                    }
-                                ) || []).map(arr => _.mapKeys(arr, (value, key) => key.toString().toLowerCase())),
-                                design: (JSON.parse(cardsDesign.value !== "" ? cardsDesign.value : "[]",
-                                    function (k, v) {
-                                        try {
-                                            return (typeof v === "object" || isNaN(v) || v.toString().trim() === "") ? v : (typeof v == "string" && (v.startsWith("0") || v.startsWith("-")) ? parseFloat(v, 10) : JSON.parse(v));
-                                        } catch (ex) {
-                                            return v;
-                                        }
-                                    }
-                                ) || []).map(arr => _.mapKeys(arr, (value, key) => key.toString().toLowerCase())),
-                                enableMasonry: cardsDashboardObj.enableMasonry,
-                                staging: {
-                                    iframes: ".splitter-wrapper",
-                                    cardsFrame: {
-                                        div: ".cardsPageWrapper",
-                                        cardsDiv: "#Homepage_CardsList_Wrapper",
-                                        cardsDesigner: ".cardsDesigner",
-                                        cardsDesignerToolbar: ".designer",
-                                        editSaveButton: ".editSaveCardDesign",
-                                        icon: "span.material-icons",
-                                        divControl: "#arrangeCards"
-                                    },
-                                }
-                            });
-
-                            var lcm = appGlobalVarsObject.lcm;
-                            var tempaxpertUIObj = $.axpertUI
-                                .init({
-                                    isHybrid: appGlobalVarsObject._CONSTANTS.isHybrid,
-                                    isMobile: cardsDashboardObj.isMobile,
-                                    compressedMode: appGlobalVarsObject._CONSTANTS.compressedMode,
-                                    dirLeft: cardsDashboardObj.dirLeft,
-                                    axpertUserSettings: {
-                                        settings: appGlobalVarsObject._CONSTANTS.axpertUserSettings
-                                    },
-                                    cardsPage: appGlobalVarsObject._CONSTANTS.cardsPage
-                                });
-
-                            appGlobalVarsObject._CONSTANTS.cardsPage = tempaxpertUIObj.cardsPage;
-
-                            ShowDimmer(false);
-                        });
-
-                        $.axpertUI.cardsPage._addCardHeader = function (cardElement, card) {
-
-                            cardElement.find(".card-title").attr("title", (card["chartname"] || "")).find("headerContent").replaceWith(card["chartname"] || "");
-                            cardElement.find(".card-header").attr("data-bs-target", `#${card["chartsid"].replaceAll("~", "")}`);
-                            cardElement.find(".KC_Items_Content").attr("id", `${card["chartsid"].replaceAll("~", "")}`);
-                            cardElement.attr("title", (card["chartname"] || ""));
-
-
-                            var toolBarHtml = `<span class="material-icons material-icons-style" onclick="_subEntity.deleteChart('${card["chartsid"]}')">close</span>`;
-                            cardElement.find("toolbarContent").replaceWith(toolBarHtml);
-
-                        }
-                    }
-                });
-            }
-        });
-        //return chartsJson;
-    }
-
-    generateGeneralKPIHTML(dataJson) {
-        let _this = this;
-        let html = '';
-        dataJson.forEach(data => {
-            let item = JSON.parse(data.data_json)[0];
-            if (item.totrec != 0) {
-                html += `
-                <div class="col-xl-12 col-lg-12 col-sm-12 Invoice-content-wrap">
-                    <a href="#" class="Invoice-item">
-                        <div class="Invoice-icon">
-                            <span class="material-icons material-icons-style material-icons-2">bar_chart</span>
-                        </div>
-                        <div class="Invoice-content">
-                            <h6 class="subtitle">${_this.subEntityList[item.transid]}</h6>
-                            <h3 class="title">${item.totrec}</h3>
-                        </div>
-                        <div class="Invoice-icon2"></div>
-                    </a>
-                </div>
-            `;
-            }
-        });
-        return html;
-    }
-
-
-    setSelectedCharts(chart) {
-        let _this = this;
-        if (chart) {
-            if (_this.selectedCharts) {
-                var chartsArr = _this.selectedCharts.split(',')
-                chartsArr.push(chart);
-                chartsArr = [...new Set(chartsArr)];
-                _this.selectedCharts = chartsArr.join(",");
-            }
-            else {
-                _this.selectedCharts = chart;
-            }
-        }
-
-        let url = "../aspx/EntityForm.aspx/SetSelectedSubEntityChartsWS";
-        let data = { transId: _this.entityTransId, charts: _this.selectedCharts };
-        this.callAPI(url, data, true, result => {
-            if (result.success) {
-                //_this.reloadEntityPage();
-                _this.getSubEntityChartsData('Custom', _this.selectedCharts);
-                _this.getChartCaptions();
-                _this.hideChartsMenu();
-                ShowDimmer(false);
-            } else {
-                _this.hideChartsMenu();
-                ShowDimmer(false);
-            }
-        });
-    }
-
-    clearChartSelection() {
-        if (!confirm("Clear all Charts?"))
-            return;
-
-        let _this = this;
-        _this.selectedCharts = "";
-        _this.selectedChartsObj = {};
-        let url = "../aspx/EntityForm.aspx/SetSelectedSubEntityChartsWS";
-        let data = { transId: _this.entityTransId, charts: "" };
-        this.callAPI(url, data, true, result => {
-            _this.hideChartsMenu();
-        });
-        document.querySelector("#Homepage_CardsList_Wrapper").innerHTML = "";
-        document.querySelector(".NO-KPI-Items").classList.remove("d-none");
-    }
-
-    applyChartSelection() {
-        let _this = this;
-        const entTransId = document.getElementById("subEnt").value;
-        if (entTransId == 0) {
-            showAlertDialog("error", "Select a valid Form");
-            return;
-        }
-        var entName = _this.subEntityList[entTransId];
-        const grpFldVal = document.getElementById("grpFld").value;
-        const grpFldData = _this.entityWiseMetaData[entTransId][grpFldVal];
-
-        var aggCondVal = document.getElementById("aggCond").value;
-        var aggFldVal = document.getElementById("aggFld").value;
-        if (aggFldVal == "count")
-            aggCondVal = "count";
-        else if (aggCondVal == 0) {
-            showAlertDialog("error", "Select a valid Display function");
-            document.getElementById("aggCond").focus();
-            return;
-        }
-
-        if (grpFldVal == 0) {
-            showAlertDialog("error", "Select a valid Group By Field");
-            return;
-        }
-        //const aggFldData = _this.chartsMetaData["Agg fld"][aggFldVal];
-
-        //groupp fld~~agg fld~~agg fnc~~normalized~~src table~~src fld~~allowempty        
-
-        var chartStr = `${entTransId}~~${grpFldVal}~~${aggFldVal}~~${aggCondVal}`;// ~~${grpFldData.normalized}~~${grpFldData.srctable || ""}~~${grpFldData.srcfield || ""}~~${grpFldData.allowempty}`
-
-
-        _this.setSelectedCharts(chartStr);
-        document.querySelector(".NO-KPI-Items").classList.add("d-none");
-    }
-
-    getChartCaptions() {
-        let _this = this;
-        _this.selectedCharts.split(",").forEach((chart) => {
-            var chartItems = chart.split("~~");
-            const entTransId = chartItems[0];
-            var entForm = _this.subEntityList[entTransId];
-            const grpFldVal = chartItems[1];
-            const grpFldData = _this.entityWiseMetaData[entTransId][grpFldVal];
-            const aggCondVal = chartItems[3];
-            const aggFldVal = chartItems[2];
-            const aggFldData = _this.entityWiseMetaData[entTransId][aggFldVal];
-            var chartStr = "";
-            if (aggCondVal == "count")
-                chartStr = `${entForm} - ${grpFldData.fldcap || ''} wise ${aggCondVal}`;
-            else
-                chartStr = `${entForm} - ${grpFldData.fldcap || ''} wise ${aggFldData.fldcap || ''}(${aggCondVal})`;
-            _this.selectedChartsObj[chart] = chartStr;
-        })
-    }
-
-    getActivitiesBtnsHTML() {
-        let _this = this;
-        var addBtnHtml = "";
-        var filterBtnHtml = "";
-        var transids = axDisallowCreate.split(",");
-        for (const [key, value] of Object.entries(_this.subEntityList)) {            
-            if (transids.indexOf(key) == -1) {
-                addBtnHtml += `<div class="menu-item px-3 my-0">
-                            <a href="#" class="menu-link px-3 py-2" data-kt-element="mode" onclick="_subEntity.openSubEntityTstruct('${key}')">
-                                <span class="material-icons material-icons-style material-icons-2">keyboard_double_arrow_right</span>
-                                <span class="menu-title">${value}
-                                </span>
-                            </a>
-                        </div>`
-            }
-            filterBtnHtml += `
-            <tr>
-                <td><input type="checkbox" id="chkentity_${key}" class="chk-entities" value="${key}" data-fldcap="${value}" checked></td>
-                <td><label for="chkentity_${key}">${value}</label></td>
-            </tr>`            
-        }
-        if (addBtnHtml)
-            document.querySelector("#SubEntity-add").innerHTML = addBtnHtml;
-        else {
-            document.querySelector("#SubEntity-add").remove();
-            document.querySelector("#SubEntity-add-btn").remove();
-        }
-
-
-
-
-        filterBtnHtml = `<table class="table table-hover text-start">
-            <thead class="thead-dark">
-                <tr>
-                    <th>
-                        <input type="checkbox" id="check-all" checked>
-                    </th>
-                    <th><label for="check-all">Select all</label></th>
-                </tr>
-            </thead>
-            <tbody id="table-body">
-                ${filterBtnHtml}
-            </tbody>
-        </table>
-        <div class="modal-footer" style="padding: 0.5rem !important">
-            <button type="button" onclick="_subEntity.resetSubEntityFilter()" class="btn btn-white btn-sm">Reset</button>
-            <button type="button" onclick="_subEntity.applySubEntityFilter();" class="btn btn-primary">Apply</button>
-        </div>`;
-        document.querySelector("#SubEntity-Filter").innerHTML = filterBtnHtml;
-    }
-
-    applySubEntityFilter() {
-        let _this = this;
-        document.querySelector("#sub-entitycontainer").classList.remove('data-fetched');
-        document.querySelector("#body_Container").innerHTML = "";
-        _this.getSubEntityListData(1);
-    }
-
-    resetSubEntityFilter() {
-        let _this = this;
-        document.querySelector("#sub-entitycontainer").classList.remove('data-fetched');
-        document.querySelector("#body_Container").innerHTML = "";
-        event.preventDefault();
-        const checkEntities = document.querySelectorAll(".chk-entities, #check-all");
-        checkEntities.forEach((checkbox) => {
-            checkbox.checked = true;
-        });
-
-        _this.getSubEntityListData(1);
-    }
-
-    getUrlParams() {
-        const queryString = window.location.search;
-        const urlParams = new URLSearchParams(queryString);
-        this.entityName = urlParams.get('ename') || "";
-        this.entityTransId = urlParams.get('tstid');
-        this.recordId = urlParams.get('recid') || "0";
-        this.keyValue = urlParams.get('keyval') || "";
-    }
-
-    callAPI(url, data, async, callBack) {
-        let _this = this;
-        var xhr = new XMLHttpRequest();
-        xhr.open("POST", url, async);
-        xhr.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
-        if (_this.isAxpertFlutter) {
-            xhr.setRequestHeader('Authorization', `Bearer ${armToken}`);
-            data["armSessionId"] = armSessionId;
-        }
-        xhr.onreadystatechange = function () {
-            if (this.readyState == 4) {
-                if (this.status == 200) {
-                    callBack({ success: true, response: this.responseText });
-                }
-                else {
-                    _this.catchError(this.responseText);
-                    callBack({ success: false, response: this.responseText });
-                }
-            }
-        }
-        xhr.send(JSON.stringify(data));
-    };
-
-    catchError(error) {
-        showAlertDialog("error", error);
-    };
-    showSuccess(message) {
-        showAlertDialog("success", message);
-    };
-    dataConvert(data, type) {
-        if (type == "AXPERT") {
-            try {
-                data = JSON.parse(data.d);
-                if (typeof data.result[0].result.row != "undefined") {
-                    return data.result[0].result.row;
-                }
-
-                if (typeof data.result[0].result != "undefined") {
-                    return data.result[0].result;
-                }
-            }
-            catch (error) {
-                ShowDimmer(false);
-                this.catchError(error.message);
-            };
-        }
-        else if (type == "ARM") {
-            try {
-                if (!this.isAxpertFlutter)
-                    data = JSON.parse(data.d);
-                if (data.result && data.result.success) {
-                    if (!this.isUndefined(data.result.data)) {
-                        return data.result.data;
-                    }
-                }
-                else {
-                    if (!this.isUndefined(data.result.message)) {
-                        this.catchError(data.result.message);
-                    }
-                }
-            }
-            catch (error) {
-                ShowDimmer(false);
-                this.catchError(error.message);
-            };
-        }
-
-        return data;
-    };
-    generateFldId() {
-        return `fid${Date.now()}${Math.floor(Math.random() * 90000) + 10000}`;
-    };
-    isEmpty(elem) {
-        return elem == "";
-    };
-    isNull(elem) {
-        return elem == null;
-    };
-    isNullOrEmpty(elem) {
-        return elem == null || elem == "";
-    };
-    inValid(elem) {
-        return elem == null || typeof elem == "undefined" || elem == "";
-    };
-    isUndefined(elem) {
-        return typeof elem == "undefined";
-    };
-}
-class Field {
-    constructor(fieldData) {
-        this.entity = fieldData.entity;
-        this.fcaption = fieldData.fcaption;
-        this.fldname = fieldData.fldname;
-        this.fldtype = fieldData.fldtype;
-        this.fdatatype = fieldData.fdatatype;
-        this.moe = fieldData.moe;
-        this.hide = fieldData.hide;
-        this.props = fieldData.props;
-    }
-}
-class SubEntityMetaData {
-    constructor(jsonData) {
-        if (!jsonData || !Array.isArray(jsonData)) {
-            throw new Error('Invalid JSON data');
-        }
-
-        // Map each field data to a Field object
-        this.metadata = jsonData.map(fieldData => new Field(fieldData));
-    }
-}
-
-let formCompJSON = {
-    "components": {
-        "N": {
-            "html": `<input type="number" class="inputcontent1" value="{{value}}" readonly>`,
-        },
-        "ST": {
-            "html": `<div class="inputcontent"  readonly>{{value}}</div>`,
-        },
-        "S": {
-            "html": `<div class="inputcontent"  readonly>{{v}}</div>`,
-        },
-        "M": {
-            "html": `<div class="inputcontent"  readonly>{{v}}</div>`,
-        },
-        "C": {
-            "html": `<div class="inputcontent"  readonly>{{v}}</div>`,
-        },
-        // "RT": {
-        //     "html":`<p class="moretext" >{{value}}</p><a class="moreless-button" href="#" >Read more</a><br>`,
-        // },
-        "RT": {
-            "html": `<p class="add-read-more show-less-content" >{{value}}</p><br>`,
-        },
-        "LT": {
-            "html": `<p class="add-read-more show-less-content" >{{value}}</p><br>`,
-        },
-        "D": {
-            "html": `<input type="date" class="form-control form-control-sm w-auto" value="{{value}}" readonly/>`,
-        },
-        "ATT": {
-            "html": ` <div id="{{customid}}" class="Files-Attached ATT" onclick="_entityForm.downloadFileAttachment('{{v}}','{{filepath}}')" data-filename="{{v}}" data-filepath="{{filepath}}">
-                                  {{componentimg}}
-                               <div class="mx-3 fw-semibold attachmenttxt">
-                               <a class="attached-filename" data-bs-toggle="tooltip" data-bs-placement="bottom" title="{{v}}">{{v}}</a>
-                            </div>
-                       </div><br>`
-            },
-            "AXPFILE_ATT": {
-                "html": ` <div id="{{customid}}" class="Files-Attached AXPFILE_ATT" onclick="_entityForm.downloadAxpFileAttachment('{{fieldid}}','{{v}}','{{scriptspath}}/axpert/{{sid}}/{{v}}',event, this)" data-filename="{{v}}" data-filepath="{{filepath}}">
-                                  {{componentimg}}
-                               <div class="mx-3 fw-semibold attachmenttxt">
-                               <a class="attached-filename" data-bs-toggle="tooltip" data-bs-placement="bottom" title="{{v}}">{{v}}</a>
-                            </div>
-                       </div><br>`
-            },
-            "GRID_ATT": {
-                "html": ` <div id="{{customid}}" class="Files-Attached " onclick="_entityForm.showGridAttLink('{{v}}')" data-filename="{{v}}">
-                                  {{componentimg}}
-                               <div class="mx-3 fw-semibold attachmenttxt">
-                               <a class="attached-filename" data-bs-toggle="tooltip" data-bs-placement="bottom" title="{{v}}">{{v}}</a>
-                            </div>
-                       </div><br>`
-            },
-
-            "Image": {
-                "html": `<img class="{{colclassname}} col-sm-12"  src="{{src}}"  style="width:150px;" height="100">`
-            },
-        "togglebutton": {
-            "html": `<div class="form-check form-switch">
-                  <input class="form-check-input" type="checkbox" role="switch" {{checked}} onclick="return false;">
-                </div>`
-        }
-    }
-};
-
-let fldTypes = ["N", "ST", "D", "LT", "RT", "ATT", "Image", "table", "togglebutton"];
-
-// EntityForm class
-class EntityForm {
-    constructor() {
-        this.components = formCompJSON.components;
-        this.fldtype = fldTypes;
-        this.flds = {};
-        this.entityFormJson = {};
-        this.pageSize = 5;
-        this.emptyRowsHtml = `No data found`;
-        this.hideControls = [];
-    }
-
-    init() {
-        let _this = this;
-        _this.getUrlParams();
-        try {
-            entityFormMetaData = entityFormMetaData.replaceAll(`"{`, `{`).replaceAll(`}"`, `}`);
-            entityFormMetaData = JSON.parse(entityFormMetaData);
-            entityFormData = entityFormData.replaceAll(`"{`, `{`).replaceAll(`}"`, `}`);
-            entityFormData = entityFormData.split("*$*")[1];
-            entityFormData = JSON.parse(entityFormData);
-
-            _this.hideControls = entityFormData.data.find(i => i.n?.toLowerCase() == 'axro_hidecontrols')?.v?.toLowerCase().split(',') || [];
-            _this.entityFormJson.data = entityFormData.data;
-            _this.entityFormJson.metadata = entityFormMetaData.result.metadata;
-            _this.entityFormJson.error = entityFormData.error;
-
-            if (_subEntity.inValid(_this.recordId) || _this.recordId == "0") {
-                _this.recordId = _this.entityFormJson.data.find(i => i.n == "axp_recid1").v;
-            }
-
-            _this.constructEntityFormHTML();
-            //_this.constructFormRelatedDataAccordions();
-
-            _this.readmore();
-            _this.bindEvents();
-            _this.applyTheme();
-        }
-        catch {
-            showAlertDialog("error", "Error occurred. Please check with administrator.");
-        }
-        parent.ShowDimmer(false);
-    }
-
-    getUrlParams() {
-        let _this = this;
-        const queryString = window.location.search;
-        const urlParams = new URLSearchParams(queryString);
-        _this.entityName = urlParams.get('ename') || "";
-        _this.entityTransId = urlParams.get('tstid');
-        _this.recordId = urlParams.get('recid') || "0";
-        _this.keyValue = urlParams.get('keyval') || "";
-    }
-
-    getRelatedEntityListData() {
-        let _this = this;
-        if (window.top.entityNavList && window.top.entityNavList?.lastTransId && _subEntity.subEntityList[window.top.entityNavList.lastTransId] && window.top.entityNavList?.[window.top.entityNavList.lastTransId] && window.top.entityNavList[window.top.entityNavList.lastTransId].length) {
-            _this.createRelatedListHTML(window.top.entityNavList[window.top.entityNavList.lastTransId], window.top.entityNavList.lastTransId);
-        }
-        else if (window.top.entityNavList && window.top.entityNavList?.[_this.entityTransId] && window.top.entityNavList[_this.entityTransId].length) {
-            _this.createRelatedListHTML(window.top.entityNavList[_this.entityTransId], _this.entityTransId);
-        }
-
-    }
-
-    createRelatedListHTML(listArr, lastTransId) {
-        let _this = this;
-
-        let html = '';
-        let tempArr = listArr.filter(record => record.recordid != _this.recordId &&  record.transid == lastTransId);
-        let isPrev = false;
-        let isNext = false;
-
-        for (var rowData of tempArr) {
-            if (!_subEntity.entityWiseFields[rowData.transid]) {
-                $.each(_subEntity.metaData.filter(i => i.ftransid === rowData.transid), function (index, field) {
-                    _this.populateEntityWiseFlds(index, field);
-                })
-            }
-
-            let keyCol = entityKeyField;
-
-            if (!rowData.hasOwnProperty(keyCol)) {
-                keyCol = getKeyField(rowData.transid).fldname;
-                if (_subEntity.inValid(rowData[keyCol]))
-                    keyCol = Object.keys(rowData)[4];
-            }
-
-            rowData.keycol = keyCol;
-
-            if (!rowData.keycol || _subEntity.inValid(rowData[rowData.keycol])) {
-                const keys = Object.keys(rowData);
-                let notNullNode = null;
-
-                for (let i = 4; i < keys.length; i++) {
-                    const key = keys[i];
-                    if (rowData[key] !== null && rowData[key] !== undefined && rowData[key] !== "") {
-                        notNullNode = key;
-                        break;
-                    }
-                }
-
-                rowData.keycol = notNullNode;
-                keyCol = notNullNode;
-            }
-
-            const axpdef_keycol = rowData[keyCol]?.toString().replace("T00:00:00", "");
-
-            let subEntityCaption = rowData.entityname || _this.entityName;
-            let subEntityVal = ""
-            if (rowData.navtype == "prev") {
-                subEntityVal = "<<";
-                isPrev = true;
-            }
-            else if (rowData.navtype == "next") {
-                subEntityVal = ">>";
-                isNext = true;
-            }
-            else {
-                if (isPrev)
-                    subEntityVal = ">>";
-                else if (isNext)
-                    subEntityVal = "<<";
-                else
-                    subEntityVal = "<<";
-            }
-
-
-            let navCaption = subEntityVal == ">>" ? "Next" : "Previous";
-            html += `<div class="Project_items">
-                        <div class="card  ">
-                           <div class="col-xl-12 col-md-12 d-flex flex-column flex-column-fluid   ">`;
-            html += ` <div class="page-Header">
-                        <h3 class="card-title collapsible cursor-pointer rotate" data-bs-toggle="collapse"
-                            aria-expanded="true" data-bs-target="#Sub-Entity_wrapper" >
-                            <div class="symbol symbol-25px symbol-circle initialized"  data-toggle="tooltip" title="${navCaption}" data-bs-original-title="${navCaption}">
-                                <span class="symbol-label bg-warning text-inverse-warning fw-bold" style="height:30px !important; width:30px !important;">${subEntityVal}</span>
-                            </div>
-                            <span class="Project_title" onclick="_subEntity.openEntityForm('${subEntityCaption}', '${rowData.transid}', '${rowData.recordid}','${axpdef_keycol}')">${axpdef_keycol}</span>
-                        </h3>
-                    </div>`;
-
-            html += `</div></div></div></div></div>`;            
-        }
-
-        if (html != '') {
-            $('#related-records-container').removeClass("d-none");
-            $('#related-records-container .card-title').html(`${window.top.entityNavList.lastCaption}`);
-            $('#related-records').html(html);
-
-        }
-        return;
-        //let _this = this;
-        //let html = '';
-
-        for (const rowData of listArr) {
-            const axpdef_keycol = rowData.keycol;
-            //if (!_subEntity.inValid(rowData[axpdef_keycol]) && rowData[axpdef_keycol] != "--" && rowData.recordid.toString() != _this.recordId) {
-            if (rowData.recordid.toString() != _this.recordId) {
-                let eName = rowData.entityname || _this.entityName;
-                let eCaption = getSubEntityInitials(eName);
-                html += `
-                <div class="col-xl-12 col-lg-12 col-sm-12 Invoice-content-wrap">
-                    <a href="#" class="Invoice-item">
-                        <div class="symbol symbol-25px symbol-circle initialized" onclick="_subEntity.openEntityPage('${eName}', '${rowData.transid}')" data-toggle="tooltip" title="${eName}">
-                        <span class="symbol-label bg-warning text-inverse-warning fw-bold" style="height:30px !important; width:30px !important;">${eCaption}</span>
-
-                    </div>
-                        <div class="Invoice-content">
-                            <h6 class="subtitle"  onclick="_entityForm.openEntityForm('${eName}', '${rowData.transid}', '${rowData.recordid}','${rowData[axpdef_keycol]}')">${rowData[axpdef_keycol] || "--"}</h6>
-                        </div>
-                        <div class="Invoice-icon2"></div>
-                    </a>
-                </div>
-            `
-            }
-
-        }
-
-        $('#related-records-container').removeClass("d-none");
-        $('#related-records-container .card-title').html(`${window.top.entityNavList.lastCaption}`);
-        $('#related-records').html(html);
-
     }
 
     populateEntityWiseFlds(index, field) {
-        if (!_subEntity.entityWiseFields[field.ftransid]) {
-            _subEntity.entityWiseFields[field.ftransid] = {};
-            _subEntity.entityWiseFields[field.ftransid].largeTextElements = [];
-            _subEntity.entityWiseFields[field.ftransid].attachmentElements = [];
-            _subEntity.entityWiseFields[field.ftransid].otherElements = [];
-            _subEntity.entityWiseFields[field.ftransid].buttonElements = [];
+        if (!_entityForm.entityWiseFields[field.ftransid]) {
+            _entityForm.entityWiseFields[field.ftransid] = {};
+            _entityForm.entityWiseFields[field.ftransid].largeTextElements = [];
+            _entityForm.entityWiseFields[field.ftransid].attachmentElements = [];
+            _entityForm.entityWiseFields[field.ftransid].otherElements = [];
+            _entityForm.entityWiseFields[field.ftransid].buttonElements = [];
         }
 
         var fldType = getFieldDataType(field).toUpperCase();
         if (fldType === "BUTTON") {
-            _subEntity.entityWiseFields[field.ftransid].buttonElements.push(field);
+            _entityForm.entityWiseFields[field.ftransid].buttonElements.push(field);
         }
         else if (fldType === "ATTACHMENTS") {
-            _subEntity.entityWiseFields[field.ftransid].attachmentElements.push(field);
+            _entityForm.entityWiseFields[field.ftransid].attachmentElements.push(field);
         }
         else if (fldType === "LARGE TEXT") {
-            _subEntity.entityWiseFields[field.ftransid].largeTextElements.push(field);
+            _entityForm.entityWiseFields[field.ftransid].largeTextElements.push(field);
         }
         else {
-            _subEntity.entityWiseFields[field.ftransid].otherElements.push(field);
+            _entityForm.entityWiseFields[field.ftransid].otherElements.push(field);
         }
-    }
-
-    constructFormRelatedDataList(listArr, fldId) {
-        let _this = this;
-        let html = 'No other data found';
-
-        if (!_subEntity.entityWiseFields[_this.entityTransId]) {
-            $.each(_subEntity.metaData.filter(i => i.ftransid === _this.entityTransId), function (index, field) {
-                _this.populateEntityWiseFlds(index, field);
-            })
-        }
-
-        for (var rowData of listArr) {
-            if (rowData.recordid == _this.recordId)
-                continue;
-
-            let keyCol = entityKeyField;
-
-            if (!rowData.hasOwnProperty(keyCol)) {
-                keyCol = getKeyField(rowData.transid).fldname;
-                if (_subEntity.inValid(rowData[keyCol]))
-                    keyCol = Object.keys(rowData)[4];
-            }
-
-            rowData.keycol = keyCol;
-            
-
-            if (!rowData.keycol || _subEntity.inValid(rowData[rowData.keycol])) {
-                const keys = Object.keys(rowData);
-                let notNullNode = null;
-
-                for (let i = 4; i < keys.length; i++) {
-                    const key = keys[i];
-                    if (rowData[key] !== null && rowData[key] !== undefined && rowData[key] !== "") {
-                        notNullNode = key;
-                        break;
-                    }
-                }
-
-                rowData.keycol = notNullNode;
-                keyCol = notNullNode;
-            }
-
-            const axpdef_keycol = rowData[keyCol]?.toString().replace("T00:00:00", "");
-
-            let subEntityCaption = rowData.entityname || _this.entityName;
-            let subEntityVal = getSubEntityInitials(subEntityCaption);
-
-            if (html == 'No other data found')
-                html = '';
-
-            html += `<div class="Project_items">
-                        <div class="card  ">
-                           <div class="col-xl-12 col-md-12 d-flex flex-column flex-column-fluid   ">`;
-            var rowButtonHTML = generateRowButtonHTML(rowData, rowData.transid);
-            html += ` <div class="page-Header">
-                        <h3 class="card-title collapsible cursor-pointer rotate" data-bs-toggle="collapse"
-                            aria-expanded="true" data-bs-target="#Sub-Entity_wrapper" >
-                            <div class="symbol symbol-25px symbol-circle initialized"  onclick="_subEntity.openEntityPage('${subEntityCaption}', '${rowData.transid}')" data-toggle="tooltip" title="${subEntityCaption}" data-bs-original-title="${subEntityCaption}">
-                                        <span class="symbol-label bg-warning text-inverse-warning fw-bold" style="height:30px !important; width:30px !important;">${subEntityVal}</span>
-                                    </div>
-                            <span class="Project_title" onclick="_subEntity.openEntityForm('${subEntityCaption}', '${rowData.transid}', '${rowData.recordid}','${axpdef_keycol}')">${axpdef_keycol}</span>
-                        </h3>
-                    </div>`;           
-            html += `               
-                </div>
-            </div>`;
-
-            html += generateRowElements(rowData, rowData.transid, "Other Data");
-            html += `</div></div></div>`;
-        }
-        //$('#body_Container').html('');
-        $(`#related-records_${fldId}`).html(html);
-        $(`#related-records-container_${fldId}`).addClass("data-fetched");
-        $('[data-toggle="tooltip"]').tooltip();
-        initReadMore();
-        KTMenu.init();        
-    }
-
-    constructFormRelatedDataAccordions() {
-        //Fetch dropdown flds
-        var relatedFields = [];
-
-        if (relatedDataFields == "") {
-
-            return;
-
-            //relatedFields = _subEntity.metaData.filter(function (item) {
-            //    return item.cdatatype === "DropDown" && item.subentity === "F" && item.hide === "F" && item.dcname === "dc1";
-            //});
-        }
-        else {
-
-            var relatedFldsArr = [];
-            relatedDataFields.split(",").forEach(fld => {
-                relatedFldsArr.push(fld.split('~')[1]);
-            })
-
-            relatedFields = _subEntity.metaData.filter(function (item) {
-                return item.subentity === "F" && item.hide === "F" && relatedFldsArr.includes(item.fldname);
-            });
-        }
-
-        let html = '';
-        relatedFields.forEach(fld => {            
-            let fldVal = fld.fldcap || '';
-            let mapDataRow = _entityForm.entityFormJson.data.filter(item => item.n === fld.fldname);
-            if (mapDataRow.length) {
-                let rowNo = 1;
-                mapDataRow.forEach(row => {
-                    fldVal = ReverseCheckSpecialChars(row.v);
-                    let dcNameWithRowNo = `${fld.dcname}${rowNo}`;
-                    html += `
-                <div class="card KC_Items related-accordions" id="related-records-container_${dcNameWithRowNo}${fld.fldname}" data-fldid="${fld.fldname}" data-dcname="${fld.dcname}" data-rowno="${rowNo}"  data-fldval="${fldVal}" data-griddc="${fld.griddc}">
-                    <div class="card-header collapsible cursor-pointer rotate collapsed" data-bs-toggle="collapse" aria-expanded="true" data-bs-target="#related-records_${dcNameWithRowNo}${fld.fldname}">
-                        <h3 class="card-title">${fld.fldcap || ''} - ${fldVal}</h3>
-                        <div class="card-toolbar rotate-180">
-                            <span class="material-icons material-icons-style material-icons-2">expand_circle_down
-                            </span>
-                        </div>
-                    </div>
-                    <div class="KC_Items_Content collapse heightControl pt-0---" id="related-records_${dcNameWithRowNo}${fld.fldname}">
-                        <bodycontent>No Data Found</bodycontent>
-                    </div>
-                </div>`
-
-                    rowNo++;
-                });
-            }
-            
-
-        })
-        $(".KPI_Section").append(html);
-
-
-        document.querySelectorAll('.related-accordions').forEach(item => {
-            $(item).on('show.bs.collapse', function () {
-                if (this.classList.contains('data-fetched'))
-                    return;
-
-                let fldId = this.dataset.fldid;
-                let dcName = this.dataset.dcname;
-                let gridDc = this.dataset.griddc;
-                let rowNo = this.dataset.rowno;
-                let fldVal = this.dataset.fldval;
-
-
-                fetchFilteredData(fldId, fldVal, dcName, gridDc, rowNo.toString());
-            })
-        });
-
-
-    }
-
-    getEntityListDataForOtherData(pageNo, fldId, gridDc) {
-        parent.ShowDimmer(true);
-        let _this = this;
-        let url = "../aspx/Entity.aspx/GetEntityListWithGridDataWS";
-        let data = { transId: _this.entityTransId, fields: _this.fields, pageNo: pageNo, pageSize: _this.pageSize, filter: _this.filter, gridDc: gridDc };
-        this.callAPI(url, data, false, result => {
-            if (result.success) {
-                parent.ShowDimmer(false);
-                let listJson = JSON.parse(JSON.parse(result.response).d);
-                listJson = listJson.result.list?.[0]?.data_json ?? "[]";
-                try {
-                    if (listJson.constructor != Array)
-                        listJson = JSON.parse(listJson);
-                }
-                catch {
-                    showAlertDialog("error", "Error occurred in data fetch.");
-                    return;
-                }
-
-                if ((listJson.length || 0) == 0) {
-                    if (pageNo == 1) {
-                        _this.listJson = [];
-                        document.querySelector(`related-records_${fldId}`).innerHTML = _this.emptyRowsHtml;
-                        return;
-                    }
-                }
-                else {
-
-                    _this.constructFormRelatedDataList(listJson, fldId);
-
-                }
-            }
-            else {
-                parent.ShowDimmer(false);
-            }
-        });
     }
 
     openEntityForm(entityName, transId, recordId, keyValue) {
-        
-        var url = `../aspx/EntityForm.aspx?ename=${entityName}&tstid=${transId}&recid=${recordId}&keyval=${keyValue}`;
-        parent.LoadIframe(url);
+        var url = `../aspx/EntityForm.aspx?tstid=${transId}&recid=${recordId}`;
+        _entityCommon.loadHyperLink(url);
     }
 
     constructEntityFormHTML() {
         let _this = this;
         let jsonData = _this.entityFormJson
         // Get the container where HTML will be appended
-        const container = document.getElementById('header_Container');
+        const container = document.getElementById('entityform-container');
 
-        if (_subEntity.inValid(jsonData.error)) {
+        if (_entityCommon.inValid(jsonData.error)) {
             // Group the data by 'dc'
             const groupedData = this.groupByDC(jsonData.data);
             this.parseFormMetaData(jsonData.metadata);
             this.constructScriptButtons(jsonData.metadata);
             // Generate HTML for each group and append it to the container
             container.innerHTML = this.generateHTML(groupedData, jsonData.metadata);
-            document.querySelector("#dcTabs").insertAdjacentHTML("beforeend", `<li class="dcTabs"><a href="#sub-entityhdr" id="activities-link">Connected data</a></li>`);
 
-            const dcTabsList = document.querySelectorAll("#dcTabs li a");
+            //const dcTabsList = document.querySelectorAll("#dcTabs li a");
 
-            dcTabsList.forEach((tab) => {
-                tab.addEventListener("click", function (event) {
-                    const allTabs = document.querySelectorAll("#dcTabs li");
-                    allTabs.forEach(tab => tab.classList.remove("active"));
-                    this.closest('li').classList.add("active");
+            //dcTabsList.forEach((tab) => {
+            //    tab.addEventListener("click", function (event) {
+            //        const allTabs = document.querySelectorAll("#dcTabs li");
+            //        allTabs.forEach(tab => tab.classList.remove("active"));
+            //        this.closest('li').classList.add("active");
 
-                    document.querySelector(`${this.getAttribute("href")} .dc-heading.collapsed`)?.click();
-                });
-            })
+            //        document.querySelector(`${this.getAttribute("href")} .dc-heading.collapsed`)?.click();
+            //    });
+            //})
         }
         else {
             container.innerHTML = jsonData.error[0].msg;
         }
 
+    }
+
+    applyFormControlActions(entityFormPageData) {
+        const formControlSegment = entityFormPageData.split("*$*").find(segment => segment.includes('"formcontrol"'));
+        if (!formControlSegment)
+            return;
+
+        const formControlData = JSON.parse(formControlSegment).formcontrol;
+        if (!Array.isArray(formControlData))
+            return;
+
+        formControlData.forEach(control => {
+            const dcAction = control.dcact?.toLowerCase();
+            if (control.dc && (dcAction === "hide" || dcAction === "show"))
+                ShowingDc(control.dc, dcAction);
+
+            const fieldAction = control.fldact?.toLowerCase();
+            if (control.fldname && (fieldAction === "hide" || fieldAction === "show"))
+                HideShowField(control.fldname, fieldAction);
+        });
     }
 
     parseFormMetaData(metaData) {
@@ -1732,12 +660,12 @@ class EntityForm {
     }
 
     callScriptAction(script) {
-        parent.ShowDimmer(true);
+        ShowHideDimmer(true);
         let _this = this;
         let url = "../aspx/EntityForm.aspx/CallScriptsWS";
         let data = { transId: _this.entityTransId, script: script, recordId: _this.recordId };
         this.callAPI(url, data, true, result => {
-            parent.ShowDimmer(false);
+            ShowHideDimmer(false);
             if (result.success) {
                 try {
                     result = JSON.parse(JSON.parse(result.response).d).result;
@@ -1770,7 +698,575 @@ class EntityForm {
             }
         });
 
-        this.bindThemeEvent();
+        _this.bindThemeEvent();
+    }
+
+    bindAccordionExpandEvent() {
+        let _this = this;
+        document.querySelectorAll('.connecteddata-accordions').forEach(item => {
+            $(item).on('show.bs.collapse', function () {
+                var _accordion = this;
+                setTimeout(function () {
+                    if (_accordion.classList.contains('data-fetched'))
+                        return;
+
+                    let transId = _accordion.dataset.transid;
+                    _accordion.classList.add('data-fetched')
+                    _this.fetchConnectedDataRecords(transId);
+
+                }, 1);
+
+            })
+        });
+
+        document.querySelectorAll('.right-connectedpagesdata').forEach(item => {
+            $(item).on('show.bs.collapse', function () {
+                var _accordion = this;
+                if (_accordion.classList.contains('data-fetched'))
+                    return;
+
+                _accordion.classList.add('data-fetched')
+                _this.fetchAllConnectedDataMetrics();
+
+            })
+        });
+
+        document.querySelectorAll('.subentity-add').forEach(item => {
+            item.addEventListener('click', function () {
+                let transId = this.dataset.transid;
+                _this.openSubEntityTstruct(transId);
+                return false;
+            })
+        });
+
+        document.querySelectorAll('.subentity-list').forEach(item => {
+            item.addEventListener('click', function () {
+                let transId = this.dataset.transid;
+                let caption = this.dataset.caption;
+                _this.openEntityPage(transId);
+                return false;
+            })
+        });
+    }
+
+    getSubEntityConnectedDataFilter() {
+        let _this = this;
+        let strFilter = "";
+        Object.entries(_this.subEntityMapping).forEach(([key, value]) => {
+            let mapVal = value["mapdatavalue"];
+            let mapFld = value["mapfield"];
+            strFilter += `${key}~~~~${value.mapfieldjson.normalized || "F"}~${value.mapfieldjson.srctable || ""}~${value.mapfieldjson.srcfield || ""}~${value.mapfieldjson.allowempty || "F"}~${value.mapfieldjson.tablename || ""}~${mapFld}~'${mapVal}'^`;
+        });
+
+        if (strFilter.endsWith("^"))
+            return strFilter.substr(0, strFilter.length - 1);
+        else
+            return strFilter
+    }
+
+    getConnectedDataMetricsCriteria(transId) {
+        let _this = this;
+        let strCriteria = transId + "~";
+        let connectedDataFields = _this.connectedDataFields[transId];
+        if (_entityCommon.isValid(connectedDataFields)) {
+            connectedDataFields.forEach(fld => {                
+                strCriteria += `${fld.condition}(${fld.fieldname}) ${fld.condition}_${fld.fieldname},`                
+            });
+
+            if (strCriteria.endsWith(","))
+                strCriteria = strCriteria.substr(0, strCriteria.length - 1);
+
+            var value = _this.subEntityMapping[transId];
+            let mapVal = value["mapdatavalue"];
+            let mapFld = value["mapfield"];
+            strCriteria += `~${value.mapfieldjson.normalized || "F"}~${value.mapfieldjson.srctable || ""}~${value.mapfieldjson.srcfield || ""}~${value.mapfieldjson.allowempty || "F"}~${value.mapfieldjson.tablename || ""}~${mapFld}~'${mapVal}'^`;
+
+        }
+        
+
+        if (strCriteria.endsWith("^"))
+            return strCriteria.substr(0, strCriteria.length - 1);
+        else
+            return strCriteria;
+    }
+
+    getAllConnectedDataMetricsCriteria() {
+        let _this = this;
+        let strCriteria = "";
+        Object.keys(_this.connectedDataFields).forEach(transId => {
+            strCriteria += transId + "~";
+            let connectedDataFields = _this.connectedDataFields[transId];
+            if (_entityCommon.isValid(connectedDataFields)) {
+                connectedDataFields.forEach(fld => {
+                    strCriteria += `${fld.condition}(${fld.fieldname}) ${fld.condition}_${fld.fieldname},`
+                });
+
+                if (strCriteria.endsWith(","))
+                    strCriteria = strCriteria.substr(0, strCriteria.length - 1);
+
+                var value = _this.subEntityMapping[transId];
+                let mapVal = value["mapdatavalue"];
+                let mapFld = value["mapfield"];
+                strCriteria += `~${value.mapfieldjson.normalized || "F"}~${value.mapfieldjson.srctable || ""}~${value.mapfieldjson.srcfield || ""}~${value.mapfieldjson.allowempty || "F"}~${value.mapfieldjson.tablename || ""}~${mapFld}~'${mapVal}'^`;
+            }
+        });
+        
+
+
+        if (strCriteria.endsWith("^"))
+            return strCriteria.substr(0, strCriteria.length - 1);
+        else
+            return strCriteria;
+    }
+
+
+    getConnectedData() {
+        let _this = this;
+        let url = "../aspx/EntityForm.aspx/GetSubEntityChartsDataWS";
+        var criteria = _this.getSubEntityConnectedDataFilter();
+
+        let data = { entityName: _this.entityName, transId: _this.entityTransId, condition: "General", criteria: criteria, recordId: _this.recordId, keyValue: _this.keyValue };
+        this.callAPI(url, data, true, result => {
+            if (result.success) {
+                _this.connectedDataJson = JSON.parse(JSON.parse(result.response).d);
+                var connectedDataJson = _this.connectedDataJson.result.charts;
+                if (connectedDataJson.length) {
+                    _this.isSubEntitiesAvailable = true;
+
+                    _this.isSubEntitiesAvailable = true;
+                    _this.constructConnectedDataAccordions(connectedDataJson);
+                }
+                else {
+                    _this.isSubEntitiesAvailable = false;                    
+                }                
+            }            
+        });
+    }
+
+    constructFormRelatedDataAccordions() {
+        let _this = this;
+        var relatedFields = [];
+
+        if (_this.relatedDataFields == "") {
+            return;
+        }
+        else {
+
+            var relatedFldsArr = [];
+            _this.relatedDataFields.split(",").forEach(fld => {
+                relatedFldsArr.push(fld.split('~')[1]);
+            })
+
+            relatedFields = _this.metaData.filter(function (item) {
+                return item.subentity === "F" && item.hide === "F" && relatedFldsArr.includes(item.fldname);
+            });
+        }
+
+        let html = '';
+        relatedFields.forEach(fld => {
+            let fldVal = fld.fldcap ?? "";
+            let mapDataRow = _this.entityFormJson.data.filter(item => item.n === fld.fldname);
+            if (mapDataRow.length) {
+                let rowNo = 1;
+                mapDataRow.forEach(row => {
+                    fldVal = ReverseCheckSpecialChars(row.v);
+                    let dcNameWithRowNo = `${fld.dcname}${rowNo}`;
+                    html += 
+                        `<div class="col-xl-12 col-lg-12 col-sm-12 Invoice-content-wrap rightpanel-relatedddata-accordion" data-fldid="${fld.fldname}" data-dcname="${fld.dcname}" data-rowno="${rowNo}"  data-fldval="${fldVal}" data-griddc="${fld.griddc}">
+                            <a href="#" class="Invoice-item accordion-header accordion-button fs-4 fw-semibold collapsed" data-bs-toggle="collapse" data-bs-target="#kt_accordion_connecteddata_${dcNameWithRowNo}${fld.fldname}" aria-expanded="false" aria-controls="kt_accordion_connecteddata_${dcNameWithRowNo}${fld.fldname}">
+                                <div class="Invoice-icon">
+                                    <span class="material-icons material-icons-style material-icons-2">account_tree</span>
+                                </div>
+                                <div class="Invoice-content">
+                                    <h6 class="subtitle">${fld.fldcap ?? ""} - ${fldVal}</h6>
+                                </div>
+                            </a>
+                            <div id="kt_accordion_connecteddata_${dcNameWithRowNo}${fld.fldname}" class="accordion-collapse collapse" aria-labelledby="kt_accordion_connecteddata_${dcNameWithRowNo}${fld.fldname}">
+                                <div class="cc-metrics-panel">
+                                    <div class="cc-metrics-list">               
+                                    </div>
+                                </div>
+                            </div>
+                        </div>`
+
+                    rowNo++;
+                });
+            }
+
+
+        })        
+
+
+        if (html) {
+            document.querySelector('#KPI-2 .row').insertAdjacentHTML("afterbegin", html);
+            document.querySelector('#KPI-2').classList.remove("d-none");
+            document.querySelector('#NO-KPI-Items').classList.add("d-none");
+        }
+
+        document.querySelectorAll('.rightpanel-relatedddata-accordion').forEach(item => {
+            $(item).on('show.bs.collapse', function () {
+                if (this.classList.contains('data-fetched'))
+                    return;
+
+                let fldId = this.dataset.fldid;
+                let dcName = this.dataset.dcname;
+                let gridDc = this.dataset.griddc;
+                let rowNo = this.dataset.rowno;
+                let fldVal = this.dataset.fldval;
+
+
+                _this.fetchFilteredData(fldId, fldVal, dcName, gridDc, rowNo.toString());
+            })
+        });
+
+    }
+
+    getEntityListDataForOtherData(pageNo, fldId, gridDc) {
+        ShowHideDimmer(true);
+        let _this = this;
+        let url = "../aspx/Entity.aspx/GetEntityListWithGridDataWS";
+        let data = { transId: _this.entityTransId, fields: _this.fields, pageNo: pageNo, pageSize: _this.pageSize, filter: _this.filter, gridDc: gridDc };
+        this.callAPI(url, data, false, result => {
+            if (result.success) {
+                ShowHideDimmer(false);
+                let listJson = JSON.parse(JSON.parse(result.response).d);
+                listJson = listJson.result.list?.[0]?.data_json ?? "[]";
+                try {
+                    if (listJson.constructor != Array)
+                        listJson = JSON.parse(listJson);
+                }
+                catch {
+                    showAlertDialog("error", "Error occurred in data fetch.");
+                    return;
+                }
+
+                if ((listJson.length || 0) == 0) {
+                    if (pageNo == 1) {
+                        _this.listJson = [];
+                        document.querySelector(`kt_accordion_connecteddata_${fldId}`).innerHTML = _this.emptyRowsHtml;
+                        return;
+                    }
+                }
+                else {
+
+                    _this.constructFormRelatedDataList(listJson, fldId);
+
+                }
+            }
+            else {
+                ShowHideDimmer(false);
+            }
+        });
+    }
+
+    constructFormRelatedDataList(listArr, fldId) {
+        let _this = this;
+        let html = '';
+
+        if (!_this.entityWiseFields[_this.entityTransId]) {
+            $.each(_this.metaData.filter(i => i.ftransid === _this.entityTransId), function (index, field) {
+                _this.populateEntityWiseFlds(index, field);
+            })
+        }
+
+        for (var rowData of listArr) {
+            if (rowData.recordid == _this.recordId)
+                continue;
+
+            let keyCol = _this.entityKeyField;
+
+            if (!rowData.hasOwnProperty(keyCol)) {
+                keyCol = _this.getKeyField(rowData.transid).fldname;
+                if (_entityCommon.inValid(rowData[keyCol]))
+                    keyCol = Object.keys(rowData)[4];
+            }
+
+            rowData.keycol = keyCol;
+
+
+            if (!rowData.keycol || _entityCommon.inValid(rowData[rowData.keycol])) {
+                const keys = Object.keys(rowData);
+                let notNullNode = null;
+
+                for (let i = 4; i < keys.length; i++) {
+                    const key = keys[i];
+                    if (rowData[key] !== null && rowData[key] !== undefined && rowData[key] !== "") {
+                        notNullNode = key;
+                        break;
+                    }
+                }
+
+                rowData.keycol = notNullNode;
+                keyCol = notNullNode;
+            }
+
+            const axpdef_keycol = rowData[keyCol]?.toString().replace("T00:00:00", "");
+
+            let subEntityCaption = rowData.entityname || _this.entityName;
+
+            html +=
+                `<div class="cc-metrics-panel">
+                    <div class="cc-metrics-list">
+                        <div class="cc-metrics-item">
+                            <div class="cc-metrics-label">
+                                <a ref="javascript:void(0)" class="Project_title" onclick="_entityForm.openEntityForm('${subEntityCaption}', '${rowData.transid}', '${rowData.recordid}','${axpdef_keycol}')">${axpdef_keycol}</a>                        
+                                ${ generateRowElements(rowData, rowData.transid, "Other Data") }
+                            </div>
+                        </div>
+                    </div>
+                 </div>`;           
+        }
+        //$('#body_Container').html('');
+        if (html)
+            $(`#kt_accordion_connecteddata_${fldId}`).html(html);
+        else {
+            html = 
+                `<div class="cc-metrics-panel">
+                    <div class="cc-metrics-list">
+                        <div class="cc-metrics-item">
+                            <div class="cc-metrics-label">                        
+                                No related data found.
+                            </div>
+                        </div>
+                    </div>
+                </div>`
+            $(`#kt_accordion_connecteddata_${fldId}`).html(html);
+        }
+        $(`#related-records-container_${fldId}`).addClass("data-fetched");
+        $('[data-toggle="tooltip"]').tooltip();
+        initReadMore();
+        KTMenu.init();
+    }
+
+
+    constructConnectedDataListHTML(dataJson) {
+        let _this = this;
+        let html = '';
+        dataJson.forEach(data => {
+            let item = JSON.parse(data.data_json)[0];
+            item.caption = _this.subEntityList[item.transid];
+            item.initial = _this.getSubEntityInitials(item.caption);
+            if (item.totrec != 0) {
+                html += Handlebars.compile(_this.connectedData.accordion)(item);
+            }
+        });
+        return html;
+    }
+
+    getSubEntityFilter(subEntityTransId) {
+        let _this = this;
+        let strFilter = "";
+        let selectedEntities = [];
+
+        let subEntity = _this.subEntityMapping[subEntityTransId];
+        let subEntityMapFldJson = subEntity.mapfieldjson;
+        let mapVal = subEntity["mapdatavalue"];
+        let mapFld = subEntity["mapfield"];
+        strFilter += `${subEntityTransId}=All=${subEntityMapFldJson.tablename}.${mapFld}~'${mapVal}'~${subEntityMapFldJson.tablename}~${subEntityMapFldJson.normalized}~${subEntityMapFldJson.srctable}~${subEntityMapFldJson.srcfield}~${subEntityMapFldJson.allowempty}++`;
+        selectedEntities.push(subEntityTransId);
+
+        if (strFilter.endsWith("++"))
+            strFilter = strFilter.substr(0, strFilter.length - 2);
+
+        _this.subEntityFilter = strFilter;
+        _this.selectedSubEntities = selectedEntities.join(',');
+        return true;
+    }
+
+    fetchConnectedDataRecords(transId) {
+        let _this = this;
+        if (!_this.getSubEntityFilter(transId))
+            return;
+
+        ShowHideDimmer(true);
+        let url = "../aspx/EntityForm.aspx/GetSubEntityListDataWS";
+        let data = { entityName: _this.entityName, transId: _this.entityTransId, recordId: _this.recordId, fields: _this.subEntityFilter, pageNo: 1, pageSize: 10000, metaData: false, subEntityList: _this.selectedSubEntities };
+        _this.callAPI(url, data, false, result => {
+            ShowHideDimmer(false);
+            if (result.success) {
+                let subEntityListDataJson = JSON.parse(JSON.parse(result.response).d);
+                subEntityListDataJson = subEntityListDataJson.result.list ?? [];
+                try {
+                    if (subEntityListDataJson.constructor != Array)
+                        subEntityListDataJson = JSON.parse(subEntityListDataJson);
+                }
+                catch {
+                    showAlertDialog("error", "Error occurred in data fetch.");
+                    return;
+                }
+
+                if ((subEntityListDataJson.length || 0) == 0) {
+                    _this.listJson = [];
+                    showAlertDialog("warning", "No records available.");
+                    return;
+
+                }
+                else {
+                    try {
+                        _this.listJson = [];
+                        _this.entityWiseFields = {}
+
+                        var newListJson = [];
+                        subEntityListDataJson.forEach(item => {
+                            newListJson.push(item.data_json);
+                        })
+                        _this.listJson.push(...newListJson);
+                        _this.maxPageNumber = getMaxPageNumber(_this.listJson);
+                        noMoreRecordsMessage.style.display = 'none';
+                        _this.renderConnectedData(_this.listJson, transId);
+
+                    }
+                    catch {
+
+                        $(`#sub-entitycontainer-${transId} .body_Container`).append(JSON.parse(result.response).d);
+                    }
+                }
+            }
+        });
+    }
+
+    fetchConnectedDataMetrics(transId) {
+        let _this = this;
+        let criteria = _this.getConnectedDataMetricsCriteria(transId);
+
+        ShowHideDimmer(true);
+        let url = "../aspx/EntityForm.aspx/GetEntityFormConnectedDataMetricsWS";
+        let data = { transId: transId, recordId: _this.recordId, criteria: criteria };
+        _this.callAPI(url, data, false, result => {
+            ShowHideDimmer(false);
+         
+            if (result.success) {
+                let connectedDataJson = JSON.parse(JSON.parse(result.response).d);
+                connectedDataJson = connectedDataJson.result.data ?? [];
+
+                try {
+                    if (connectedDataJson.constructor != Array)
+                        connectedDataJson = JSON.parse(connectedDataJson);
+                }
+                catch {
+                    showAlertDialog("error", "Error occurred in connected data fetch.");
+                    return;
+                }
+
+                if ((connectedDataJson.length || 0) == 0) {
+                    $(`#kt_accordion_connecteddata_${transId} .cc-metrics-list`).html(
+                        `<div class="cc-metrics-item">
+                            <div class="cc-metrics-label">                        
+                                No data found
+                            </div>
+                        </div>`);
+                    return;
+
+                }
+                else {
+                    try {                        
+                        var dataJson = JSON.parse(connectedDataJson[0].data_json);
+                        var html = "";
+                        if (dataJson.length > 0) {
+                            Object.keys(dataJson[0]).forEach(key => {
+                                var skipFlds = ["cnd", "condition", "criteria", "transid"];
+                                if (skipFlds.indexOf(key) == -1) {
+                                    var transId = dataJson[0]["transid"];
+                                    var fieldName = key.substr(4);
+                                    var fieldCaption = _this.metaData.find(x => x.ftransid == transId && x.fldname == fieldName)?.fldcap ?? "";
+                                    var condition = key.substr(0, 3).replace("sum", "Sum").replace("avg", "Avg");
+                                    
+                                    html += 
+                                        `<div class="cc-metrics-item">
+                                            <div class="cc-metrics-label">                        
+                                                ${fieldCaption} (${condition})
+                                            </div>
+                                            <div class="cc-metrics-value">${dataJson[0][key]}</div>
+                                        </div>`;
+                                }
+                            });
+
+                            $(`#kt_accordion_connecteddata_${transId} .cc-metrics-list`).html(html);
+                        }
+                        
+                    }
+                    catch (e) {
+                        console.log("Error" + e);
+                    }
+                }
+            }
+        });
+    }
+
+    fetchAllConnectedDataMetrics() {
+        let _this = this;
+        let criteria = _this.getAllConnectedDataMetricsCriteria();
+        ShowHideDimmer(true);
+        let url = "../aspx/EntityForm.aspx/GetEntityFormConnectedDataMetricsWS";
+        let data = { transId: _this.entityTransId, recordId: _this.recordId, criteria: criteria };
+        _this.callAPI(url, data, false, result => {
+            ShowHideDimmer(false);
+
+            if (result.success) {
+                let connectedDataJson = JSON.parse(JSON.parse(result.response).d);
+                connectedDataJson = connectedDataJson.result.data ?? [];
+                try {
+                    if (connectedDataJson.constructor != Array)
+                        connectedDataJson = JSON.parse(connectedDataJson);
+                }
+                catch {
+                    showAlertDialog("error", "Error occurred in connected data fetch.");
+                    return;
+                }
+
+                if ((connectedDataJson.length || 0) == 0) {
+                    $(`#kt_accordion_connecteddata_${transId} .cc-metrics-list`).html(
+                        `<div class="cc-metrics-item">
+                            <div class="cc-metrics-label">                        
+                                No data found
+                            </div>
+                        </div>`);
+                    return;
+
+                }
+                else {
+                    try {
+                        var html = "";
+                        connectedDataJson.forEach(connectedData => {
+                            var dataJson = JSON.parse(connectedData.data_json);                            
+                            if (dataJson.length > 0) {
+
+                                html +=
+                                    `<div class="cc-metrics-item cc-metrics-caption">
+                                                <div class="cc-metrics-label">
+                                                    ${_this.subEntityList[dataJson[0]["transid"]]}
+                                                </div>
+                                            </div>`;
+                                Object.keys(dataJson[0]).forEach(key => {
+                                    var skipFlds = ["cnd", "condition", "criteria", "transid"];
+                                    if (skipFlds.indexOf(key) == -1) {
+                                        var transId = dataJson[0]["transid"];
+                                        var fieldName = key.substr(4);
+                                        var fieldCaption = _this.metaData.find(x => x.ftransid == transId && x.fldname == fieldName)?.fldcap ?? "";
+                                        var condition = key.substr(0, 3).replace("sum", "Sum").replace("avg", "Avg");
+
+                                        html +=
+                                            `<div class="cc-metrics-item">
+                                                <div class="cc-metrics-label">                        
+                                                    ${fieldCaption} (${condition})
+                                                </div>
+                                                <div class="cc-metrics-value">${dataJson[0][key]}</div>
+                                            </div>`;
+                                    }
+                                });
+                            }
+                        });
+                        
+
+                        $(`#kt_accordion_connectedpagesdata .cc-metrics-list`).html(html);
+
+                    }
+                    catch (e) {
+                        console.log("Error" + e);
+                    }
+                }
+            }
+        });
     }
 
     bindThemeEvent() {
@@ -1781,25 +1277,46 @@ class EntityForm {
             item.addEventListener("click", function (event) {
                 event.preventDefault();
                 var target = this.getAttribute("data-target");
-                _this.updateTheme(target);
+                // _this.updateTheme(target);
                 _this.updateActiveClass(item);
-                localStorage.setItem(`selectedTheme-${_subEntity.entityName}`, target);
+                
+                var data = {
+                    page: "ENTITY_FORM",  
+                    transId: _this.entityTransId,  
+                    properties: {
+                        "THEME": target
+                    },
+                    confirmNeeded: true,  
+                    allUsers: true  
+                };
+                
+    
+                _entityCommon.setAnalyticsDataWS(data, function () {
+                    _this.updateTheme(target);
+
+                    
+                }, function (error) {
+                    console.error('Error in SetAnalyticsDataWS:', error);
+                    ShowHideDimmer(false);
+                });
             });
         });
-
     }
 
     applyTheme() {
         var _this = this;
-        var storedTheme = localStorage.getItem(`selectedTheme-${_subEntity.entityName}`);
-        if (storedTheme) {
-            _this.updateTheme(storedTheme);
-            var activeMenuItem = document.querySelector(`#selectThemes .menu-link[data-target="${storedTheme}"]`);
-            if (activeMenuItem) {
-                _this.updateActiveClass(activeMenuItem);
-            }
+        
+    
+        var storedTheme = this.properties.THEME|| "lightTheme";
+    
+        _this.updateTheme(storedTheme);
+    
+        var activeMenuItem = document.querySelector(`#selectThemes .menu-link[data-target="${storedTheme}"]`);
+        if (activeMenuItem) {
+            _this.updateActiveClass(activeMenuItem);
         }
     }
+    
 
     updateActiveClass(clickedItem) {
         var menuItems = document.querySelectorAll("#selectThemes .menu-link");
@@ -1830,178 +1347,136 @@ class EntityForm {
 
 
     createHTML(data, metadata) {
+        
         let html = '';
         let dcName = data[0].n.toLowerCase();
-        if (data[0].hasdatarows && data[0].hasdatarows === 'yes') {
-            // Initialize an object to store rows grouped by the 'r' value
-            const rowsByR = {};
+        let dcNo = dcName.replace("dc", "");
 
-            data.forEach(item => {
-                if (item.t !== 'dc') {
-                    const rValue = item.r;
-                    if (!rowsByR[rValue]) {
-                        rowsByR[rValue] = [];
-                    }
-                    rowsByR[rValue].push(item);
-                }
-            });
-
-            const rows = {};
-            data.forEach(item => {
-                if (item.t !== 'dc') {
-                    if (!rows[item.r]) {
-                        rows[item.r] = {};
-                    }
-                    rows[item.r][item.n] = item.v;
-                }
-            });
-
-            html += `<div class="row" style="position: relative; right: 3px;" id="${dcName}">
-                                        <div class="dc-heading card-title cursor-pointer collapsible  rotate  collapsed" data-bs-toggle="collapse"
-                                            aria-expanded="true" data-bs-target="#${dcName}container" >
-                                            <span class="material-icons material-icons-style material-icons-2 rotate-180">expand_circle_down
-                                            </span>${getCaption(dcName)}
-                                        </div>
-
-                                        <div id="${dcName}container" class="row sub-entity-row collapse"><table class="table table-light table-striped table-bordered tabularDC">`;
-            //Create table header
-            html += `<thead><tr>`;
-
+        if (data[0].hasdatarows) {
+            html += `<div class="row" style="position: relative; right: 3px;" id="${dcName}" data-name="${dcName}">
+                        <div class="dc-heading card-title cursor-pointer collapsible rotate" data-bs-toggle="collapse"
+                            aria-expanded="true" data-bs-target="#${dcName}container" >
+                            <span class="material-icons material-icons-style material-icons-2 rotate-180">expand_circle_down</span>
+                            <label class="dccaption">${getCaption(dcName)}</label>
+                        </div>
         
-            let dcMetaData = metadata.filter(i => i.datatype != 'dc' && i.dcname == dcName && (i.hidden != null && i.hidden != "T"))
+                        <div id="${dcName}container" class="row sub-entity-row collapse show">
+                            <div class="table-responsive">
+                                <table class="table table-light table-striped table-bordered tabularDC">`;
+
+            // Create table header
+            html += `<thead><tr>`;
+            let dcMetaData = metadata.filter(i => i.datatype != 'dc' && i.dcname == dcName && (i.hidden != null && i.hidden != "T"));
             dcMetaData.forEach(field => {
-                html += `<th>${field.caption}</th>`;
+                html += `<th id="th${field.fname}" data-name="${field.fname}"><label>${field.caption}</label></th>`;
             });
-
-            //const firstRowKeys = Object.values(rowsByR[Object.keys(rowsByR)[0]]);
-            // Iterate over each unique 'r' value and create a table row
-
-            //firstRowKeys.forEach(key => {
-            //    var isHidden = getHiddenFlag(key.n);
-            //    var colCaption = getCaption(key.n);
-            //    if (isHidden != null && isHidden != "T") {
-            //        html += `<th>${colCaption}</th>`;
-            //    }
-            //});
             html += `</tr></thead>`;
-            //Create table body
+
+            // Create table body
             html += `<tbody>`;
-            Object.keys(rows).forEach(rowKey => {
-                html += `<tr>`;
-                dcMetaData.forEach((field, index) => {
-                    if (field.fname.startsWith("axpfile_")) {
-                        const axpfilepathUploadObject = _entityForm.entityFormJson.data.find(i => i.n === field.fname.replace("axpfile_", "axpfilepath_"));
-                        var pathVal = axpfilepathUploadObject ? axpfilepathUploadObject.v : "";
-                        if (pathVal.indexOf(";bkslh") != -1) {
-                            pathVal = pathVal.replace(new RegExp(";bkslh", "g"), "\\");
+
+            if (data[0].hasdatarows === 'yes') {
+
+                const rows = {};
+                data.forEach(item => {
+                    if (item.t !== 'dc') {
+                        if (!rows[item.r]) {
+                            rows[item.r] = {};
+                        }
+                        rows[item.r][item.n] = item.v;
+                    }
+                });
+                
+                Object.keys(rows).forEach(rowKey => {
+                    html += `<tr>`;
+                    dcMetaData.forEach((field, index) => {
+                        let fieldValue = rows[rowKey][field.fname] || '';
+                        fieldValue = _entityCommon.replaceSpecialChars(fieldValue);
+                        let fieldId = getFieldId(field.fname, dcNo, true, rowKey);
+                        UpdateAllFieldValues(fieldId, fieldValue);
+                        let cellContent = '';
+
+                        if (field.customdatatype === 'Currency') {
+                            cellContent = _entityCommon.inValid(fieldValue) ? "--" : formmatingtoillions(fieldValue, field);
+                            cellContent = this.applyFldMask(field.fname, cellContent);
+                        } else if (field.customdatatype === 'Numeric') {
+                            // For numeric values, you can add formatting if needed
+                            cellContent = _entityCommon.inValid(fieldValue) ? "--" : fieldValue;
+                            cellContent = this.applyFldMask(field.fname, cellContent);
+                        } else if (field.fname.startsWith("axpfile_")) {
+                            const axpfilepathUploadObject = _entityForm.entityFormJson.data.find(i => i.n === field.fname.replace("axpfile_", "axpfilepath_"));
+                            var pathVal = axpfilepathUploadObject ? axpfilepathUploadObject.v : "";
+                            if (pathVal.indexOf(";bkslh") != -1) {
+                                pathVal = pathVal.replace(new RegExp(";bkslh", "g"), "\\");
+                            }
+
+                            if (pathVal.endsWith("\\"))
+                                pathVal = pathVal.substr(0, pathVal.length - 1);
+
+                            var item = {};
+                            item["v"] = ReverseCheckSpecialChars(fieldValue);
+                            item["filepath"] = pathVal;
+                            cellContent = this.createAxpFileAttachmentHTML(item, index, field.fname);
+                            cellContent = this.applyFldMask(field.fname, cellContent);
+                        }
+                        else if (field.fname.startsWith("dc") && field.fname.endsWith("_image")) {
+                            var item = {};
+                            item["v"] = ReverseCheckSpecialChars(fieldValue);
+                            cellContent = this.createDCAttachmentHTML(item, index, "");
+                        } else {
+                            cellContent = ReverseCheckSpecialChars(fieldValue);
+                            cellContent = this.applyFldMask(field.fname, cellContent);
                         }
 
-                        if (pathVal.endsWith("\\"))
-                            pathVal = pathVal.substr(0, pathVal.length - 1);
-
-                        pathVal = pathVal.replace(new RegExp("\\\\", "g"), "\\\\");
-
-                        var item = {};
-                        item["v"] = ReverseCheckSpecialChars(rows[rowKey][field.fname] || '');
-                        item["filepath"] = pathVal;
-                        html +=
-                            `<td>${this.createAttachmentHTML(item, index, "")}</td>`;
-                    }
-                    else if (field.fname.startsWith("dc") && field.fname.endsWith("_image")) {
-                        var item = {};
-                        item["v"] = ReverseCheckSpecialChars(rows[rowKey][field.fname] || '');
-
-                        html +=
-                            `<td>${this.createDCAttachmentHTML(item, index, "")}</td>`;
-                    }
-                    else
-                        html += `<td>${ReverseCheckSpecialChars(rows[rowKey][field.fname] || '')}</td>`;
-                    return;
-
-                    //var isHidden = getHiddenFlag(item.n);
-                    //if (isHidden != null && isHidden != "T") {
-                        
-                    //    if (item.n.startsWith("axpfile_")) {
-                    //        //var colclassname = _entityForm.getclassname(data.value, data.props.split("~")[3]);
-                            
-                    //        const axpfilepathUploadObject = _entityForm.entityFormJson.data.find(i => i.n === item.n.replace("axpfile_", "axpfilepath_"));
-                    //        var pathVal = axpfilepathUploadObject ? axpfilepathUploadObject.v : "";
-                    //        if (pathVal.indexOf(";bkslh") != -1) {
-                    //            pathVal = pathVal.replace(new RegExp(";bkslh", "g"), "\\");                                
-                    //        }
-
-                    //        if (pathVal.endsWith("\\"))
-                    //            pathVal = pathVal.substr(0, pathVal.length - 1);
-
-                    //        item.filepath = pathVal;
-                    //        html +=
-                    //            `<td>${this.createAttachmentHTML(item, index, "")}</td>`;
-                    //    }
-                    //    if (item.n.startsWith("dc") && item.n.endsWith("_image")) {
-                    //        html +=
-                    //            `<td>${this.createDCAttachmentHTML(item, index, "")}</td>`;
-                    //    }
-                    //    else {
-                    //        html += `<td>${ReverseCheckSpecialChars(rows[rowKey][field.fname] || '')}</td>`;
-                    //    }
-                    //}
+                        // Determine if the cell should be right aligned
+                        const isRightAligned = (field.customdatatype === 'Currency' || field.customdatatype === 'Numeric' || field.customdatatype === 'Decimal Number' || field.customdatatype === 'Whole Number');
+                        html += `<td${isRightAligned ? ' class="align-right"' : ''} id="${fieldId}" data-name="${field.fname}">${cellContent}</td>`;
+                    });
+                    html += `</tr>`;
                 });
-                html += `</tr>`;
-            });
+               
+            }
+            else {
+                html += `<tr><td colspan="${dcMetaData.length}" class="no-data-cell" style="padding:5px;text-align:center;color:#888;font-style:italic;">No data available</td></tr>`;
+            }
+
             html += `</tbody>`;
-            html += `</table></div></div>`;
-        }
-        else {
+            html += `</table></div></div></div>`;
+        } else {
             var i = 1;
             var visibleItems = 0;
-            var dcHTML = "";
-
-            //dcHTML = `<div class="row" style="position: relative; right: 3px;" id="${dcName}"><div class="dc-heading"><h3>${getCaption(dcName)}</h3 ></div >`;
-            if (dcName == "dc1")
-                dcHTML = `<div class="row" style="position: relative; right: 3px;" id="${dcName}">
-                                        <div class="dc-heading card-title cursor-pointer collapsible  rotate  " data-bs-toggle="collapse"
-                                            aria-expanded="true" data-bs-target="#${dcName}container" >
-                                            <span class="material-icons material-icons-style material-icons-2 rotate-180">expand_circle_down
-                                            </span>${getCaption(dcName)}
-                                        </div>
-
-                                        <div id="${dcName}container" class="row sub-entity-row collapse show">`
-            else
-                dcHTML = `<div class="row" style="position: relative; right: 3px;" id="${dcName}">
-                                        <div class="dc-heading card-title cursor-pointer collapsible  rotate  collapsed" data-bs-toggle="collapse"
-                                            aria-expanded="true" data-bs-target="#${dcName}container" >
-                                            <span class="material-icons material-icons-style material-icons-2 rotate-180">expand_circle_down
-                                            </span>${getCaption(dcName)}
-                                        </div>
-
-                                        <div id="${dcName}container" class="row sub-entity-row collapse">`
+            var dcHTML = `<div class="row" style="position: relative; right: 3px;" id="${dcName}" data-name="${dcName}">
+                            <div class="dc-heading card-title cursor-pointer collapsible rotate" data-bs-toggle="collapse"
+                                aria-expanded="true" data-bs-target="#${dcName}container" >
+                                <span class="material-icons material-icons-style material-icons-2 rotate-180">expand_circle_down</span>
+                                <label class="dccaption">${getCaption(dcName)}</label>
+                            </div>
+                            <div id="${dcName}container" class="row sub-entity-row collapse show">`;
+        
             data.forEach(item => {
                 if (item.n) {
                     var isHidden = getHiddenFlag(item.n);
                     if (isHidden != null && isHidden != "T") {
                         visibleItems++;
-                        dcHTML += this.nongridDcHTML(item, i, metadata);
+                        dcHTML += this.nongridDcHTML(item, i, dcNo);
                     }
                 }
                 i++;
             });
-            dcHTML += `</div></div>`;
-
-            if (visibleItems > 0) {
-                html += dcHTML;
-            }
+        
+            if (visibleItems > 0) 
+                dcHTML += `</div></div>`;                
+            else 
+                dcHTML += `<div class="no-data-cell" style="padding:5px;text-align:center;color:#888;font-style:italic;">No data available</div></div></div>`;  
+                
+            html += dcHTML;
         }
-
-        if (html != "") {
-            let activeClass = '';
-            if (data[0].n.toLowerCase() == "dc1")
-                activeClass = 'active'
-            var tabDcHtml = `<li class="dcTabs ${activeClass}"><a href="#${data[0].n.toLowerCase()}">${getCaption(data[0].n.toLowerCase())}</a></li>`;
-            document.querySelector("#dcTabs").insertAdjacentHTML("beforeend", tabDcHtml);
-        }
-
+        
         return html;
     }
+    
+    
+    
     groupByDC(data) {
         const groups = [];
         let currentGroup = [];
@@ -2036,33 +1511,92 @@ class EntityForm {
         });
         return html;
     }
-    nongridDcHTML(fldjson, index, metadata) {
+    // Returns the masked value for display; MaskCharacter/RevMaskCharacter come from helper.js
+    applyFldMask(fieldName, fldVal) {
+        let permMask = '';
+        let fldMask;
+        if (tstPermissions) {
+            permMask = JSON.parse(tstPermissions);
+            permMask = permMask.result?.MaskedFields;
+        }
+        if (permMask)
+            fldMask = permMask.split(',').map(x => x.split('=')).find(x => x[0].trim().toLowerCase() == fieldName.toLowerCase() && x[1] !== undefined);
+        if (permMask && fldMask) {
+            if (fldVal === "" || fldVal === null || typeof fldVal === "undefined")
+                return fldVal;
+            const format = String(fldMask[1]).trim();
+            const chars = [...format];
+            // Digits other than 9 make the format invalid.
+            if (chars.some(ch => /\d/.test(ch) && ch !== "9"))
+                return fldVal;
+            const visibleCount = chars.filter(ch => ch === "9").length;
+            const maskSymbol = [...chars].reverse().find(ch => ch !== "9");
+            // A format containing only 9s has no mask symbol.
+            if (!maskSymbol)
+                return fldVal;
+            return [...String(fldVal)]
+                .map((ch, i) => i < visibleCount ? ch : maskSymbol)
+                .join("");
+        } else {
+            if (typeof FldMaskType === "undefined")
+                return fldVal;
+            let fldInd = GetFieldIndex(fieldName);
+            let maskType = FldMaskType[fldInd];
+            if (maskType != "Show few characters" && maskType != "Mask all characters")
+                return fldVal;
 
+            let maskDtls = FldMaskDetails[fldInd].split('♦');
+            let maskVal = fldVal;
+            if (maskVal === "" || maskVal == 0)
+                return fldVal;
+
+            if (maskType == "Show few characters") {
+                if (maskDtls[0] != "" && maskDtls[0] != 0)
+                    maskVal = MaskCharacter(maskVal.toString(), maskDtls[2], maskVal.toString().length - maskDtls[0]);
+                if (maskDtls[1] != "" && maskDtls[1] != 0)
+                    maskVal = RevMaskCharacter(maskVal.toString(), maskDtls[2], maskDtls[1]);
+            } else {
+                maskVal = MaskCharacter(maskVal.toString(), maskDtls[2], 0);
+            }
+            return maskVal;
+        }
+    }
+
+    nongridDcHTML(fldjson, index, dcNo) {
+        
         var fldName = fldjson.n;
         var fldVal = ReverseCheckSpecialChars(fldjson.v);
-
-        
+        fldVal = _entityCommon.replaceSpecialChars(fldVal);
         var fldCaption = getCaption(fldjson.n);
         var comphtml = "";
         var finalhtml;
         let fieldType = fldjson.t.toUpperCase();
+        let fieldId = getFieldId(fldName, dcNo, false, fldjson.r)
+        UpdateAllFieldValues(fieldId, fldVal);
+        fldVal = this.applyFldMask(fldName, fldVal);
+        // Determine align-right class if customdatatype is Numeric or Currency
         let alignClass = "";
+        if (this.flds && this.flds[fldName] && 
+            (this.flds[fldName].customdatatype === "Currency" || this.flds[fldName].customdatatype === "Numeric")) {
+            alignClass = " align-right";
+        }
+    
         if (fieldType != 'DC') {
-            let componentHtml = this.components[fieldType]?.html || `<div class="inputcontent"  readonly>{{v}}</div>`;
+            let componentHtml = this.components[fieldType]?.html || `<div class="inputcontent" readonly id="{{fieldid}}">{{v}}</div>`;
+    
             if (fldVal != "") {
                 var colclassname = this.getclassname(fldVal, '');
                 if (!colclassname.startsWith("col")) {
                     var stylewidth = colclassname;
                     colclassname = "";
                 } else {
-                    stylewidth = ""
+                    stylewidth = "";
                 }
             }
-
+    
             if (fieldType == "RT" || fieldType == "LT") {
                 comphtml = this.createRichTextComponent(fldjson, index);
             } else if (fieldType == "ATT" || fldName.startsWith("axpfile_")) {
-                
                 const axpfilepathUploadObject = _entityForm.entityFormJson.data.find(item => item.n === fldName.replace("axpfile_", "axpfilepath_"));
                 var pathVal = axpfilepathUploadObject ? axpfilepathUploadObject.v : "";
     
@@ -2075,9 +1609,8 @@ class EntityForm {
                 }
     
                 pathVal = pathVal.replace(new RegExp("\\\\", "g"), "\\\\");
-
                 fldjson.filepath = pathVal;
-                comphtml = `<div class="${colclassname} col-sm-12${alignClass}" data-type="${fieldType}" data-name="${fldName}" data-ctype="${this.flds[fldName].customdatatype}">
+                comphtml = `<div class="${colclassname} col-sm-12${alignClass}" data-type="${fieldType}" data-name="${fldName}" data-ctype="${this.flds[fldName].customdatatype}" id="{{fieldid}}">
                                 <label>${fldCaption}</label>
                                 ${this.createAttachmentHTML(fldjson, index, colclassname)}
                             </div>`;
@@ -2087,36 +1620,38 @@ class EntityForm {
                                 ${this.createDCAttachmentHTML(fldjson, index, colclassname)}
                             </div>`;
             } else if (this.flds[fldName].customdatatype == "Image") {
-
-                if (fldjson.v == "")
-                    comphtml = ""
-                else {
-                    comphtml = `<div class="${colclassname} col-sm-12${alignClass}" data-type="${fieldType}" data-name="${fldName}" data-ctype="${this.flds[fldName].customdatatype}">
+                if (_entityCommon.isValid(fldjson.v)) {
+                    comphtml = `<div class="${colclassname} col-sm-12${alignClass}" data-type="${fieldType}" data-name="${fldName}" data-ctype="${this.flds[fldName].customdatatype}" id="{{fieldid}}">
                                 <label>${fldCaption}</label>
                                 ${this.getTstructImage(fldjson, index, colclassname)}
                             </div>`;
                 }
-            } else if (fldVal == "T" || fldVal == "F") {
+            } else if (this.flds[fldName].customdatatype == "Check box") {
                 var checked = fldVal === "T" ? "checked" : "";
                 componentHtml = this.components["togglebutton"].html.replace("{{checked}}", checked);
-                comphtml = `<div class="${colclassname} col-sm-12${alignClass}" data-type="${fieldType}" data-name="${fldName}" data-ctype="${this.flds[fldName].customdatatype}">
+                comphtml = `<div class="col-xl-3 col-lg-4 Eform_Display_Items col-sm-12" data-type="${fieldType}" data-name="${fldName}" data-ctype="${this.flds[fldName].customdatatype}" id="{{fieldid}}">
                                 <label>${fldCaption}</label>
                                 ${componentHtml}
                             </div>`;
             } else {
-                comphtml =
-                    `<div class="${colclassname} col-sm-12 " data-type="${fieldType}" data-name="${fldName}" data-ctype="${this.flds[fldName].customdatatype}"><label>${fldCaption}</label>${componentHtml}</div>`;
+                if (this.flds[fldName].customdatatype === "Currency") {
+                    fldVal = _entityCommon.inValid(fldVal) ? "--" : formmatingtoillions(fldVal, this.flds[fldName]);                    
+                }
+                componentHtml = `<div class="inputcontent" readonly>${fldVal}</div>`;
+                comphtml = `<div class="${colclassname} col-sm-12${alignClass}" data-type="${fieldType}" data-name="${fldName}" data-ctype="${this.flds[fldName].customdatatype}" id="{{fieldid}}"> 
+                                <label>${fldCaption}</label>
+                                ${componentHtml}
+                            </div>`;
             }
         }
     
         if (fldjson.v)
-            fldjson.v = replaceSpecialChars(fldjson.v);
+            fldjson.v = _entityCommon.replaceSpecialChars(fldjson.v);
 
+        fldjson.fieldid = fieldId;
         finalhtml = Handlebars.compile(comphtml)(fldjson);
         return finalhtml;
     }
-
-    
     
     
 
@@ -2202,7 +1737,6 @@ class EntityForm {
     gridDc(jsonData, index) {
         var columnValues = {};
         jsonData.forEach(function (data) {
-            
             var columnName = data.fieldid;
             var columnValue = data.value;
 
@@ -2219,7 +1753,6 @@ class EntityForm {
 
             var componentHtml = _entityForm.components[data.props.split("~")[0]]?.html || `<div class="inputcontent"  readonly>{{v}}</div>`;
             if (fldtype == "ATT" || fldName.startsWith("axpfile_") || (fldName.startsWith("dc") && fldName.endsWith("_image"))) {
-                
                 var colclassname = _entityForm.getclassname(data.value, data.props.split("~")[3]);
                 //componentHtml = _entityForm.createAttachmentHTML(data, index, colclassname);
                 const axpfilepathUploadObject = _entityForm.entityFormJson.data.find(item => item.n === fldName.replace("axpfile_", "axpfilepath_"));
@@ -2305,7 +1838,6 @@ class EntityForm {
         if (fieldType == "RT" || fieldType == "LT") {
             comphtml = this.createRichTextComponent(fldjson, index);
         } else if (fieldType == "ATT") {
-            
             comphtml = this.createAttachmentHTML(fldjson, index, colclassname)
         } else if (fieldType == "Img") {
             comphtml = this.getimage(fldjson, index, colclassname)
@@ -2321,7 +1853,7 @@ class EntityForm {
         }
 
         if (fldjson.v)
-            fldjson.v = replaceSpecialChars(fldjson.v);
+            fldjson.v = _entityCommon.replaceSpecialChars(fldjson.v);
 
         finalhtml = Handlebars.compile(comphtml)(fldjson);
         return finalhtml;
@@ -2377,88 +1909,172 @@ class EntityForm {
                     </div>`;
 
         if (fldjson.v)
-            fldjson.v = replaceSpecialChars(fldjson.v);
+            fldjson.v = _entityCommon.replaceSpecialChars(fldjson.v);
 
         comphtml = Handlebars.compile(comphtml)(fldjson);
         return comphtml;
     }
+    //createAttachmentHTML(fldjson, index, colclassname) {
+    //    if (fldjson.v) {
+    //        let componentHtml = this.components["ATT"]?.html || `<div class="inputcontent"  readonly>{{v}}</div>`;
+    //        componentHtml = componentHtml.replaceAll("{{customid}}", `fileattached${index}`);
+    //        var extension = ReverseCheckSpecialChars(fldjson.v).split('.').pop().toLowerCase();
+    //        var fileimg = this.getFileImgHTML(extension)
+    //        componentHtml = componentHtml.replace("{{componentimg}}", `${fileimg}`);
+
+    //        if (fldjson.v)
+    //            fldjson.v = _entityCommon.replaceSpecialChars(fldjson.v);
+
+    //        var comphtml = Handlebars.compile(componentHtml)(fldjson);
+    //        return comphtml;
+    //    }
+    //    return "";
+    //}
     createAttachmentHTML(fldjson, index, colclassname) {
         if (fldjson.v) {
-            
-            let componentHtml = this.components["ATT"]?.html || `<div class="inputcontent"  readonly>{{v}}</div>`;
-            componentHtml = componentHtml.replaceAll("{{customid}}", `fileattached${index}`);
-            var extension = ReverseCheckSpecialChars(fldjson.v).split('.').pop().toLowerCase();
-            var fileimg = this.getFileImgHTML(extension)
-            componentHtml = componentHtml.replace("{{componentimg}}", `${fileimg}`);
+            // Prepare base template
+            let componentHtml = this.components["ATT"]?.html || `<div class="inputcontent" readonly>{{v}}</div>`;
 
-            if (fldjson.v)
-                fldjson.v = replaceSpecialChars(fldjson.v);
+            // Split multiple filenames
+            let filenames = fldjson.v.split(',').map(f => f.trim()).filter(f => f);
+            let finalHtml = '';
 
-            var comphtml = Handlebars.compile(componentHtml)(fldjson);
-            return comphtml;
+            filenames.forEach((filename, idx) => {
+                let extension = ReverseCheckSpecialChars(filename).split('.').pop().toLowerCase();
+                let fileimg = this.getFileImgHTML(extension);
+
+                // Replace template placeholders
+                let fileHtml = componentHtml
+                    .replaceAll("{{customid}}", `fileattached${index}_${idx}`)
+                    .replace("{{componentimg}}", fileimg);
+
+                let fileData = {
+                    ...fldjson,
+                    v: _entityCommon.replaceSpecialChars(filename)
+                };
+
+                // Compile using Handlebars
+                finalHtml += Handlebars.compile(fileHtml)(fileData);
+            });
+
+            return finalHtml;
         }
         return "";
     }
+    //createAxpFileAttachmentHTML(fldjson, index, fldId) {
+    //    if (fldjson.v) {
+    //        var fileName = GetFieldsName(fldId);
+    //        let componentHtml = this.components["AXPFILE_ATT"]?.html || `<div class="inputcontent"  readonly>{{v}}</div>`;
+    //        componentHtml = componentHtml.replaceAll("{{customid}}", `fileattached${index}`);
+    //        var extension = ReverseCheckSpecialChars(fldjson.v).split('.').pop().toLowerCase();
+    //        var fileimg = this.getFileImgHTML(extension)
+    //        componentHtml = componentHtml.replace("{{componentimg}}", `${fileimg}`);
+
+    //        if (fldjson.v)
+    //            fldjson.v = _entityCommon.replaceSpecialChars(fldjson.v);
+
+    //        fldjson.scriptspath = window.parent.mainRestDllPath;
+    //        fldjson.sid = window.parent.mainSessionId;
+    //        fldjson.fieldid = fldId;
+
+
+    //        var comphtml = Handlebars.compile(componentHtml)(fldjson);
+    //        return comphtml;
+    //    }
+    //    return "";
+    //}
+
     createAxpFileAttachmentHTML(fldjson, index, fldId) {
         if (fldjson.v) {
             var fileName = GetFieldsName(fldId);
-            let componentHtml = this.components["AXPFILE_ATT"]?.html || `<div class="inputcontent"  readonly>{{v}}</div>`;
-            componentHtml = componentHtml.replaceAll("{{customid}}", `fileattached${index}`);
-            var extension = ReverseCheckSpecialChars(fldjson.v).split('.').pop().toLowerCase();
-            var fileimg = this.getFileImgHTML(extension)
-            componentHtml = componentHtml.replace("{{componentimg}}", `${fileimg}`);
+            let componentHtml = this.components["AXPFILE_ATT"]?.html || `<div class="inputcontent" readonly>{{v}}</div>`;
 
-            if (fldjson.v)
-                fldjson.v = replaceSpecialChars(fldjson.v);
+            // Split multiple file names
+            let fileNames = fldjson.v.split(',').map(f => f.trim()).filter(f => f);
+            let finalHtml = '';
 
-            fldjson.scriptspath = window.parent.mainRestDllPath;
-            fldjson.sid = window.parent.mainSessionId;
-            fldjson.fieldid = fldId;
-             
+            fileNames.forEach((file, idx) => {
+                let extension = ReverseCheckSpecialChars(file).split('.').pop().toLowerCase();
+                let fileimg = this.getFileImgHTML(extension);
 
-            var comphtml = Handlebars.compile(componentHtml)(fldjson);
-            return comphtml;
+                // Replace placeholders in HTML template
+                let fileHtml = componentHtml
+                    .replaceAll("{{customid}}", `fileattached${index}_${idx}`)
+                    .replace("{{componentimg}}", fileimg);
+
+                // Prepare data for Handlebars
+                let fileData = {
+                    ...fldjson,
+                    v: _entityCommon.replaceSpecialChars(file),
+                    scriptspath: window.parent.mainRestDllPath,
+                    sid: window.parent.mainSessionId,
+                    fieldid: fldId
+                };
+
+                finalHtml += Handlebars.compile(fileHtml)(fileData);
+            });
+
+            return finalHtml;
         }
         return "";
     }
+
+    //createDCAttachmentHTML(fldjson, index, colclassname) {
+    //    if (fldjson.v) {
+    //        let componentHtml = this.components["GRID_ATT"]?.html || `<div class="inputcontent"  readonly>{{v}}</div>`;
+    //        componentHtml = componentHtml.replaceAll("{{customid}}", `fileattached${index}`);
+    //        var extension = ReverseCheckSpecialChars(fldjson.v).split('.').pop().toLowerCase();
+    //        var fileimg = this.getFileImgHTML(extension)
+    //        componentHtml = componentHtml.replace("{{componentimg}}", `${fileimg}`);
+
+    //        if (fldjson.v)
+    //            fldjson.v = _entityCommon.replaceSpecialChars(fldjson.v);
+
+    //        var comphtml = Handlebars.compile(componentHtml)(fldjson);
+    //        return comphtml;
+    //    }
+    //    return "";
+
+    //}
+
     createDCAttachmentHTML(fldjson, index, colclassname) {
         if (fldjson.v) {
-            let componentHtml = this.components["GRID_ATT"]?.html || `<div class="inputcontent"  readonly>{{v}}</div>`;
-            componentHtml = componentHtml.replaceAll("{{customid}}", `fileattached${index}`);
-            var extension = ReverseCheckSpecialChars(fldjson.v).split('.').pop().toLowerCase();
-            var fileimg = this.getFileImgHTML(extension)
-            componentHtml = componentHtml.replace("{{componentimg}}", `${fileimg}`);
+            let componentHtml = this.components["GRID_ATT"]?.html || `<div class="inputcontent" readonly>{{v}}</div>`;
 
-            if (fldjson.v)
-                fldjson.v = replaceSpecialChars(fldjson.v);
+            // Split the filenames by comma, trim each entry
+            let fileNames = fldjson.v.split(',').map(f => f.trim()).filter(f => f);
+            let finalHtml = '';
 
-            var comphtml = Handlebars.compile(componentHtml)(fldjson);
-            return comphtml;
+            fileNames.forEach((file, idx) => {
+                let extension = ReverseCheckSpecialChars(file).split('.').pop().toLowerCase();
+                let fileimg = this.getFileImgHTML(extension);
+
+                // Create HTML with unique custom ID
+                let fileHtml = componentHtml
+                    .replaceAll("{{customid}}", `fileattached${index}_${idx}`)
+                    .replace("{{componentimg}}", fileimg);
+
+                let fileData = {
+                    ...fldjson,
+                    v: _entityCommon.replaceSpecialChars(file)
+                };
+
+                finalHtml += Handlebars.compile(fileHtml)(fileData);
+            });
+
+            return finalHtml;
         }
         return "";
-
     }
     getclassname(comphtml, compfldwidth) {
-        var tempElement = document.createElement('div');
-        tempElement.style.visibility = 'hidden';
-        tempElement.style.whiteSpace = 'pre';
-        tempElement.style.position = 'absolute';
-        tempElement.style.left = '-9999px';
-        document.body.appendChild(tempElement);
-        tempElement.textContent = comphtml;
-        var contentWidth = tempElement.getBoundingClientRect().width;
-        document.body.removeChild(tempElement);
-
-        //console.log('Width of input value:', contentWidth, 'pixels');
-
         var classval = "";
         if (compfldwidth == "" || compfldwidth == undefined || compfldwidth == null) {
-            if (contentWidth > 375 && contentWidth < 800) {
-                classval = "col-lg-8 Eform_Display_Items";
-            } else if (contentWidth > 800) {
-                classval = "col-lg-12 Eform_Display_Items";
+            if (comphtml.length > 50) {
+                classval = "col-xl-12 col-lg-12 Eform_Display_Items";
+            } else if (comphtml.length > 30) {
+                classval = "col-xl-6 col-lg-8 Eform_Display_Items";
             } else {
-                classval = "col-lg-6 Eform_Display_Items";
+                classval = "col-xl-3 col-lg-4 Eform_Display_Items";
             }
             return classval;
         } else {
@@ -2469,15 +2085,30 @@ class EntityForm {
         var src = this.getScriptsPath() + "/" + filename;
         ASB.WebService.LoadAxpFileToScript(filepath, filename, CallBackOnAxpFile);
 
-        function CallBackOnAxpFile() {
-            src = unescape(src); //to show decode special characters
-            var idx = src.lastIndexOf("/");
-            if (idx > -1) src = src.substring(0, idx + 1) + encodeURIComponent(src.substring(idx + 1, src.length));
-            if (isMobile) {
-                let _fileName = src.match(/\/([^\/?#]+)$/)[1];
-                OpenPdfFile(_fileName, "", "", "", false);
+        function CallBackOnAxpFile(furesult, eventArgs) {
+            if (typeof furesult != "undefined" && furesult != "" && furesult.indexOf("true:") > -1) {
+                let newFileName = furesult.startsWith("true:") ? furesult.substring(5) : furesult;
+                let lastSlashIndex = src.lastIndexOf("/");
+                let updatedSrc = src.substring(0, lastSlashIndex + 1) + newFileName;
+                src = unescape(updatedSrc);
+                var idx = src.lastIndexOf("/");
+                if (idx > -1) src = src.substring(0, idx + 1) + encodeURIComponent(src.substring(idx + 1, src.length));
+                if (isMobile) {
+                    let _fileName = src.match(/\/([^\/?#]+)$/)[1];
+                    OpenPdfFile(_fileName, "", "", "", false);
+                } else {
+                    window.open(src, "GridUploadFile", "width=500,height=350,scrollbars=no,resizable=yes");
+                }
             } else {
-                window.open(src, "GridUploadFile", "width=500,height=350,scrollbars=no,resizable=yes");
+                src = unescape(src); //to show decode special characters
+                var idx = src.lastIndexOf("/");
+                if (idx > -1) src = src.substring(0, idx + 1) + encodeURIComponent(src.substring(idx + 1, src.length));
+                if (isMobile) {
+                    let _fileName = src.match(/\/([^\/?#]+)$/)[1];
+                    OpenPdfFile(_fileName, "", "", "", false);
+                } else {
+                    window.open(src, "GridUploadFile", "width=500,height=350,scrollbars=no,resizable=yes");
+                }
             }
         }
 
@@ -2492,15 +2123,30 @@ class EntityForm {
         
         ASB.WebService.LoadAxpFileToScript(axpPath, pathSrc, CallBackOnAxpFile);
 
-        function CallBackOnAxpFile() {
-            src = unescape(src); //to show decode special characters
-            var idx = src.lastIndexOf("/");
-            if (idx > -1) src = src.substring(0, idx + 1) + encodeURIComponent(src.substring(idx + 1, src.length));
-            if (isMobile) {
-                let _fileName = src.match(/\/([^\/?#]+)$/)[1];
-                OpenPdfFile(_fileName, "", "", "", false);
+        function CallBackOnAxpFile(furesult, eventArgs) {
+            if (typeof furesult != "undefined" && furesult != "" && furesult.indexOf("true:") > -1) {
+                let newFileName = furesult.startsWith("true:") ? furesult.substring(5) : furesult;
+                let lastSlashIndex = src.lastIndexOf("/");
+                let updatedSrc = src.substring(0, lastSlashIndex + 1) + newFileName;
+                src = unescape(updatedSrc);
+                var idx = src.lastIndexOf("/");
+                if (idx > -1) src = src.substring(0, idx + 1) + encodeURIComponent(src.substring(idx + 1, src.length));
+                if (isMobile) {
+                    let _fileName = src.match(/\/([^\/?#]+)$/)[1];
+                    OpenPdfFile(_fileName, "", "", "", false);
+                } else {
+                    window.open(src, "GridUploadFile", "width=500,height=350,scrollbars=no,resizable=yes");
+                }
             } else {
-                window.open(src, "GridUploadFile", "width=500,height=350,scrollbars=no,resizable=yes");
+                src = unescape(src); //to show decode special characters
+                var idx = src.lastIndexOf("/");
+                if (idx > -1) src = src.substring(0, idx + 1) + encodeURIComponent(src.substring(idx + 1, src.length));
+                if (isMobile) {
+                    let _fileName = src.match(/\/([^\/?#]+)$/)[1];
+                    OpenPdfFile(_fileName, "", "", "", false);
+                } else {
+                    window.open(src, "GridUploadFile", "width=500,height=350,scrollbars=no,resizable=yes");
+                }
             }
         }
 
@@ -2661,14 +2307,14 @@ class EntityForm {
     setSelectedRelatedFields() {
         let _this = this;
         let url = "../aspx/EntityForm.aspx/SetSelectedRelatedDataFieldsWS";
-        let data = { transId: _this.entityTransId, fields: _this.selectedRelatedDataFields };
+        let data = { transId: _this.entityTransId, fields: _this.relatedDataFields };
         this.callAPI(url, data, true, result => {
             if (result.success) {
-                _subEntity.reloadEntityPage();
-                ShowDimmer(false);
+                _entityForm.reloadEntityPage();
+                ShowHideDimmer(false);
             } else {
 
-                ShowDimmer(false);
+                ShowHideDimmer(false);
             }
         });
     }
@@ -2677,24 +2323,827 @@ class EntityForm {
     setSelectedDisplayFields() {
         let _this = this;
         let url = "../aspx/EntityForm.aspx/SetSelectedDisplayFieldsWS";
-        let data = { transId: _this.entityTransId, fields: _this.selectedDisplayFields, gridFields: _this.selectedDisplayGridFields };
+        let data = { transId: _this.entityTransId, fields: _this.relatedDataDisplayFields, gridFields: _this.relatedDataDisplayGridFields };
         this.callAPI(url, data, true, result => {
             if (result.success) {
-                _subEntity.reloadEntityPage();
-                ShowDimmer(false);
+                _entityForm.reloadEntityPage();
+                ShowHideDimmer(false);
             } else {
 
-                ShowDimmer(false);
+                ShowHideDimmer(false);
             }
         });
     }
 
+    getSubEntityInitials(caption) {
+        let initials = '';
+        const words = caption.split(' ');
+
+        if (words.length === 1) {
+            if (words[0].length == 1)
+                initials = words[0].charAt(0);
+            else
+                initials = words[0].charAt(0) + words[0].charAt(1);
+        } else if (words.length === 2) {
+            initials = words[0].charAt(0) + words[1].charAt(0);
+        } else if (words.length >= 3) {
+            initials = words[0].charAt(0) + words[1].charAt(0);
+        }
+
+        return initials.toUpperCase();
+    }
+
+    renderConnectedData(listJson, transId) {
+        let _this = this;
+        let html = '';
+    
+        const filteredRows = listJson;
+        Object.keys(_this.subEntityMapping).forEach(subEnt => {
+            if (!_this.entityWiseFields[subEnt]) {
+                $.each(_this.metaData.filter(i => i.ftransid === subEnt), function (index, field) {
+                    _this.populateEntityWiseFlds(index, field);
+                });
+
+                var cancelFld = {
+                    "ftransid": subEnt,
+                    "fcaption": _this.entityName,
+                    "fldname": "cancel",
+                    "fldcap": "Cancelled?",
+                    "cdatatype": "DropDown",
+                    "fdatatype": "c",
+                    "fmodeofentry": "accept",
+                    "hide": "F",
+                    "props": null,
+                    "normalized": "F",
+                    "allowempty": "T",
+                    "filtertype": "Text",
+                    "tablename": "",
+                    "dcname": "dc1"
+                };
+
+                var cancelRemarksFld = {
+                    "ftransid": subEnt,
+                    "fcaption": _this.entityName,
+                    "fldname": "cancelremarks",
+                    "fldcap": "Cancel Remarks",
+                    "cdatatype": "Text",
+                    "fdatatype": "c",
+                    "fmodeofentry": "accept",
+                    "hide": "F",
+                    "props": null,
+                    "normalized": "F",
+                    "allowempty": "T",
+                    "filtertype": "Text",
+                    "tablename": "",
+                    "dcname": "dc1"
+                };
+
+                _this.entityWiseMetaData[subEnt]["cancel"] = cancelFld;
+                _this.entityWiseMetaData[subEnt]["cancelremarks"] = cancelRemarksFld;
+
+                _this.entityWiseFields[subEnt].otherElements.push(cancelFld);
+                _this.entityWiseFields[subEnt].otherElements.push(cancelRemarksFld);
+            }
+        });
+    
+        let customRender = false;
+        try {
+            customRender = AxRenderConnectedDataCustom(_this, listJson, transId);
+        } catch {
+            customRender = false;
+        }
+    
+        if (customRender) return;
+    
+        if (filteredRows.length === 0) {
+            html += `<p>No records found.</p>`;
+            $(`#sub-entitycontainer-${transId} .body_Container`).append(html);
+            return;
+        }
+    
+        html += `<div style="overflow-x: auto; max-width: 100%; white-space: nowrap;">`;
+        html += `<table id="subEntityTable_${transId}" class="table table-striped table-bordered">`;
+    
+        let firstRow = filteredRows[0];
+        let validFields = Object.keys(firstRow).filter(field => ![
+            "projectid", "axpeg_processname", "axpeg_keyvalue", "axpeg_status",
+            "axpeg_statustext", "rno", "pageno", "transid", "recordid",
+            "modifiedby", "modifiedon", "createdon", "createdby", "cancel", "cancelremarks"
+        ].includes(field));
+    
+        html += `<thead><tr>`;
+        html += `<th>Actions</th>`;
+
+        var excludedFields = [];
+        validFields.forEach(field => {
+            if (typeof _this.entityWiseMetaData[transId]?.[field] == "undefined")
+                excludedFields.push(field);
+            else {
+                let fieldCaption = _this.entityWiseMetaData[transId]?.[field]?.fldcap ?? "";
+                html += `<th>${fieldCaption}</th>`;
+            }
+        });
+        html += `<th>Cancelled?</th><th>Cancel Remarks</th>`;
+        html += `</tr></thead>`;
+    
+        html += `<tbody>`;
+    
+        for (let rowData of filteredRows) {
+            let keyCol = _this.subEntityMapping[rowData.transid].keycol;
+    
+            if (!rowData.hasOwnProperty(keyCol)) {
+                keyCol = _this.getKeyField(rowData.transid).fldname;
+                if (_entityCommon.inValid(rowData[keyCol]))
+                    keyCol = Object.keys(rowData)[4];
+    
+                _this.subEntityMapping[rowData.transid].keycol = keyCol;
+            }
+    
+            rowData.keycol = keyCol;
+    
+            const axpdef_keycol = rowData[keyCol];
+            const subEntityCaption = _this.subEntityList[rowData.transid];
+            const subEntityVal = _this.getSubEntityInitials(subEntityCaption);
+    
+            html += `<tr>`;
+            html += `<td style="display: flex; justify-content: center; gap: 10px;">`;
+    
+            html += `<button type="button" class="btn btn-icon btn-white btn-color-gray-600 btn-active-primary shadow-sm tb-btn btn-sm" 
+                        data-bs-toggle="tooltip" title="View" 
+                        onclick="_entityForm.openEntityForm('${_this.subEntityList[rowData.transid]}', '${rowData.transid}', '${rowData.recordid}', '${axpdef_keycol}', ${rowData.rno})">
+                        <span class="material-icons" style="color:red;">visibility</span>
+                     </button>`;
+    
+            html += `<button type="button" class="btn btn-icon btn-white btn-color-gray-600 btn-active-primary shadow-sm tb-btn btn-sm" 
+                        data-bs-toggle="tooltip" title="Edit" 
+                        onclick="_entityForm.editSubEntity('${rowData.transid}','${rowData.recordid}'); return false;">
+                        <span class="material-icons material-icons-style material-icons-2" style="color:red;">edit_note</span>
+                     </button>`;
+    
+            html += `</td>`;
+    
+            validFields.forEach(field => {
+                if (excludedFields.indexOf(field) == -1) {
+                    let cellValue = rowData[field] != null ? rowData[field] : '';
+                    let fieldMeta = _this.entityWiseMetaData[transId]?.[field];
+
+                    // Check if the field's customdatatype is Currency or numeric
+                    const isNumeric = !isNaN(parseFloat(cellValue)) && isFinite(cellValue);
+                    const isCurrency = fieldMeta?.cdatatype === "Currency";
+                    const isDate = fieldMeta?.cdatatype === "Date";
+
+                    // Apply formatting based on customdatatype
+                    if (isCurrency) {
+                        cellValue = _entityCommon.inValid(cellValue) ? "--" : formmatingtoillions(cellValue, fieldMeta);
+                    } else if (isDate) {
+                        cellValue = formatDateString(cellValue);
+                    }
+
+                    // Add a class for right alignment if the field is numeric or currency
+                    const alignClass = (isNumeric || isCurrency) ? 'align-right' : '';
+
+                    html += `<td class="${alignClass}">${cellValue}</td>`;
+                }
+            });
+
+            ["cancel", "cancelremarks"].forEach(field => {
+                if (excludedFields.indexOf(field) == -1) {
+                    let cellValue = rowData[field] != null ? rowData[field] : '';
+
+                    if (field == "cancel") {
+                        cellValue = ` <div class="form-check">
+                            <input class="form-check-input" type="checkbox" ${cellValue === 'T' ? 'checked' : ''} disabled>
+                        </div>`;
+                    } 
+
+                    html += `<td>${cellValue}</td>`;
+                }
+            });
+    
+            html += `</tr>`;
+        }
+    
+        html += `</tbody></table>`;
+        html += `</div>`;
+    
+        $(`#sub-entitycontainer-${transId} .body_Container`).append(html);
+    
+        setTimeout(() => {
+            $(`#subEntityTable_${transId}`).DataTable({
+                paging: true,
+                searching: true,
+                info: false,
+                scrollX: true,
+                columnDefs: [{ targets: '_all', className: 'dt-center' }]
+            });
+        }, 0);
+    
+        initReadMore();
+        KTMenu.init();
+        $('[data-toggle="tooltip"]').tooltip();
+    }
+
+    constructConnectedDataAccordions(dataJson) {
+        let _this = this;
+        let accordionHtml = '';
+        dataJson.forEach(data => {
+            let item = JSON.parse(data.data_json)[0];
+            if (item.totrec != 0) {
+                //html +=
+                //    `<div class="col-xl-12 col-lg-12 col-sm-12 Invoice-content-wrap rightpanel-connecteddata-accordion" data-transid="${item.transid}">
+                //        <a href="#" class="Invoice-item accordion-header accordion-button fs-4 fw-semibold collapsed" data-bs-toggle="collapse" data-bs-target="#kt_accordion_connecteddata_${item.transid}" aria-expanded="false" aria-controls="kt_accordion_connecteddata_${item.transid}">
+                //            <div class="Invoice-icon">
+                //                <span class="material-icons material-icons-style material-icons-2">account_tree</span>
+                //            </div>
+                //            <div class="Invoice-content">
+                //                <h6 class="subtitle">${_this.subEntityList[item.transid]}</h6>
+                //                <h3 class="title">${item.totrec}</h3>
+                //            </div>
+                //        </a>
+                //        <div id="kt_accordion_connecteddata_${item.transid}" class="accordion-collapse collapse" aria-labelledby="kt_accordion_connecteddata_${item.transid}">
+                //            <div class="cc-metrics-panel">
+                //                <div class="cc-metrics-list">               
+                //                </div>
+                //            </div>
+                //        </div>
+                //    </div> `;
+
+                const subEntityCaption = _this.subEntityList[item.transid];
+                accordionHtml += Handlebars.compile(_this.connectedData.accordionWrapper)({ caption: subEntityCaption, transid: item.transid, totrec: item.totrec })
+            }
+        });
+
+
+        //if (html) {
+        //    document.querySelector('#KPI-2 .row').insertAdjacentHTML("afterbegin", html);
+        //    document.querySelector('#KPI-2').classList.remove("d-none");
+        //    document.querySelector('#NO-KPI-Items').classList.add("d-none");
+        //}
+
+        if (accordionHtml) {
+            document.querySelector('#KPI-2').classList.remove("d-none");
+            document.querySelector('#NO-KPI-Items').classList.add("d-none");
+            document.querySelector('#entityform-container').insertAdjacentHTML("beforeend", accordionHtml);            
+        }
+
+        _this.bindAccordionExpandEvent();
+    }
+
+    constructCustomHyperLinkAccordions() {       
+        let _this = this;        
+        let html = ``;       
+
+        document.querySelector('#KPI-2').classList.remove("d-none");
+        document.querySelector('#NO-KPI-Items').classList.add("d-none");
+        document.querySelector('.right-customhyperlinks').classList.remove("d-none");
+
+        _this.customHyperLinks.forEach(link => {
+            html +=
+                `<div class="cc-metrics-item">
+                    <div class="cc-metrics-label">                        
+                        <a href="javascript:void(0)" onclick="_entityCommon.navigateToUrl('${link.link}')">${link.hyperlinkcaption}</a>
+                    </div>
+                </div>`;
+        })
+
+        $("#kt_accordion_connecteddata_hyperlinks .cc-metrics-list").append(html);
+        
+    }
+
+    constructCustomDataSourceAccordion() {
+        let _this = this;
+        var input = {
+            adsNames: ["cdp_" + _this.entityTransId],
+            sqlParams: {}
+        };
+        
+        _entityCommon.getDataFromAxList(input, (result) => {
+            //Success callback
+            var data = JSON.parse(result).result.data[0].data;
+
+            if (data.length > 0) {
+                let html = ``;
+                document.querySelector('#KPI-2').classList.remove("d-none");
+                document.querySelector('#NO-KPI-Items').classList.add("d-none");
+                document.querySelector('.right-customdatasource').classList.remove("d-none");
+
+                data.forEach(item => {
+                    html +=
+                        `<div class="cc-metrics-item">
+                        <div class="cc-metrics-label">
+                            ${item.name}
+                        </div>
+                        <div class="cc-metrics-value">
+                            <a href="javascript:void(0)" onclick="_entityForm.navigateToUrl('${item.link}')">${item.value}</a>
+                        </div>
+                     </div>`;
+                })
+
+                $("#kt_accordion_connecteddata_datasource .cc-metrics-list").append(html);
+            }            
+        }, () => {
+            //Error callback
+        })
+
+            
+
+    }
+
+    openConnectedDataConfiguration() {
+        let _this = this;
+        $('#connectedDataConfigModal').modal('show');
+        if (!$('#connectedDataConfigModal').hasClass("content-loaded"))
+            _this.createConnectedDataConfigLayout();
+    }
+
+    closeConnectedDataConfiguration() {
+        $('#connectedDataConfigModal').modal('hide');        
+    }
+
+    createConnectedDataConfigLayout() {
+        let _this = this;
+        let html = ``;
+
+        //_this.createOtherDataFieldsLayout()
+
+        Object.keys(_this.subEntityList).forEach(transId => {
+            var tab = Handlebars.compile(_this.connectedData.tabMenu)({ transid : transId, caption: _this.subEntityList[transId] });
+            $('#connectedDataTabMenu').append(tab);
+
+            var tabBody = Handlebars.compile(_this.connectedData.tabBody)({ transid: transId, caption: _this.subEntityList[transId] });
+            $('#connectedDataTabBody').append(tabBody);
+
+            _this.constructedConnectedDataFieldsList(transId);
+        })
+
+        _this.constructCustomHyperlinksContainer();
+
+        Object.keys(_this.connectedDataFields).forEach(transId => {
+            const fields = _this.connectedDataFields[transId];
+
+            fields.forEach(item => {
+                const { fieldname, condition } = item;
+                const checkboxId = `chk_${condition}_${fieldname}`;
+                const checkbox = document.getElementById(checkboxId);
+                if (checkbox && checkbox.getAttribute('data-transid') === transId) {
+                    checkbox.checked = true;
+                }
+            });
+        });
+
+        $('#connectedDataConfigModal').addClass("content-loaded");
+        $("#connectedDataConfigModal #connectedDataTabMenu .nav-link")?.[0]?.click();
+    }
+
+    constructedConnectedDataFieldsList(transId) {
+        let _this = this;
+        var fields = _this.metaData.filter(item => item.ftransid === transId && item.aggfield === "T" && item.hide === "F" && item.griddc == "F");
+        const groupedFields = {};
+        fields.forEach(field => {
+            if (!groupedFields[field.dcname]) {
+                groupedFields[field.dcname] = [];
+            }
+            groupedFields[field.dcname].push(field);
+        });
+
+        var html = '';
+        Object.entries(groupedFields).forEach(([dc, dcFields]) => {
+            let collapsed = false;
+
+            let dcName = _entityForm.entityFormJson.metadata.find(item => item.fname == dc).caption || dc;
+            html += `
+        <div class="card KC_Items">
+            <div class="card-header collapsible cursor-pointer rotate  ${collapsed ? "collapsed" : ""}" data-bs-toggle="collapse" aria-expanded="true" data-bs-target="#conn-fields-${dc}">
+                <h3 class="card-title">${dcName} (${dc})</h3>
+                <div class="card-toolbar rotate-180">
+                    <span class="material-icons material-icons-style material-icons-2">
+                        expand_circle_down
+                    </span>
+                </div>
+            </div>
+            <div class="KC_Items_Content collapse ${collapsed ? "" : "show"} heightControl pt-0---" id="conn-fields-${dc}">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>Field Name</th>
+                        <th>Sum</th>
+                        <th>Avg</th>
+                    </tr>
+                </thead>
+                <tbody>`;
+
+            dcFields.forEach(fld => {
+                html +=
+                    `<tr>
+                        <td><label for="chk_${fld.fldname}">${fld.fldcap ?? ""} (${fld.fldname})</label></td>
+                        <td><input type="checkbox" id="chk_sum_${fld.fldname}" class="chk-sum" value="sum_${fld.fldname}" data-dcname="${dc}" data-transid="${fld.ftransid}" data-fieldname="${fld.fldname}" data-condition="sum"></td>
+                        <td><input type="checkbox" id="chk_avg_${fld.fldname}" class="chk-avg" value="avg_${fld.fldname}" data-dcname="${dc}" data-transid="${fld.ftransid}" data-fieldname="${fld.fldname}" data-condition="avg"></td>
+                    </tr>`;
+
+            })
+            html += `</tbody></table></div></div>`;
+        })
+
+        if(html)
+            $(`#connecteddata-fieldslist-${transId}`).html(html);
+        else
+            $(`#connecteddata-fieldslist-${transId}`).html(`No fields availabe for configuration.`);       
+    }
+
+    constructCustomHyperlinksContainer() {
+        let _this = this;
+        var hyperlinkGridBody = $('#hyperlinkGridBody');
+        var addRowBtn = $('#addRowBtn');
+    
+        function addRow(hyperlink = {}) {
+            var newRow = `
+                <tr>
+                    <td class="serial-number">${hyperlinkGridBody.find('tr').length + 1}</td>
+                    <td>
+                        <input type="text" class="form-control hyperlink-name" 
+                               placeholder="Hyperlink Name" 
+                               value="${hyperlink.hyperlinkcaption || ''}" required>
+                    </td>
+                    <td>
+                        <input type="text" class="form-control link-url" 
+                               placeholder="Enter Link" 
+                               value="${hyperlink.link || ''}" required>
+                    </td>
+                    <td class="text-center">
+                        <button class="btn btn-sm delete-row" type="button">
+                            <i class="material-icons">delete</i>
+                        </button>
+                    </td>
+                </tr>
+            `;
+            hyperlinkGridBody.append(newRow);
+            updateDeleteButtonState();
+        }
+    
+        addRow();
+    
+        if (_this.customHyperLinks?.length > 0) {
+            try {
+                hyperlinkGridBody.empty();
+                _this.customHyperLinks.forEach(function (hyperlink) {
+                    addRow(hyperlink);
+                });
+            } catch (error) {
+                alert('Invalid JSON: ' + error.message);
+            }
+        }
+    
+        addRowBtn.on('click', function () {
+            addRow();
+        });
+    
+        hyperlinkGridBody.on('click', '.delete-row', function () {
+            if (hyperlinkGridBody.find('tr').length > 1) {
+                $(this).closest('tr').remove();
+                reorderSerialNumbers();
+                updateDeleteButtonState();
+            }
+        });
+    
+        function reorderSerialNumbers() {
+            hyperlinkGridBody.find('tr').each(function (index) {
+                $(this).find('.serial-number').text(index + 1);
+            });
+        }
+    
+        function updateDeleteButtonState() {
+            var deleteButtons = hyperlinkGridBody.find('.delete-row');
+            deleteButtons.prop('disabled', hyperlinkGridBody.find('tr').length <= 1);
+        }
+    }
+    
+
+    getCustomHyperLinksJSON() {
+        var hyperlinkGridBody = $('#hyperlinkGridBody');
+        var hyperlinks = [];
+
+        // Validate inputs
+        hyperlinkGridBody.find('tr').each(function () {
+            var hyperlinkName = $(this).find('.hyperlink-name').val().trim();
+            var linkUrl = $(this).find('.link-url').val().trim();
+
+            if (hyperlinkName && linkUrl) {
+                hyperlinks.push({
+                    "hyperlinkcaption": hyperlinkName,
+                    "link": linkUrl
+                });
+            }           
+        });
+
+        return hyperlinks;
+
+    }
+
+    getConnectedDataSelectionJSON() {
+        const result = {};
+        
+        const checkboxes = document.querySelectorAll('.chk-sum:checked, .chk-avg:checked');
+
+        checkboxes.forEach(checkbox => {
+            const transId = checkbox.getAttribute('data-transid');
+            const fieldName = checkbox.getAttribute('data-fieldname');
+            const condition = checkbox.getAttribute('data-condition');
+
+            if (!result[transId]) {
+                result[transId] = [];
+            }
+
+            result[transId].push({
+                fieldname: fieldName,
+                condition: condition
+            });
+        });
+
+        return result;
+    }
+
+    getSelectedRelatedDataFieldsSelection() {
+        let _this = this;
+        let selectedFields = document.querySelectorAll(".chk-relateddataflds:checked");
+
+        // Check if no checkboxes are selected
+        if (selectedFields.length === 0) {
+            showAlertDialog("error", "Error: No fields are selected.");
+            return; // Exit the function
+        }
+
+        let fields = "";
+        let isDc1FldSelected = false;
+        selectedFields.forEach((field) => {
+            const fieldName = field.value;
+            const dcName = field.dataset.dcname;
+            if (!isDc1FldSelected)
+                isDc1FldSelected = (field.dataset.dcname === "dc1");
+
+            fields += `${dcName}~${fieldName},`;
+        });
+
+        if (!isDc1FldSelected) {
+            showAlertDialog("error", "Error: No DC1 fields are selected. Please select atleast one DC1 field.");
+            return;
+        }
+
+        if (fields.endsWith(","))
+            fields = fields.substr(0, fields.length - 1);
+
+        _this.relatedDataFields = fields;
+
+        selectedFields = document.querySelectorAll(".chk-displayflds:checked");
+
+        fields = "";
+        selectedFields.forEach((field) => {
+            const fieldName = field.value;
+            const dcName = field.dataset.dcname;
+            fields += `${dcName}~${fieldName},`;
+        });
+
+        if (fields.endsWith(","))
+            fields = fields.substr(0, fields.length - 1);
+
+        let fldsStr = "";
+        let gridFldsStr = "";
+        let groupedSelectedFlds = {}
+        selectedFields.forEach((field) => {
+            let dcName = `${field.dataset.dcname}~${field.dataset.griddc}`;
+            if (!groupedSelectedFlds[dcName])
+                groupedSelectedFlds[dcName] = [];
+
+            const fieldName = field.value;
+            groupedSelectedFlds[dcName].push(fieldName);
+        });
+
+        Object.entries(groupedSelectedFlds).forEach(([dcName, fields]) => {
+            let isGridDc = dcName.split("~")[1] == "T";
+            const tempFldData = _entityForm.metaData.find(item => item.fldname === fields[0] && item.ftransid == _entityForm.entityTransId);
+            if (!isGridDc) {
+                fldsStr += `${tempFldData.tablename}=`;
+
+                fields.forEach(fld => {
+                    const fieldData = _entityForm.metaData.find(item => item.fldname === fld && item.ftransid == _entityForm.entityTransId);
+                    fldsStr += `${fieldData.fldname}~${fieldData.normalized}~${fieldData.srctable || ""}~${fieldData.srcfield || ""}~${fieldData.allowempty}|`;
+                });
+                if (fldsStr.endsWith("|"))
+                    fldsStr = fldsStr.substr(0, fldsStr.length - 1);
+
+                fldsStr += `^`;
+            }
+            else {
+                gridFldsStr += `${tempFldData.tablename}=`;
+
+                fields.forEach(fld => {
+                    const fieldData = _entityForm.metaData.find(item => item.fldname === fld);
+                    gridFldsStr += `${fieldData.fldname}~${fieldData.normalized}~${fieldData.srctable || ""}~${fieldData.srcfield || ""}~${fieldData.allowempty}|`;
+                });
+                if (gridFldsStr.endsWith("|"))
+                    gridFldsStr = gridFldsStr.substr(0, gridFldsStr.length - 1);
+
+                gridFldsStr += `^`;
+            }
+        });
+
+        if (fldsStr.endsWith("^"))
+            fldsStr = fldsStr.substr(0, fldsStr.length - 1);
+
+        if (gridFldsStr.endsWith("^"))
+            gridFldsStr = gridFldsStr.substr(0, gridFldsStr.length - 1);
+
+
+        _this.relatedDataDisplayFields = fldsStr;
+        _this.relatedDataDisplayGridFields = gridFldsStr;
+    }
+
+    resetConnectedDataConfig() {
+        if (!confirm("Reset the selections?"))
+            return;
+
+        let _this = this;
+        var data = {
+            page: "ENTITY_FORM",
+            transId: _this.entityTransId,
+            properties: {
+                "CONNECTEDDATA_CONFIG": JSON.stringify({
+                    "HYPERLINKS": [],
+                    "CONNECTEDDATA_METRICS": {},
+                    "RELATEDDATAFIELDS": "",
+                    "DISPLAYFIELDS": "",
+                    "DISPLAYGRIDFIELDS": ""
+                })
+                
+            },
+            confirmNeeded: true,
+            allUsers: true
+        };
+
+        _entityCommon.setAnalyticsDataWS(data, () => {
+            showAlertDialog("success", "Changes applied successfully");
+            _this.reloadEntityPage();
+        }, (error) => {
+            showAlertDialog("error", error.status + " " + error.statusText);
+        });
+
+    }
+
+    applyConnectedDataConfig() {
+        let _this = this;
+        //_this.getSelectedRelatedDataFieldsSelection();
+        var data = {
+            page: "ENTITY_FORM",
+            transId: _this.entityTransId,
+            properties: {
+                "CONNECTEDDATA_CONFIG": JSON.stringify({
+                    "HYPERLINKS": _this.getCustomHyperLinksJSON() || [],
+                    "CONNECTEDDATA_METRICS": _this.getConnectedDataSelectionJSON() || {},
+                    "RELATEDDATAFIELDS": "", //_this.relatedDataFields,
+                    "DISPLAYFIELDS": "", // _this.relatedDataDisplayFields,
+                    "DISPLAYGRIDFIELDS": "", //_this.relatedDataDisplayGridFields
+                })
+            },
+            confirmNeeded: true,
+            allUsers: true
+        };
+
+        _entityCommon.setAnalyticsDataWS(data, () => {
+            showAlertDialog("success", "Changes applied successfully");
+            _this.reloadEntityPage();
+        }, (error) => {
+            showAlertDialog("error", error.status + " " + error.statusText);
+        });
+    }
+
+    createOtherDataFieldsLayout() {
+        let _this = this;
+        const fieldsContainer = document.getElementById("fields-selection");
+        var fields = _entityForm.metaData.filter(item => item.ftransid === _entityForm.entityTransId && item.hide === "F" && (item.cdatatype === "DropDown" || item.fdatatype == "c" || item.fdatatype == "d"));
+        const groupedFields = {};
+        fields.forEach(field => {
+            if (!groupedFields[field.dcname]) {
+                groupedFields[field.dcname] = [];
+            }
+            groupedFields[field.dcname].push(field);
+        });
+
+        var html = '';
+        Object.entries(groupedFields).forEach(([dc, dcFields]) => {
+            let collapsed = false;
+
+            let dcName = _entityForm.entityFormJson.metadata.find(item => item.fname == dc).caption || dc;
+            html += 
+                `<div class="card KC_Items">
+                    <div class="card-header collapsible cursor-pointer rotate  ${collapsed ? "collapsed" : ""}" data-bs-toggle="collapse" aria-expanded="true" data-bs-target="#rel-fields-${dc}">
+                        <h3 class="card-title">${dcName} (${dc})</h3>
+                        <div class="card-toolbar rotate-180">
+                            <span class="material-icons material-icons-style material-icons-2">
+                                expand_circle_down
+                            </span>
+                        </div>
+                    </div>
+                    <div class="KC_Items_Content collapse ${collapsed ? "" : "show"} heightControl pt-0---" id="rel-fields-${dc}">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Field Name</th>
+                                <th>Show in right data panel</th>
+                                <th>Show in data panel listing </th>
+                            </tr>
+                        </thead>
+                        <tbody id="fields-table-body">`;
+
+            dcFields.forEach(fld => {
+                html +=
+                    `<tr>                        
+                        <td><label>${fld.fldcap ?? ""} (${fld.fldname})</label></td>
+                        <td><input type="checkbox" id="chk_${fld.fldname}" class="chk-fields chk-relateddataflds" value="${fld.fldname}" data-dcname="${dc}"></td>
+                        <td><input type="checkbox" id="chkdisp_${fld.fldname}" class="chk-fields chk-displayflds" value="${fld.fldname}" data-dcname="${dc}"></td>
+                    </tr>`;
+
+            })
+            html += `</tbody></table></div></div>`;
+
+        })
+
+        fieldsContainer.innerHTML = html;
+
+        if (_this.relatedDataFields !== "") {
+            _this.relatedDataFields.split(",").forEach(fld => {
+                var fldName = fld.split("~")[1];
+                document.querySelector(`#chk_${fldName}`).checked = true;
+            });
+        }
+
+        if (_this.relatedDataDisplayFields !== "") {
+            _this.relatedDataDisplayFields.split("^").forEach(dc => {
+                dc.split("|").forEach(fld => {
+                    var fldName = (fld.indexOf("=") > -1) ? fld.split("~")[0].split('=')[1] : fld.split("~")[0];
+                    document.querySelector(`#chkdisp_${fldName}`).checked = true;
+                });
+            });
+        }
+
+    }
+
+    fetchFilteredData(fldId, fldVal, dcName, gridDc, rowNo) {
+        let _this = this;
+        var tmpFld = _this.metaData.find(item => item.fldname === fldId && item.ftransid === _this.entityTransId)
+        let isListingFld = "F";
+        if (_this.relatedDataDisplayFields.indexOf(`=${fldId}~`) > -1 || _this.relatedDataDisplayFields.indexOf(`|${fldId}~`) > -1 || (dcName == "dc1" && (_this.relatedDataDisplayFields == "All" || _this.relatedDataDisplayFields == "")))
+            isListingFld = "T";
+        var filterStr = `${fldId}~${tmpFld.normalized}~${tmpFld.srctable || ""}~${tmpFld.srcfield || ""}~${tmpFld.fdatatype || ""}~${isListingFld || "F"}~${tmpFld.tablename || ""}| = '${fldVal.toLowerCase()}'`;
+
+        _this.filter = filterStr;
+        _this.fields = _this.relatedDataDisplayFields || "All";
+        _this.getEntityListDataForOtherData(1, `${dcName}${rowNo}${fldId}`, gridDc);
+    }
+
+    getKeyField(transId) {
+        let _this = this;
+        if (_this.subEntityKeyFields && _this.subEntityKeyFields[transId]) {
+            return { "fldname": _this.subEntityKeyFields[transId] };
+        }
+
+        let metaData = _this.metaData.filter(item => item.ftransid === transId && item.hide === "F");
+
+        // Filter objects with "cdatatype": "Autogenerate"
+        const autoGenerateField = metaData.filter(item => item.cdatatype === "Auto Generate").find(item => typeof _this.entityFormJson.data.find(i => i.n == item.fldname)?.v != "undefined");
+        if (autoGenerateField) {
+            return autoGenerateField;
+        }
+
+        // Filter objects with hide = F and mandatory/allow empty = F and allowduplicate = F
+        const mandatoryUniqueFld = metaData.filter(item => item.allowempty === "F" && item.allowduplicate === "F").find(item => typeof _this.entityFormJson.data.find(i => i.n == item.fldname)?.v != "undefined");
+        if (mandatoryUniqueFld) {
+            return mandatoryUniqueFld;
+        }
+
+        // Filter objects with hide = F and mandatory/allow empty = F and allowduplicate = F
+        const uniqueFld = metaData.filter(item => item.allowduplicate === "F").find(item => typeof _this.entityFormJson.data.find(i => i.n == item.fldname)?.v != "undefined");
+        if (uniqueFld) {
+            return uniqueFld;
+        }
+
+        // Filter objects with hide = F and mandatory/allow empty = F
+        const mandatoryFld = metaData.filter(item => item.allowempty === "F").find(item => typeof _this.entityFormJson.data.find(i => i.n == item.fldname)?.v != "undefined");
+        if (mandatoryFld) {
+            return mandatoryFld;
+        }
+
+        var firstValueField = metaData.find(item => typeof _this.entityFormJson.data.find(i => i.n == item.fldname)?.v != "undefined")
+        if (firstValueField) {
+            return firstValueField;
+        }
+        return metaData[0];
+    }
 }
+
 function getCaption(fname) {
     var metadata = _entityForm.entityFormJson.metadata;
     for (var i = 0; i < metadata.length; i++) {
         if (metadata[i].fname === fname) {
-            return metadata[i].caption;
+            return metadata[i].caption ?? "";
         }
     }
     return null;
@@ -2709,152 +3158,12 @@ function getHiddenFlag(fname) {
     return null;
 }
 
-function createListHTML(listJson, pageNo) {
-    let html = '';
-    //resultHeaderJson = JSON.parse(jsonRowData);
-    const filteredRows = filterRowsByPage(listJson, pageNo);
-    // Iterate over the metadata array
-    Object.keys(_subEntity.subEntityMapping).forEach(subEnt => {
-        if (!_subEntity.entityWiseFields[subEnt]) {
-            $.each(_subEntity.metaData.filter(i => i.ftransid === subEnt), function (index, field) {
-                _entityForm.populateEntityWiseFlds(index, field);
-            })
-        }
-    });
-    
-
-
-    for (var rowData of filteredRows) {
-        let keyCol = _subEntity.subEntityMapping[rowData.transid].keycol;
-
-        if (!rowData.hasOwnProperty(keyCol)) {
-            keyCol = getKeyField(rowData.transid).fldname;
-            if (_subEntity.inValid(rowData[keyCol]))
-                keyCol = Object.keys(rowData)[4];
-
-            _subEntity.subEntityMapping[rowData.transid].keycol = keyCol;
-        }
-
-        rowData.keycol = keyCol;
-
-        const axpdef_keycol = rowData[keyCol];
-        const subEntityCaption = _subEntity.subEntityList[rowData.transid];
-        const subEntityVal = getSubEntityInitials(subEntityCaption);
-
-        html += `<div class="Project_items">
-                        <div class="card  ">
-                           <div class="col-xl-12 col-md-12 d-flex flex-column flex-column-fluid   ">`;
-        var rowButtonHTML = generateRowButtonHTML(rowData, rowData.transid);
-        html += ` <div class="page-Header">
-                                            <h3 class="card-title collapsible cursor-pointer rotate" data-bs-toggle="collapse"
-                                                aria-expanded="true" data-bs-target="#Sub-Entity_wrapper" >
-                                                <input class="Select-Project" type="checkbox" id="" name="" value="">
-                                                <div class="symbol symbol-25px symbol-circle initialized"  onclick="_subEntity.openEntityPage('${subEntityCaption}', '${rowData.transid}')" data-toggle="tooltip" title="${subEntityCaption}" data-bs-original-title="${subEntityCaption}">
-                                                            <span class="symbol-label bg-warning text-inverse-warning fw-bold" style="height:30px !important; width:30px !important;">${subEntityVal}</span>
-                                                        </div>
-                                                <span class="Project_title" onclick="_subEntity.openEntityForm('${subEntityCaption}', '${rowData.transid}', '${rowData.recordid}','${axpdef_keycol}',${rowData.rno})">${axpdef_keycol}</span>
-                                                <input type="hidden" id="transid_${rowData.recordid}" value="${rowData.transid}"/>
-                                                <input type="hidden" id="recid_${rowData.recordid}" value="${rowData.recordid}"/>
-                                                <div class="Project_updates">
-                                                    
-                                                </div>
-                                            </h3>
-                                            <div class="card-toolbar ">
-                                                <div class="d-flex ">
-                                                    <button type="submit" id="" class="btn btn-icon btn-white btn-color-gray-600 btn-active-primary shadow-sm tb-btn btn-sm me-3" data-bs-toggle="tooltip" title="" data-bs-original-title="edit" onclick="_subEntity.editSubEntity('${rowData.transid}','${rowData.recordid}')">
-                                                        <span class="material-icons material-icons-style material-icons-2" style="color: red;">
-                                                        edit_note
-                                                        </span>
-                                                    </button>
-                                                    <button type="button" id="" class="btn btn-icon btn-white btn-color-gray-600 btn-active-primary shadow-sm  tb-btn btn-sm d-none" data-kt-menu-trigger="{default:'click', lg: 'hover'}" data-kt-menu-attach="parent" data-kt-menu-placement="bottom-end">
-                                                       <span class="material-icons material-icons-style material-icons-2" style="color: #47BE7D;">
-                                                        more_vert
-                                                        </span>
-                                                    </button>
-                                                    <div id="selectThemes" class="menu menu-sub menu-sub-dropdown menu-column menu-rounded menu-title-gray-700 menu-icon-gray-500 menu-active-bg menu-state-color fw-semibold py-4 fs-base w-150px" data-kt-menu="true" data-kt-element="theme-mode-menu">
-                                                      ${rowButtonHTML}
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>`;
-        // Modified BY Section (relative date & time)
-        if (!_subEntity.inValid(rowData.modifiedby)) {
-            var entity_realtiveTime = moment(rowData.modifiedon).fromNow();
-            html += `<div class="workflow-row">
-                                            <div class=" workflow-items">
-											<div class="symbol symbol-25px symbol-circle initialized d-none"
-                                                             data-bs-toggle="tooltip" title="" data-bs-original-title="${rowData.modifiedby
-                }">
-                                                            <span class="symbol-label bg-warning text-inverse-warning fw-bold">${rowData
-                    .modifiedby[0]
-                }</span>
-                                                        </div>
-                                                        <span class="txt-bold Project_updates-value">${rowData.modifiedby
-                }</span>last modified <span class="txt-bold Project_updates-value" data-toggle="tooltip" data-placement="top" title="${rowData.modifiedon.replace(
-                    "T",
-                    " "
-                )}" data-name="${rowData.modifiedon.replace(
-                    "T",
-                    " "
-                )}" >${entity_realtiveTime}</span>`;
-        }
-        if (!_subEntity.inValid(rowData.axpeg_status)) {
-            html += `<span class="material-icons material-icons-style material-icons-2 ">people</span>${rowData.axpeg_statustext}
-                                                <button id="pd_timeline" class="btn btn-icon btn-white btn-color-gray-600 btn-active-primary shadow-sm tb-btn btn-sm entity-timelines" data-kt-menu-trigger="click" data-kt-menu-placement="bottom-end" data-kt-menu-flip="top-end" data-kt-menu-attach="parent" title="Timeline">
-                                                    <span class="material-icons material-icons-style material-icons-2">history</span>
-                                                </button>
-
-                                                <div class="menu menu-sub menu-sub-dropdown menu-column menu-rounded menu-gray-600 menu-state-bg-light fw-bolder w-400px py-3" data-kt-menu="true" data-id="pd_timeline" data-processname="${rowData.axpeg_processname}" data-keyvalue="${rowData.axpeg_keyvalue}">
-                               
-                                                </div>`;
-        }
-        html += `
-                                    <!--<button type="submit" id="" class="btn btn-icon btn-white btn-color-gray-600 btn-active-primary shadow-sm tb-btn btn-sm me-3">
-                                                    <span class="material-icons material-icons-style material-icons-2">history</span>
-                                                </button>-->
-                                                
-                                            </div>
-                                        </div>`;
-
-
-        html += generateRowElements(rowData, rowData.transid);
-        html += `</div></div></div>`;
-    }
-    //$('#body_Container').html('');
-    $('#body_Container').append(html);
-    $('[data-toggle="tooltip"]').tooltip();
-    initReadMore();
-    KTMenu.init();
-}
-function getSubEntityInitials(subEntityVal) {
-
-    let initials = '';
-
-    // Split the string into words
-    const words = subEntityVal.split(' ');
-
-    // Extract initials based on number of words
-    if (words.length === 1) {
-        if (words[0].length == 1)
-            initials = words[0].charAt(0);
-        else
-            initials = words[0].charAt(0) + words[0].charAt(1);
-    } else if (words.length === 2) {
-        // If there are two words, get the first character of each word
-        initials = words[0].charAt(0) + words[1].charAt(0);
-    } else if (words.length >= 3) {
-        // If there are three or more words, get the first character of the first two words
-        initials = words[0].charAt(0) + words[1].charAt(0);
-    }
-
-    return initials.toUpperCase();
-}
 /* Function Set to generate html */
 function generateRowElements(rowData, subEntity, calledFrom) {
     var RowElements = '<div class="Data-fields-row">';
     if (calledFrom && calledFrom == "Other Data") {
         RowElements = '<div class="Data-fields-row relateddata-row workflow-items">';
-        for (const fld of _subEntity.entityWiseFields[subEntity].otherElements) {
+        for (const fld of _entityForm.entityWiseFields[subEntity].otherElements) {
             RowElements += generateHTMLBasedForOtherData(fld, rowData);
         }
 
@@ -2862,13 +3171,13 @@ function generateRowElements(rowData, subEntity, calledFrom) {
             RowElements = RowElements.substr(0, RowElements.length - 7);
     }
     else {
-        for (const fld of _subEntity.entityWiseFields[subEntity].otherElements) {
+        for (const fld of _entityForm.entityWiseFields[subEntity].otherElements) {
             RowElements += generateHTMLBasedOnDataType(fld, rowData);
         }
-        for (const fld of _subEntity.entityWiseFields[subEntity].largeTextElements) {
+        for (const fld of _entityForm.entityWiseFields[subEntity].largeTextElements) {
             RowElements += generateHTMLBasedOnDataType(fld, rowData);
         }
-        for (const fld of _subEntity.entityWiseFields[subEntity].attachmentElements) {
+        for (const fld of _entityForm.entityWiseFields[subEntity].attachmentElements) {
             RowElements += generateHTMLBasedOnDataType(fld, rowData);
         }
     }
@@ -2881,7 +3190,7 @@ function generateRowElements(rowData, subEntity, calledFrom) {
 }
 function generateRowButtonHTML(rowData, subEntity) {
     var rowButtonHTML = "";
-    for (const fld of _subEntity.entityWiseFields[subEntity].buttonElements) {
+    for (const fld of _entityForm.entityWiseFields[subEntity].buttonElements) {
         rowButtonHTML += `<div class="menu-item px-3 my-0">`;
         rowButtonHTML += generateHTMLBasedOnDataType(fld, rowData);
         rowButtonHTML += `</div>`;
@@ -2890,7 +3199,7 @@ function generateRowButtonHTML(rowData, subEntity) {
 }
 
 function getFieldDataType(fldProps) {
-    if (_subEntity.inValid(fldProps.cdatatype)) {
+    if (_entityCommon.inValid(fldProps.cdatatype)) {
         if (fldProps.fdatatype == "n")
             return "Number";
         else if (fldProps.fdatatype == "d")
@@ -2911,13 +3220,13 @@ function getFieldDataType(fldProps) {
 
 function generateHTMLBasedOnDataType(fld, rowData) {
     var fldName = fld.fldname;
-    if ((fldName == entityKeyField && rowData.transid == _subEntity.entityTransId) || (fldName == rowData.keycol && rowData.transid == fld.ftransid))
+    if ((fldName == _entityForm.keyField && rowData.transid == _entityForm.entityTransId) || (fldName == rowData.keycol && rowData.transid == fld.ftransid))
         return '';
     var fldtype = getFieldDataType(fld);
-    var fCaption = fld.fldcap || '';
+    var fCaption = fld.fldcap ?? "";
     var fProps = fld.props;
     var fldValue = rowData[fldName];
-    if ((_subEntity.inValid(fldValue) && fldtype.toUpperCase() != "BUTTON") || fld.fldname == "transid")
+    if ((_entityCommon.inValid(fldValue) && fldtype.toUpperCase() != "BUTTON") || fld.fldname == "transid")
         return '';
 
     if (fldtype.toUpperCase() != "BUTTON")
@@ -2939,6 +3248,7 @@ function generateHTMLBasedOnDataType(fld, rowData) {
                                             </div>`;
             break;
         case 'Currency':
+            fldValue = formmatingtoillions(fldValue, fld);
             html = `<div class=" Data-fields-items Department-field" data-toggle="tooltip" data-placement="top" title="${fCaption}" data-name="${fCaption.toLowerCase().replaceAll("*", "").replaceAll(" ", "")}">
                                                 <span class="material-icons material-icons-style material-icons-2 ">payments</span><span class="txt-bold Data-field-value">${fldValue}</span>
                                             </div>`;
@@ -2987,13 +3297,13 @@ function generateHTMLBasedOnDataType(fld, rowData) {
             if (fldValue == "T")
                 html = `<div class=" Data-fields-items Email-field" data-toggle="tooltip" data-placement="top" title="${fCaption}" data-name="${fCaption.toLowerCase().replaceAll("*", "").replaceAll(" ", "")}">
                     <div class="form-check form-switch">
-                          <input class="form-check-input" type="checkbox" role="switch" checked disabled>
+                          <input class="form-check-input" type="checkbox" role="switch" checked disabled />
                           <span class="txt-bold Data-field-value">${fCaption}</span>
                         </div></div>`;
             else
                 html = `<div class=" Data-fields-items Email-field" data-toggle="tooltip" data-placement="top" title="${fCaption}" data-name="${fCaption.toLowerCase().replaceAll("*", "").replaceAll(" ", "")}">
                     <div class="form-check form-switch" style="padding-top: 5px;">
-                          <input class="form-check-input" type="checkbox" role="switch" disabled>
+                          <input class="form-check-input" type="checkbox" role="switch" disabled />
                           <span class="txt-bold Data-field-value">${fCaption}</span>
                         </div></div>`;
             break;
@@ -3028,16 +3338,20 @@ function generateHTMLBasedOnDataType(fld, rowData) {
 
 function generateHTMLBasedForOtherData(fld, rowData) {
     var fldName = fld.fldname;
-    if ((fldName == entityKeyField && rowData.transid == _subEntity.entityTransId) || (fldName == rowData.keycol && rowData.transid == fld.ftransid))
+    if ((fldName == _entityForm.keyField && rowData.transid == _entityForm.entityTransId) || (fldName == rowData.keycol && rowData.transid == fld.ftransid))
         return '';
     var fldtype = getFieldDataType(fld);
-    var fCaption = fld.fldcap || '';
+    var fCaption = fld.fldcap ?? "";
     var fProps = fld.props;
     var fldValue = rowData[fldName];
-    if (_subEntity.inValid(fldValue) || fld.fldname == "transid")
+    if (_entityCommon.inValid(fldValue) || fld.fldname == "transid")
         return '';
 
-    fldValue = fldValue?.toString().replace("T00:00:00", "");    
+    fldValue = fldValue?.toString().replace("T00:00:00", "");
+    if (fldtype === "Currency") {
+        fldValue = formmatingtoillions(fldValue, fld);
+    }
+
     let html = `<div class="" data-toggle="tooltip" data-placement="top" title="${fCaption}" data-name="${fCaption.toLowerCase().replaceAll("*", "").replaceAll(" ", "")}">
                 <span class="txt-bold Data-field-value">${fldValue}</span>
             </div>,&nbsp;`;
@@ -3178,12 +3492,10 @@ function scrollToTopOfDiv(divElement) {
 }
 /* End Function Set to generate html */
 $(document).ready(function () {
-    _entityCommon = new EntityCommon();
     _entityForm = new EntityForm();
-    _subEntity = new SubEntity();
+    _entityCommon = new EntityCommon();
 
     _entityForm.init();
-    _subEntity.init();
 });
 
 function showPopup(element) {
@@ -3192,53 +3504,6 @@ function showPopup(element) {
     $('#myModal').modal('show');
 }
 
-function getKeyField(transId) {
-    if (_subEntity.subEntityKeyFields && _subEntity.subEntityKeyFields[transId]) {
-        return { "fldname": _subEntity.subEntityKeyFields[transId] };
-    }
-
-    let metaData = _subEntity.metaData.filter(item => item.ftransid === transId);
-
-    // Filter objects with "cdatatype": "Autogenerate"
-    const autoGenerateField = metaData.find(item => item.cdatatype === "Auto Generate");
-    if (autoGenerateField) {
-        return autoGenerateField;
-    }
-
-    // Filter objects with hide = F and mandatory/allow empty = F and allowduplicate = F
-    const mandatoryUniqueFld = metaData.find(item => item.hide === "F" && item.allowempty === "F" && item.allowduplicate === "F");
-    if (mandatoryUniqueFld) {
-        return mandatoryUniqueFld;
-    }
-
-    // Filter objects with hide = F and mandatory/allow empty = F
-    const mandatoryFld = metaData.find(item => item.hide === "F" && item.allowempty === "F");
-    if (mandatoryFld) {
-        return mandatoryFld;
-    }
-
-    // Filter objects with hide = F
-    const visibleFld = metaData.find(item => item.hide === "F");
-    if (visibleFld) {
-        return visibleFld;
-    }
-
-    // If none of the above conditions match, return first row
-    return metaData[0];
-}
-
-
-function fetchFilteredData(fldId, fldVal, dcName, gridDc, rowNo) {
-    var tmpFld = _subEntity.metaData.find(item => item.fldname === fldId && item.ftransid === _entityForm.entityTransId)
-    let isListingFld = "F";
-    if (relatedDataDisplayFields.indexOf(`=${fldId}~`) > -1 || relatedDataDisplayFields.indexOf(`|${fldId}~`) > -1 || (dcName == "dc1" && (relatedDataDisplayFields == "All" || relatedDataDisplayFields == "")))
-        isListingFld = "T";
-    var filterStr = `${fldId}~${tmpFld.normalized}~${tmpFld.srctable || ""}~${tmpFld.srcfield || ""}~${tmpFld.fdatatype || ""}~${isListingFld || "F"}~${tmpFld.tablename || ""}| = '${fldVal.toLowerCase()}'`;
-
-    _entityForm.filter = filterStr;
-    _entityForm.fields = relatedDataDisplayFields || "All";
-    _entityForm.getEntityListDataForOtherData(1, `${dcName}${rowNo}${fldId}`, gridDc);
-}
 
 
 function openFieldSelection() {
@@ -3253,89 +3518,6 @@ function openDisplayFieldSelection() {
         createDisplayFieldsLayout();
 }
 
-function createOtherDataFieldsLayout() {
-    const fieldsContainer = document.getElementById("fields-selection");
-    var fields = _subEntity.metaData.filter(item => item.ftransid === _entityForm.entityTransId && item.hide === "F" && (item.cdatatype === "DropDown" || item.fdatatype == "c" || item.fdatatype == "d"));
-    const groupedFields = {};
-    fields.forEach(field => {
-        if (!groupedFields[field.dcname]) {
-            groupedFields[field.dcname] = [];
-        }
-        groupedFields[field.dcname].push(field);
-    });
-
-    var html = '';
-    Object.entries(groupedFields).forEach(([dc, dcFields]) => {
-        let collapsed = false;
-
-        let dcName = _entityForm.entityFormJson.metadata.find(item => item.fname == dc).caption || dc;
-        html += `
-        <div class="card KC_Items">
-            <div class="card-header collapsible cursor-pointer rotate  ${collapsed ? "collapsed" : ""}" data-bs-toggle="collapse" aria-expanded="true" data-bs-target="#fields-${dc}">
-                <h3 class="card-title">${dcName} (${dc})</h3>
-                <div class="card-toolbar rotate-180">
-                    <span class="material-icons material-icons-style material-icons-2">
-                        expand_circle_down
-                    </span>
-                </div>
-            </div>
-            <div class="KC_Items_Content collapse ${collapsed ? "" : "show"} heightControl pt-0---" id="fields-${dc}">
-            <table class="table table-hover">
-                <tbody id="fields-table-body">`;
-
-        dcFields.forEach(fld => {
-            html += `<tr><td><input type="checkbox" id="chk_${fld.fldname}" class="chk-fields chk-relateddataflds" value="${fld.fldname}" data-fldcap="${fld.fldcap || ''}" data-dcname="${dc}"></td>
-          <td><label for="chk_${fld.fldname}">${fld.fldcap || ''} (${fld.fldname})</label></td></tr>`;
-
-        })
-        html += `</tbody></table></div></div>`;
-
-    })
-
-    fieldsContainer.innerHTML = html;
-
-    //const checkKeyFld = document.querySelector(`#chk_${entityKeyField}`);
-    //if (checkKeyFld) {
-    //    checkKeyFld.checked = true;
-    //    checkKeyFld.disabled = true;
-    //}
-
-
-    const checkFields = document.querySelectorAll(".chk-relateddataflds");
-
-    if (relatedDataFields !== "") {
-        relatedDataFields.split(",").forEach(fld => {
-            var fldName = fld.split("~")[1];
-            document.querySelector(`#chk_${fldName}`).checked = true;
-        });
-    }
-
-    checkFields.forEach((checkbox) => {
-        checkbox.addEventListener("change", function () {
-            var currDcName = this.dataset.dcname;
-            var isGridDc = _entityForm.entityFormJson.metadata.find(item => item.fname === currDcName)?.customdatatype || "F";
-            if (isGridDc == "T") {
-                const dcFields = document.querySelectorAll(`.chk-relateddataflds`);
-                let dcGridDetails = {};
-                dcGridDetails[currDcName] = isGridDc;
-
-                dcFields.forEach(chk => {
-                    var dcName = chk.dataset.dcname;
-                    if (!dcGridDetails[dcName]) {
-                        dcGridDetails[dcName] = _entityForm.entityFormJson.metadata.find(item => item.fname === dcName)?.customdatatype || "F";
-                    }
-
-                    if (dcGridDetails[dcName] == "T" && chk != this) {
-                        chk.checked = false;
-                    }
-                })
-
-            }
-        });
-    });
-
-}
-
 function createDisplayFieldsLayout() {
     const fieldsContainer = document.getElementById("displayfields-selection");
 
@@ -3347,7 +3529,7 @@ function createDisplayFieldsLayout() {
 
     const dcArr = Array.from(dcs);
 
-    var fields = _subEntity.metaData.filter(item => item.ftransid === _entityForm.entityTransId && item.hide === "F" && dcArr.includes(item.dcname));
+    var fields = _entityForm.metaData.filter(item => item.ftransid === _entityForm.entityTransId && item.hide === "F" && dcArr.includes(item.dcname));
 
     const groupedFields = {};
     fields.forEach(field => {
@@ -3381,8 +3563,8 @@ function createDisplayFieldsLayout() {
                 <tbody id="fields-table-body">`;
 
         dcFields.forEach(fld => {
-            html += `<tr><td><input type="checkbox" id="chkdisp_${fld.fldname}" class="chk-fields chk-displayflds" value="${fld.fldname}" data-fldcap="${fld.fldcap || ''}" data-dcname="${dc}" data-griddc="${dcRow.customdatatype || "T"}"></td>
-          <td><label for="chkdisp_${fld.fldname}">${fld.fldcap || ''} (${fld.fldname})</label></td></tr>`;
+            html += `<tr><td><input type="checkbox" id="chkdisp_${fld.fldname}" class="chk-fields chk-displayflds" value="${fld.fldname}" data-fldcap="${fld.fldcap ?? ""}" data-dcname="${dc}" data-griddc="${dcRow.customdatatype || "T"}"></td>
+          <td><label for="chkdisp_${fld.fldname}">${fld.fldcap ?? ""} (${fld.fldname})</label></td></tr>`;
 
         })
         html += `</tbody></table></div></div>`;
@@ -3399,9 +3581,9 @@ function createDisplayFieldsLayout() {
         });
     }
 
-    
 
-    const checkKeyFld = document.querySelector(`#chkdisp_${entityKeyField}`);
+
+    const checkKeyFld = document.querySelector(`#chkdisp_${_entityForm.keyField}`);
     if (checkKeyFld) {
         checkKeyFld.checked = true;
         checkKeyFld.disabled = true;
@@ -3445,12 +3627,12 @@ function applyRelatedDataFields() {
     if (fields.endsWith(","))
         fields = fields.substr(0, fields.length - 1);
 
-    _entityForm.selectedRelatedDataFields = fields;
+    _entityForm.relatedDataFields = fields;
     _entityForm.setSelectedRelatedFields();
 }
 
 function resetRelatedDataFields() {
-    _entityForm.selectedRelatedDataFields = "";
+    _entityForm.relatedDataFields = "";
     _entityForm.setSelectedRelatedFields();
 }
 
@@ -3487,12 +3669,12 @@ function applyDisplayFields() {
 
     Object.entries(groupedSelectedFlds).forEach(([dcName, fields]) => {
         let isGridDc = dcName.split("~")[1] == "T";
-        const tempFldData = _subEntity.metaData.find(item => item.fldname === fields[0] && item.ftransid == _subEntity.entityTransId);
+        const tempFldData = _entityForm.metaData.find(item => item.fldname === fields[0] && item.ftransid == _entityForm.entityTransId);
         if (!isGridDc) {
             fldsStr += `${tempFldData.tablename}=`;
 
             fields.forEach(fld => {
-                const fieldData = _subEntity.metaData.find(item => item.fldname === fld && item.ftransid == _subEntity.entityTransId);
+                const fieldData = _entityForm.metaData.find(item => item.fldname === fld && item.ftransid == _entityForm.entityTransId);
                 fldsStr += `${fieldData.fldname}~${fieldData.normalized}~${fieldData.srctable || ""}~${fieldData.srcfield || ""}~${fieldData.allowempty}|`;
             });
             if (fldsStr.endsWith("|"))
@@ -3504,7 +3686,7 @@ function applyDisplayFields() {
             gridFldsStr += `${tempFldData.tablename}=`;
 
             fields.forEach(fld => {
-                const fieldData = _subEntity.metaData.find(item => item.fldname === fld);
+                const fieldData = _entityForm.metaData.find(item => item.fldname === fld);
                 gridFldsStr += `${fieldData.fldname}~${fieldData.normalized}~${fieldData.srctable || ""}~${fieldData.srcfield || ""}~${fieldData.allowempty}|`;
             });
             if (gridFldsStr.endsWith("|"))
@@ -3521,69 +3703,23 @@ function applyDisplayFields() {
         gridFldsStr = gridFldsStr.substr(0, gridFldsStr.length - 1);
 
 
-    _entityForm.selectedDisplayFields = fldsStr;
-    _entityForm.selectedDisplayGridFields = gridFldsStr;
+    _entityForm.relatedDataDisplayFields = fldsStr;
+    _entityForm.relatedDataDisplayGridFields = gridFldsStr;
     _entityForm.setSelectedDisplayFields();
 }
 
 function resetDisplayFields() {
-    _entityForm.selectedDisplayFields = "All";
-    _entityForm.selectedDisplayGridFields = "";
+    _entityForm.relatedDataDisplayFields = "All";
+    _entityForm.relatedDataDisplayGridFields = "";
     _entityForm.setSelectedDisplayFields();
 }
-
-
-function getARMLogs() {
-    const tableContainer = document.getElementById('logs-table-container');
-    tableContainer.innerHTML = "Loading logs...";
-    $('#logsModal').modal('show');
-
-    let _this = _subEntity;
-    let url = "../aspx/Entity.aspx/GetARMLogsWS";
-    _this.callAPI(url, {}, true, result => {
-        if (result.success) {
-
-            try {
-                let logsJson = JSON.parse(JSON.parse(result.response).d);
-                tableContainer.innerHTML = createARMLogsTable(logsJson);
-            }
-            catch {
-                tableContainer.innerHTML = "No Logs available";
-            }
-        }
-        else {
-        }
-    });
-}
-
-function createARMLogsTable(data) {
-    // Create the table element
-    const table = document.createElement('table');
-    table.className = 'table table-striped table-bordered';
-
-    // Create the table body
-    const tbody = document.createElement('tbody');
-
-    // Populate the table rows
-    data.forEach(item => {
-        const row = document.createElement('tr');
-        const cell = document.createElement('td');
-        cell.innerText = item;
-        row.appendChild(cell);
-        tbody.appendChild(row);
-    });
-
-    table.appendChild(tbody);
-    return table.outerHTML;
-}
-
 
 function searchFields() {
     let _searchInput = document.getElementById('searchBar').value.toLowerCase();
     let _tables = document.querySelectorAll('[id^="fields-dc"]');
 
     _tables.forEach(table => {
-        let _fields = table.getElementsByTagName('tr');       
+        let _fields = table.getElementsByTagName('tr');
         for (let i = 0; i < _fields.length; i++) {
             let _label = _fields[i].getElementsByTagName('label')[0];
             if (_label.innerText.toLowerCase().includes(_searchInput)) {
@@ -3591,16 +3727,413 @@ function searchFields() {
             } else {
                 _fields[i].style.display = 'none';
             }
-        } 
+        }
     });
 }
 
 
-function replaceSpecialChars(value) {
-    if (value.indexOf(";bkslh") != -1) {
-        value = value.replace(new RegExp(";bkslh", "g"), "\\");
+function formmatingtoillions(amount, fieldMeta) {
+    return formatCurrencyAmount(amount, fieldMeta, shouldUseMillionGrouping());
+}
+
+function shouldUseMillionGrouping() {
+    return ((Object.values(window.top.allGloblVars.globalVars)
+        .map((gv) => gv)
+        .filter((gv) => gv["millions"])).length !== 0 &&
+        (Object.values(window.top.allGloblVars.globalVars)
+        .map((gv) => gv)
+        .filter((gv) => gv["millions"])[0].millions === "T")) || false;
+}
+
+function formatCurrencyAmount(amount, fieldMeta, useMillionGrouping) {
+    const normalized = normalizeCurrencyValue(amount);
+    if (!normalized) return '';
+
+    const decimalPlaces = resolveCurrencyDecimalPlaces(fieldMeta, normalized.fractionPart);
+    let { integerPart, fractionPart, isNegative, numericValue } = normalized;
+
+    if (decimalPlaces !== fractionPart.length) {
+        const fixedValue = numericValue.toFixed(decimalPlaces);
+        const [fixedIntegerPart, fixedFractionPart = ""] = fixedValue.split(".");
+        integerPart = fixedIntegerPart.replace("-", "");
+        fractionPart = fixedFractionPart;
+        isNegative = fixedValue.startsWith("-");
     }
 
-    value = value.replace("T00:00:00", "");
-    return value;
+    const groupedInteger = useMillionGrouping
+        ? groupByThousands(integerPart)
+        : groupByIndianDigits(integerPart);
+
+    return `${isNegative ? "-" : ""}${groupedInteger}${fractionPart ? `.${fractionPart}` : ""}`;
+}
+
+function normalizeCurrencyValue(amount) {
+    if (amount === null || typeof amount === "undefined") return null;
+
+    const rawValue = amount.toString().trim().replace(/,/g, "");
+    if (rawValue === "" || !/^[+-]?(?:\d+\.?\d*|\.\d+)$/.test(rawValue)) return null;
+
+    const isNegative = rawValue.startsWith("-");
+    const unsignedValue = rawValue.replace(/^[+-]/, "");
+    const [integerDigits = "0", fractionDigits = ""] = unsignedValue.split(".");
+    const integerPart = integerDigits.replace(/^0+(?=\d)/, "") || "0";
+    const numericValue = Number(`${isNegative ? "-" : ""}${integerPart}${fractionDigits ? `.${fractionDigits}` : ""}`);
+
+    if (!Number.isFinite(numericValue)) return null;
+
+    return {
+        integerPart,
+        fractionPart: fractionDigits,
+        isNegative,
+        numericValue
+    };
+}
+
+function resolveCurrencyDecimalPlaces(fieldMeta, fractionPart) {
+    const explicitDecimalPlaces = extractCurrencyDecimalPlaces(fieldMeta);
+    if (explicitDecimalPlaces !== null) {
+        return explicitDecimalPlaces;
+    }
+
+    return fractionPart.length;
+}
+
+function extractCurrencyDecimalPlaces(fieldMeta) {
+    if (!fieldMeta) return null;
+
+    const metadataKeys = [
+        "decimal",
+        "decimals",
+        "decimalplaces",
+        "decimaldigits",
+        "noofdecimals",
+        "numdecimals",
+        "fdecimal",
+        "flddecimal"
+    ];
+
+    for (const key of metadataKeys) {
+        const parsedValue = parseDecimalCount(fieldMeta[key]);
+        if (parsedValue !== null) {
+            return parsedValue;
+        }
+    }
+
+    return extractDecimalPlacesFromProps(fieldMeta.props);
+}
+
+function parseDecimalCount(value) {
+    if (value === null || typeof value === "undefined" || value === "") return null;
+
+    const parsedValue = parseInt(value, 10);
+    return Number.isFinite(parsedValue) && parsedValue >= 0 ? parsedValue : null;
+}
+
+function extractDecimalPlacesFromProps(props) {
+    if (!props) return null;
+
+    const propString = typeof props === "string" ? props : JSON.stringify(props);
+    const decimalMatch = propString.match(/(?:decimalplaces|decimals|decimaldigits|noofdecimals|numdecimals|fdecimal|flddecimal)[=:\s~"]+(\d+)/i);
+
+    return decimalMatch ? parseDecimalCount(decimalMatch[1]) : null;
+}
+
+function InsertCommas(amount, fieldMeta) {
+    return formatCurrencyAmount(amount, fieldMeta, true);
+}
+
+function CommaFormatted(amount) {
+    const normalized = normalizeCurrencyValue(amount);
+    if (!normalized) return '';
+
+    const groupedInteger = groupByThousands(normalized.integerPart);
+    return `${normalized.isNegative ? "-" : ""}${groupedInteger}${normalized.fractionPart ? `.${normalized.fractionPart}` : ""}`;
+}
+
+function formatIndianNumber(amount, fieldMeta) {
+    return formatCurrencyAmount(amount, fieldMeta, false);
+}
+
+function groupByThousands(integerPart) {
+    return integerPart.replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+}
+
+function groupByIndianDigits(integerPart) {
+    if (integerPart.length <= 3) {
+        return integerPart;
+    }
+
+    const lastThreeDigits = integerPart.slice(-3);
+    const remainingDigits = integerPart.slice(0, -3).replace(/\B(?=(\d{2})+(?!\d))/g, ",");
+    return `${remainingDigits},${lastThreeDigits}`;
+}
+
+
+function formatDateString(dateString) {
+    if (!dateString) return '';
+
+    const dateTimeParts = dateString.split('T');
+    const dateParts = dateTimeParts[0].split('-');
+    const timeParts = (dateTimeParts[1] || "00:00:00").split(':');
+
+    const year = dateParts[0];
+    const month = dateParts[1];
+    const day = dateParts[2];
+
+    const hours = timeParts[0];
+    const minutes = timeParts[1];
+    const seconds = timeParts[2];
+
+    const formattedDate = dtCulture === "en-us"
+        ? `${month}/${day}/${year}`
+        : `${day}/${month}/${year}`;
+
+    const timePart = (hours !== "00" || minutes !== "00" || seconds !== "00")
+        ? `${hours}:${minutes}:${seconds}`
+        : '';
+
+    return timePart ? `${formattedDate} ${timePart}` : formattedDate;
+}
+
+function ShowHideDimmer(show) {
+    try {
+        if (typeof parent.ShowDimmer != "undefined") parent.ShowDimmer(show);
+        if (typeof ShowDimmer != "undefined") ShowDimmer(show);
+        if (typeof window.top.ShowDimmer != "undefined") window.top.ShowDimmer(show);
+    }
+    catch (ex) { }
+}
+
+//++ Start - FormControl changes
+
+function getFieldId(fieldName, dcNo, isGridDc, rowNo) {
+    if (isGridDc)
+        return `${fieldName}${GetRowNoHelper(rowNo)}F${dcNo}`;
+    else
+        return `${fieldName}000F${dcNo}`;
+}
+
+function DoScriptFormControl(componentName, eventType) {    
+    if (SFormControls.length > 0) {
+        if (eventType == "On Form Load" || eventType == "On Data Load") {
+            var rid = $j("#recordid000F0").val();
+            $.each(SFCApply, function (idx, elem) {
+                if (elem == "On Form Load" && rid == "0") {
+                    isScriptFormLoad = "true";
+                    var sfcExp = SFormControls[idx];
+                    if (typeof SFCIsActive != "undefined" && SFCIsActive[idx] == "true")
+                        EvaluateScriptFormControl(sfcExp);
+                } else if (elem == "On Data Load" && rid != "0") {
+                    isScriptFormLoad = "true";
+                    var sfcExp = SFormControls[idx];
+                    if (typeof SFCIsActive != "undefined" && SFCIsActive[idx] == "true")
+                        EvaluateScriptFormControl(sfcExp);
+                }
+            });
+        } else if (componentName != "") {
+            var sfcfName = GetFieldsName(componentName);
+            $.each(SFCFldNames, function (idx, elem) {
+                if (SFCApply[idx] == "On Click" && eventType == "On Field Enter")
+                    eventType = "On Click";
+                if (elem == sfcfName && SFCApply[idx] == eventType) {
+                    isScriptFormLoad = "false";
+                    var sfcExp = SFormControls[idx];
+                    if (typeof SFCIsActive != "undefined" && SFCIsActive[idx] == "true")
+                        EvaluateScriptFormControl(sfcExp, componentName);
+                }
+            });
+        }
+    }
+}
+
+function EvaluateScriptFormControl(sfcExp, sfcfName = "") {
+    if (sfcExp != "") {
+        var flval = "";
+        if (sfcfName != "")
+            flval = GetFieldValue(sfcfName);
+        //var strefVal= Evaluate(sfcfName, flval, sfcExp, "vexpr");
+        var sfName = sfcfName == "" ? "" : sfcfName;
+        var arrsfcExp = sfcExp.split("♥");
+        AxFormControlList = new Array();
+        
+        var strefVal = EvalExprSet(arrsfcExp);
+        if (AxFormControlList.length > 0)
+            ProcessScriptFormControlOnList(sfName);
+        //else if (strefVal != "" && strefVal.split("~").length >= 2)
+        //    ProcessScriptFormControl(strefVal.split("~")[1], strefVal.split("~")[0], sfName);
+        //else if (strefVal != "" && strefVal.split("♠").length > 0 && FormControlSameFormLoad == false)
+        //    ProcessScriptFormControlEvents(strefVal, sfName);
+    }
+}
+
+function ProcessScriptFormControlOnList(sfName) {
+    $.each(AxFormControlList, function (i, val) {
+        if (val != "")
+            ProcessScriptFormControl(val.split("~")[1], val.split("~")[0], sfName);
+    });
+}
+
+function ProcessScriptFormControl(listControls, actionStr, sfName) {
+    var sfFldVal = "";
+    var sfRno = 0;
+    if (listControls == "")
+        return;
+    if (listControls.indexOf("♦") > 0) {
+        sfRno = listControls.split("♦")[2];
+        sfFldVal = listControls.split("♦")[1];
+        listControls = listControls.split("♦")[0];
+    }
+    listControls.split(',').forEach(function (contName) {
+
+        let setfldCap = "";
+        if (contName.indexOf("^") > 0) {
+            setfldCap = contName.split("^")[1];
+            contName = contName.split("^")[0];
+        }
+
+        var fldname = GetExactFieldName(contName);
+        var conFldDcNo = GetDcNo(fldname);
+        contName = fldname;
+        
+        var destfld = $(`[data-name="${fldname}"]`);
+        
+        if (destfld.length > 0) {
+            switch (actionStr) {
+                case ("hide"):
+                    if (/^dc\d+$/.test(fldname.toLowerCase())) {
+                        ShowingDc(fldname, "hide");
+                    } else {
+                        HideShowField(fldname, "hide");
+                    }
+                    break;
+                case ("show"):
+                    if (/^dc\d+$/.test(fldname.toLowerCase())) {
+                        ShowingDc(fldname, "show");
+                    } else {
+                        HideShowField(fldname, "show");
+                    }
+                    break;
+                case ("setfieldcaption"):                    
+                    $(`[data-name="${fldname}"] label`).text(setfldCap);
+                    break;
+                case ("setdccaption"):
+                    $(`[data-name="${fldname}"] label.dccaption`).text(setfldCap);
+                    break;
+                case ("collapse"):                   
+                    _entityForm.formControlActions["expandcollapse"][fldname] = "collapse";
+                    setTimeout(function () { ExpandCollapseDc() }, 1);
+                    break;
+                case ("expand"):
+                    _entityForm.formControlActions["expandcollapse"][fldname] = "expand";                    
+                    setTimeout(function () { ExpandCollapseDc() }, 1);
+                    break;
+                default:
+                    return;
+            }
+        }
+    });
+}
+
+function HideShowField(fldName, action) {
+    if (action == "hide") {
+        $(`[data-name="${fldName}"]`).hide();
+        $(`[data-name="${fldName}"]`).addClass('d-none');
+    }
+    else {
+        $(`[data-name="${fldName}"]`).show();
+        $(`[data-name="${fldName}"]`).removeClass('d-none');
+    }
+}
+
+function ShowingDc(dcName, action) {
+    _entityForm.formControlActions["expandcollapse"]
+    if (action == "hide") {        
+        $(`[data-name="${dcName}"]`).hide();
+        $(`[data-name="${dcName}"]`).addClass('d-none');
+    }
+    else {
+        $(`[data-name="${dcName}"]`).show();
+        $(`[data-name="${dcName}"]`).removeClass('d-none');
+    }
+}
+
+function ExpandCollapseDc() {
+    Object.keys(_entityForm.formControlActions["expandcollapse"]).forEach(dcName => {
+        var action = _entityForm.formControlActions["expandcollapse"][dcName];
+        delete _entityForm.formControlActions["expandcollapse"][dcName];
+        if (action == "expand") {
+            $(`#${dcName}container`).collapse('show');
+        }
+        else {
+            $(`#${dcName}container`).collapse('hide');
+        }
+    });
+}
+//-- End - FormControl changes
+
+function tstExcludeElements() {
+    if (!tstPermissions) return;
+    const permissions = JSON.parse(tstPermissions);
+    const result = permissions.result || {};
+    const totalDCs = parseInt(TotalDCs, 10) || 0;
+    const hiddenDcList = [];
+    const inclDcs = [];
+
+
+    if (result.ExcludedDCs && result.ExcludedDCs !== "NONE") {
+        result.ExcludedDCs.split(',').forEach(dc => {
+            ShowingDc(dc, "hide");
+        });
+
+    } else if (result.IncludedDCs && result.IncludedDCs !== "ALL") {
+        const includedDCs = result.IncludedDCs.split(',');
+        for (let i = 1; i <= totalDCs; i++) {
+            ShowingDc("dc"+ i, "hide");
+            hiddenDcList.push(i);
+        }
+        includedDCs.forEach(dc => {
+            const dcNo = parseInt(dc.slice(2), 10);
+            inclDcs.push(dcNo);
+            ShowingDc(dc, "show");
+            const index = hiddenDcList.indexOf(dcNo);
+            if (index > -1) hiddenDcList.splice(index, 1);
+        });
+    }    
+
+    if (result.ExcludedFields && result.ExcludedFields !== "NONE") {
+        result.ExcludedFields.split(',').forEach(field => {
+            HideShowField(field, "hide");
+        });
+
+    } else if (result.IncludedFields && result.IncludedFields !== "ALL") {
+        const includedFields = result.IncludedFields.split(',');
+        for (let i = 1; i <= totalDCs; i++) {
+            if (!inclDcs.includes(i)) {
+                ShowingDc("dc" + i, "hide");
+                if (!hiddenDcList.includes(i))
+                    hiddenDcList.push(i);
+            }
+        }
+        includedFields.forEach(field => {
+            let dcNo = GetDcNo(field);
+            dcNo = parseInt(dcNo, 10);
+            if (hiddenDcList.includes(dcNo)) {
+                ShowingDc("dc" + dcNo, "show");
+                if (IsDcGrid(dcNo)) {
+                    let _flds = $(`#dc${dcNo}container thead th`).map(function () { return this.getAttribute("data-name"); }).get();
+                    _flds.forEach(function (fname) {
+                        if (!includedFields.includes(fname))
+                            HideShowField(fname, "hide");
+                    })
+                } else {
+                    let _flds = $(`#dc${dcNo}container .Eform_Display_Items`).map(function () { return this.getAttribute("data-name"); }).get();
+                    _flds.forEach(function (fname) {
+                        if (!includedFields.includes(fname))
+                            HideShowField(fname, "hide");
+                    })
+                }
+            }
+        });
+    }
+
 }

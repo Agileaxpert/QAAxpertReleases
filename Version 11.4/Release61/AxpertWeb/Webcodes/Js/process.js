@@ -52,7 +52,7 @@ function CheckExpFunctions(expr) {
 }
 
 //Function to evaluate the expressio of a field and set its value.
-function EvaluateAxFunction(depFldname, changedFldName, currentRowNo, _calledFrom="") {
+function EvaluateAxFunction(depFldname, changedFldName, currentRowNo, _calledFrom = "") {
 
     //local variables for storing the global active variables.
     var activeRow = AxActiveRowNo;
@@ -119,39 +119,37 @@ function EvaluateAxFunction(depFldname, changedFldName, currentRowNo, _calledFro
                 AxActiveRowNo = GetDbRowNo(rowNo, depFrameNo);
                 //Here the exprFldName was getting appended with new row as it was not cleared, also check line no 116
                 var tmpFldId = exprFldName + rowNo + "F" + depFrameNo;
-                isEvalGrid=false;
-                result =Evaluate(tmpFldId, rowNo, expression, "expr");// EvalPrepared(tmpFldId, rowNo, expression, "expr");
+                isEvalGrid = false;
+                result = Evaluate(tmpFldId, rowNo, expression, "expr");// EvalPrepared(tmpFldId, rowNo, expression, "expr");
                 if ((result != "username") || (result != "usergroup") || (result != undefined) || (result.toString() != "undefined")) {
                     Assignfldval(tmpFldId, result);
                 }
                 if (isEvalGrid) {
-                    var rvarFldList="";
-                    try{
-                        let rvFld= regVarFldExp.filter(word => word.startsWith(exprFldName.toLowerCase()+"♦"));
-                        if(rvFld.length>0)
-                        {
-                            let rvFldExp=rvFld[0].split("♦")[1];
-                            if(rvFldExp!=-1)
-                                rvarFldList=rvFldExp;
-                        }else{
-                            let rvrFldList = FNames.filter(word => word.toLowerCase()=="rvar_"+exprFldName.toLowerCase());
-                            if(rvrFldList!=""){
+                    var rvarFldList = "";
+                    try {
+                        let rvFld = regVarFldExp.filter(word => word.startsWith(exprFldName.toLowerCase() + "♦"));
+                        if (rvFld.length > 0) {
+                            let rvFldExp = rvFld[0].split("♦")[1];
+                            if (rvFldExp != -1)
+                                rvarFldList = rvFldExp;
+                        } else {
+                            let rvrFldList = FNames.filter(word => word.toLowerCase() == "rvar_" + exprFldName.toLowerCase());
+                            if (rvrFldList != "") {
                                 let rvlFldIndx = GetFldNamesIndx(rvrFldList)
                                 let rvlExpression = Expressions[rvlFldIndx].toString();
-                                regVarFldExp.push(exprFldName+"♦"+rvrFldList+"♠"+rvlExpression);
-                                rvarFldList=rvrFldList+"♠"+rvlExpression;
-                            }else
-                                regVarFldExp.push(exprFldName+"♦-1");
+                                regVarFldExp.push(exprFldName + "♦" + rvrFldList + "♠" + rvlExpression);
+                                rvarFldList = rvrFldList + "♠" + rvlExpression;
+                            } else
+                                regVarFldExp.push(exprFldName + "♦-1");
                         }
-                    }catch(ex){}
+                    } catch (ex) { }
                     isEvalGrid = false;
-                    if(rvarFldList!="")
-                    {
-                        try{
-                            let rvarFldName= rvarFldList.split("♠");
+                    if (rvarFldList != "") {
+                        try {
+                            let rvarFldName = rvarFldList.split("♠");
                             let tmprvlFldId = rvarFldName[0] + rowNo + "F" + depFrameNo;
                             Evaluate(tmprvlFldId, rowNo, rvarFldName[1], "expr");
-                        }catch(ex){}
+                        } catch (ex) { }
                     }
                 }
             }
@@ -179,7 +177,7 @@ function EvaluateAxFunction(depFldname, changedFldName, currentRowNo, _calledFro
             else {
                 var fldExprFldName = exprFldName;
                 exprFldName = exprFldName + clientRowNo + "F" + AxActiveDc;
-                isEvalGrid=false;
+                isEvalGrid = false;
                 if (exprFldName.indexOf("_referimages") > -1 || exprFldName.indexOf("dc" + depDcNo + "_image") > -1 || exprFldName.indexOf("dc" + depDcNo + "_imagepath") > -1)
                     result = GetReferExpr(exprFldName, clientRowNo, expression);
                 else
@@ -189,34 +187,33 @@ function EvaluateAxFunction(depFldname, changedFldName, currentRowNo, _calledFro
                     Assignfldval(exprFldName, result);
                 }
                 if (AxActiveDc == depDcNo && (isSumTillGrid || isEvalGrid)) {//Refer: HEA000101
-                   /* isSumTillGrid = false;*/
-                    var rvarFldList="";
-                    if(isEvalGrid){
-                        try{
-                            let rvFld= regVarFldExp.filter(word => word.startsWith(fldExprFldName.toLowerCase()+"♦"));
-                            if(rvFld.length>0)
-                            {
-                                let rvFldExp=rvFld[0].split("♦")[1];
-                                if(rvFldExp!=-1)
-                                    rvarFldList=rvFldExp;
-                            }else{
-                                let rvrFldList = FNames.filter(word => word.toLowerCase()=="rvar_"+fldExprFldName.toLowerCase());
-                                if(rvrFldList!=""){
+                    /* isSumTillGrid = false;*/
+                    var rvarFldList = "";
+                    if (isEvalGrid) {
+                        try {
+                            let rvFld = regVarFldExp.filter(word => word.startsWith(fldExprFldName.toLowerCase() + "♦"));
+                            if (rvFld.length > 0) {
+                                let rvFldExp = rvFld[0].split("♦")[1];
+                                if (rvFldExp != -1)
+                                    rvarFldList = rvFldExp;
+                            } else {
+                                let rvrFldList = FNames.filter(word => word.toLowerCase() == "rvar_" + fldExprFldName.toLowerCase());
+                                if (rvrFldList != "") {
                                     let rvlFldIndx = GetFldNamesIndx(rvrFldList)
                                     let rvlExpression = Expressions[rvlFldIndx].toString();
-                                    regVarFldExp.push(fldExprFldName+"♦"+rvrFldList+"♠"+rvlExpression);
-                                    rvarFldList=rvrFldList+"♠"+rvlExpression;
-                                }else
-                                    regVarFldExp.push(fldExprFldName+"♦-1");
+                                    regVarFldExp.push(fldExprFldName + "♦" + rvrFldList + "♠" + rvlExpression);
+                                    rvarFldList = rvrFldList + "♠" + rvlExpression;
+                                } else
+                                    regVarFldExp.push(fldExprFldName + "♦-1");
                             }
-                        }catch(ex){}
+                        } catch (ex) { }
                     }
                     //var curRowNum = parseInt(AxActiveRowNo) + 1;
                     var curRowNum = 1;
                     if (isSumTillGrid && !isEvalGrid)
                         curRowNum = parseInt(AxActiveRowNo) + 1;
                     isEvalGrid = false;
-                    isSumTillGrid = false;                 
+                    isSumTillGrid = false;
                     var rowCnt = 0;
                     rowCnt = parseInt(GetDcRowCount(depDcNo), 10);
                     for (var i = curRowNum; i <= rowCnt; i++) {
@@ -226,13 +223,12 @@ function EvaluateAxFunction(depFldname, changedFldName, currentRowNo, _calledFro
                         result = Evaluate(tmpFldId, rowNo, expression, "expr");
                         if ((result != "username") || (result != "usergroup") || (result != undefined) || (result.toString() != "undefined")) {
                             Assignfldval(tmpFldId, result);
-                            if(rvarFldList!="")
-                            {
-                                try{
-                                    let rvarFldName= rvarFldList.split("♠");
+                            if (rvarFldList != "") {
+                                try {
+                                    let rvarFldName = rvarFldList.split("♠");
                                     let tmprvlFldId = rvarFldName[0] + rowNo + "F" + depDcNo;
                                     Evaluate(tmprvlFldId, rowNo, rvarFldName[1], "expr");
-                                }catch(ex){}
+                                } catch (ex) { }
                             }
                         }
                     }
@@ -784,7 +780,7 @@ function ShowPrompt(actionName, fileup, manRemarks, isRemarksEntered, dsignactio
     var cutMsg = eval(callParent('lcm[38]'));
     var cutMsgEnter = eval(callParent('lcm[39]'));
     var cutMsgChar = eval(callParent('lcm[40]'));
-    var titleHead=typeof AxHeader =="undefined" ? cutMsgEnter : AxHeader;
+    var titleHead = typeof AxHeader == "undefined" ? cutMsgEnter : AxHeader;
     let CancelTransaction = $.confirm({
         theme: 'modern',
         title: titleHead,
@@ -792,25 +788,25 @@ function ShowPrompt(actionName, fileup, manRemarks, isRemarksEntered, dsignactio
         closeAnimation: 'scale',
         animateFromElement: false,
         //backgroundDismiss: 'cancel',
-        columnClass:'medium',
+        columnClass: 'medium',
         escapeKey: 'cancel',
         content: '' +
-        '<form action="" class="formName">' +
-        '<div class="form-group">' +
-        '<label></label>' +
-        '<textarea type="text" placeholder="'+titleHead+'" class="remarksCancel form-control" required ></textarea>' +
-        '</div>' +
-        '</form>',
+            '<form action="" class="formName">' +
+            '<div class="form-group">' +
+            '<label></label>' +
+            '<textarea type="text" placeholder="' + titleHead + '" class="remarksCancel form-control" required ></textarea>' +
+            '</div>' +
+            '</form>',
         buttons: {
             formSubmit: {
                 text: eval(callParent('lcm[392]')),
                 btnClass: 'btn btn-primary',
-                action: function () {                   
+                action: function () {
                     var name = this.$content.find('.remarksCancel').val();
-                    if(!name){
-                        $.alert(titleHead+' is mandatory.');
+                    if (!name) {
+                        $.alert(titleHead + ' is mandatory.');
                         return false;
-                    }else{
+                    } else {
                         CallActionExt(actionName, fileup, name, dsignaction, isScript);
                     }
                 }
@@ -872,6 +868,9 @@ function CheckDisabledActionBtn(actionName) {
 
 //Function to call action webservice. 
 function CallAction(actionName, fileup, confirmmsg, remarks, manRemarks, dsignaction, isScript) {
+    if (CheckBtnReadOnly(`CallAction('${actionName}','${fileup}','${confirmmsg}','${remarks}','${manRemarks}','${dsignaction}','${isScript}')`)) {
+        return;
+    }
     if (actionCallFlag == actionCallbackFlag) {
         actionCallFlag = Math.random();
         $("#icons,#btnSaveTst,.BottomToolbarBar a").css({ "pointer-events": "auto" });
@@ -895,7 +894,7 @@ function CallAction(actionName, fileup, confirmmsg, remarks, manRemarks, dsignac
             }
             AxActRowNoForScript = parseInt(_thisBtnId);
         }
-    }catch(ex){}
+    } catch (ex) { }
     $j("#hdnActionName").val(actionName);
     if (dsignaction == undefined)
         dsignaction = '';
@@ -931,10 +930,124 @@ function CallAction(actionName, fileup, confirmmsg, remarks, manRemarks, dsignac
                 GetTotalElapsTime();
                 return;
             }
-        } 
+        }
         try {
-            let actInd=$j.inArray(actionName, tstActionName);
-            if (typeof actSaveTask != "undefined" && actSaveTask[actInd] == "save") {
+            try {
+                if (typeof actionName != "undefined" && actionName.startsWith('axpbutton_script') && typeof isScript == "undefined") {
+                    isScript = true;
+                    if (actionName.indexOf("_") != -1) {
+                        let _fullFldName = actionName;
+                        if ($j.inArray(GetFieldsName(actionName), FNames) != -1) {
+                            startIndex = actionName.lastIndexOf("_");
+                            actionName = actionName.substring(startIndex + 1);
+                        }
+                        if (actionName.indexOf("F") != -1) {
+                            activerow = parseInt(GetActiveRow(_fullFldName), 10) + 1;
+                            var fIndx = actionName.lastIndexOf("F");
+                            dcNo = parseInt(actionName.toString().substring(fIndx + 1));
+                            actionName = actionName.substring(0, fIndx - 3);
+                        }
+                    }
+                }
+            } catch (ex) { }
+
+            let actInd = $j.inArray(actionName, tstActionName);
+            if (actInd > -1 && typeof actScriptActive != "undefined" && actScriptActive[actInd] != "true") {
+                showAlertDialog("error", 'Script is not Active, please check the defintion.');
+                ShowDimmer(false);
+                AxWaitCursor(false);
+                actionCallbackFlag = actionCallFlag;
+                $("#icons,#btnSaveTst,.BottomToolbarBar a,.wizardNextPrevWrapper").css({ "pointer-events": "auto" });
+                GetProcessTime();
+                GetTotalElapsTime();
+                return;
+            }
+
+            if (actInd > -1 && typeof actConfreq != "undefined" && actConfreq[actInd] == "t" && actConfmsg[actInd] != "") {
+                if (!confirm(actConfmsg[actInd])) {
+                    ShowDimmer(false);
+                    AxWaitCursor(false);
+                    actionCallbackFlag = actionCallFlag;
+                    $("#icons,#btnSaveTst,.BottomToolbarBar a,.wizardNextPrevWrapper").css({ "pointer-events": "auto" });
+                    GetProcessTime();
+                    GetTotalElapsTime();
+                    return;
+                }
+            }
+            if (actInd > -1 && typeof actScriptPushtoQueue != "undefined" && actScriptPushtoQueue[actInd] == "t" && actScriptQueueName[actInd] != "") {
+                if (recordid == "" || recordid == "0") {
+                    let _btncaption = $(this.event.currentTarget).attr("title");
+                    if (typeof _btncaption == "undefined" || _btncaption == "") {
+                        if ($(this.event.currentTarget).hasClass("dwbIvBtnbtm"))
+                            _btncaption = $(this.event.currentTarget).clone().children().remove().end().text().trim();
+                        else
+                            _btncaption = $(this.event.currentTarget).find(".dropdownIconName").text();
+                    }
+                    showAlertDialog("info", 'Transaction needs to be saved to perform ' + _btncaption);
+                    ShowDimmer(false);
+                    AxWaitCursor(false);
+                    actionCallbackFlag = actionCallFlag;
+                    $("#icons,#btnSaveTst,.BottomToolbarBar a,.wizardNextPrevWrapper").css({ "pointer-events": "auto" });
+                    GetProcessTime();
+                    GetTotalElapsTime();
+                    return;
+                } else {
+                    let _scripName = tstActionName[actInd];
+                    let _scripCaption = tstActionCaption[actInd];
+                    let _queueName = actScriptQueueName[actInd];
+                    let _queueNameVal = "";
+                    if (_queueName != "" && _queueName.startsWith(":")) {
+                        _queueName = _queueName.replace(':', '');
+                        let ParamIndx = -1;
+                        let fldIndex = $j.inArray(_queueName, FNames);
+                        if (fldIndex == -1) {
+                            for (var ind = 0; ind < Parameters.length; ind++) {
+                                var strParams = Parameters[ind].split("~");
+                                if (strParams[0].toString().toLowerCase() == _queueName.toLowerCase()) {
+                                    ParamIndx = ind;
+                                    fldIndex = ind;
+                                    _queueNameVal = strParams[1];
+                                    break;
+                                }
+                            }
+                        }
+
+                        if (fldIndex == -1) {
+                            showAlertDialog("info", 'Queue name can not be empty, Please try again');
+                            ShowDimmer(false);
+                            AxWaitCursor(false);
+                            actionCallbackFlag = actionCallFlag;
+                            $("#icons,#btnSaveTst,.BottomToolbarBar a,.wizardNextPrevWrapper").css({ "pointer-events": "auto" });
+                            GetProcessTime();
+                            GetTotalElapsTime();
+                            return;
+                        } else if (ParamIndx == -1) {
+                            let _queueFldDcNo = GetDcNo(_queueName);
+                            if (IsDcGrid(_queueFldDcNo)) {
+                                _queueName = _queueName + "001F" + _queueFldDcNo;
+                            } else
+                                _queueName = _queueName + "000F" + _queueFldDcNo;
+                            _queueNameVal = GetFieldValue(_queueName);
+                            if (_queueNameVal == null || _queueNameVal == "") {
+                                showAlertDialog("info", 'Queue name can not be empty, Please try again');
+                                ShowDimmer(false);
+                                AxWaitCursor(false);
+                                actionCallbackFlag = actionCallFlag;
+                                $("#icons,#btnSaveTst,.BottomToolbarBar a,.wizardNextPrevWrapper").css({ "pointer-events": "auto" });
+                                GetProcessTime();
+                                GetTotalElapsTime();
+                                return;
+                            }
+                        }
+                    } else {
+                        _queueNameVal = _queueName;
+                    }
+                    ExecuteScriptPushtoQueue(_scripName, _scripCaption, _queueNameVal);
+                    return;
+                }
+            }
+
+            if (actInd > -1 && typeof actSaveTask != "undefined" && actSaveTask[actInd] == "save") {
 
                 if (typeof tstructCachedsave != 'undefined' && tstructCachedsave == "T" && (recordid == "" || recordid == "0")) {
                     if (typeof callParentNew('signalRNotifications') != 'undefined' && callParentNew('signalRNotifications') == 'true') {
@@ -982,14 +1095,24 @@ function CallAction(actionName, fileup, confirmmsg, remarks, manRemarks, dsignac
                         return;
                     }
                 }
+                if (typeof tstReadOnly != "undefined" && tstReadOnly) {
+                    ShowDimmer(false);
+                    AxWaitCursor(false);
+                    actionCallbackFlag = actionCallFlag;
+                    $("#icons,#btnSaveTst,.BottomToolbarBar a,.wizardNextPrevWrapper").css({ "pointer-events": "auto" });
+                    GetProcessTime();
+                    GetTotalElapsTime();
+                    showAlertDialog("error", 'Read only transaction not allowed to Save.');
+                    return;
+                }
             }
 
-            if(actInd > -1 && typeof actScriptTask != "undefined" && (actScriptTask[actInd].startsWith("doformdesign♠"))) {
+            if (actInd > -1 && typeof actScriptTask != "undefined" && (actScriptTask[actInd].startsWith("doformdesign♠"))) {
                 var formDesignParams = JSON.parse(EvaluateDirectScript(actScriptTask[actInd].split("♠")[1]).replace(/(^"|"$)/g, ''));
-  
+
                 try {
-                    callAxpertConfigStudio('designform',formDesignParams[0],(formDesignParams[1] || ""));
-                } catch (ex) {}
+                    callAddFormRuntime('designform', formDesignParams[0], (formDesignParams[1] || ""));
+                } catch (ex) { }
 
                 EnableToolBarBtns();
                 actionCallbackFlag = actionCallFlag;
@@ -1013,15 +1136,15 @@ function CallAction(actionName, fileup, confirmmsg, remarks, manRemarks, dsignac
                 return;
             }
             let fcScriptInd = $j.inArray(actionName, SFCActionName);
-            if (fcScriptInd>-1 && typeof SFormControls != "undefined" && typeof SFormControls[fcScriptInd] != "undefined" && (SFormControls[fcScriptInd].toLowerCase().startsWith("loadform(") || SFormControls[fcScriptInd].toLowerCase().startsWith("loadformanddata(") || SFormControls[fcScriptInd].toLowerCase().startsWith("loadiview(") || SFormControls[fcScriptInd].toLowerCase().startsWith("loadpage(") || SFormControls[fcScriptInd].toLowerCase().startsWith("openpage("))) {
-                EvaluateScriptFormControl(SFormControls[fcScriptInd]);
+            if (fcScriptInd > -1 && typeof SFormControls != "undefined" && typeof SFormControls[fcScriptInd] != "undefined" && (SFormControls[fcScriptInd].toLowerCase().startsWith("loadform(") || SFormControls[fcScriptInd].toLowerCase().startsWith("loadformanddata(") || SFormControls[fcScriptInd].toLowerCase().startsWith("loadiview(") || SFormControls[fcScriptInd].toLowerCase().startsWith("loadpage(") || SFormControls[fcScriptInd].toLowerCase().startsWith("openpage("))) {
+                if (typeof SFCIsActive != "undefined" && SFCIsActive[fcScriptInd] == "true")
+                    EvaluateScriptFormControl(SFormControls[fcScriptInd]);
 
                 EnableToolBarBtns();
                 actionCallbackFlag = actionCallFlag;
                 ShowDimmer(false);
                 AxWaitCursor(false);
                 $("#icons,#btnSaveTst,.BottomToolbarBar a,.wizardNextPrevWrapper").css({ "pointer-events": "auto" });
-
                 return;
             }
 
@@ -1040,10 +1163,32 @@ function CallAction(actionName, fileup, confirmmsg, remarks, manRemarks, dsignac
                     }
                 }
                 let scriptRemark = EvaluateDirectScript(actScriptCancel[actInd].split("♠")[1]);
-                if (scriptRemark != "" && (scriptRemark.toLowerCase() == "y" || scriptRemark.toLowerCase() == "t"))
+                if (scriptRemark != "" && (scriptRemark.toLowerCase() == "y" || scriptRemark.toLowerCase() == "yes" || scriptRemark.toLowerCase() == "t" || scriptRemark.toLowerCase() == "true"))
                     remarks = "y";
+                if (typeof tstReadOnly != "undefined" && tstReadOnly) {
+                    ShowDimmer(false);
+                    AxWaitCursor(false);
+                    actionCallbackFlag = actionCallFlag;
+                    $("#icons,#btnSaveTst,.BottomToolbarBar a,.wizardNextPrevWrapper").css({ "pointer-events": "auto" });
+                    GetProcessTime();
+                    GetTotalElapsTime();
+                    showAlertDialog("error", 'Read only transaction not allowed to Cancel.');
+                    return;
+                }
             }
-        }catch(ex){}
+            if (actInd > -1 && typeof actScriptCancel != "undefined" && (actScriptCancel[actInd].startsWith("deletetransaction♠"))) {
+                if (typeof tstReadOnly != "undefined" && tstReadOnly) {
+                    ShowDimmer(false);
+                    AxWaitCursor(false);
+                    actionCallbackFlag = actionCallFlag;
+                    $("#icons,#btnSaveTst,.BottomToolbarBar a,.wizardNextPrevWrapper").css({ "pointer-events": "auto" });
+                    GetProcessTime();
+                    GetTotalElapsTime();
+                    showAlertDialog("error", 'Read only transaction not allowed to Delete.');
+                    return;
+                }
+            }
+        } catch (ex) { }
 
         if (remarks == "y") {
             var rid = $j("#recordid000F0").val();
@@ -1103,7 +1248,7 @@ function CallAction(actionName, fileup, confirmmsg, remarks, manRemarks, dsignac
     }
 }
 
-function CallActionExt(actionName, fileup, remarks, dsignaction, isScript,ruleScriptCall=false) {
+function CallActionExt(actionName, fileup, remarks, dsignaction, isScript, ruleScriptCall = false) {
     GetCurrentTime("Tstruct load on Action button click(ws call)");
     var rid = $j("#recordid000F0").val();
     ArrActionLog = "CallAction-" + actionName + "Recordid-" + rid;
@@ -1141,14 +1286,10 @@ function CallActionExt(actionName, fileup, remarks, dsignaction, isScript,ruleSc
     var startIndex;
     var actionId; var dcNo = 0; var activerow = 0; var fullFldName = actionName;
     if (actionName.indexOf("_") != -1) {
-        //if (actionName.indexOf("onfocus") != -1) {
-
-
         if ($j.inArray(GetFieldsName(actionName), FNames) != -1) {
             startIndex = actionName.lastIndexOf("_");
             actionName = actionName.substring(startIndex + 1);
         }
-
         if (actionName.indexOf("F") != -1) {
 
             activerow = parseInt(GetActiveRow(fullFldName), 10) + 1;
@@ -1156,7 +1297,19 @@ function CallActionExt(actionName, fileup, remarks, dsignaction, isScript,ruleSc
             dcNo = parseInt(actionName.toString().substring(fIndx + 1));
             actionName = actionName.substring(0, fIndx - 3);
         }
-        // }
+    } else if (typeof AxActiveAction != "undefined" && AxActiveAction.indexOf("_") != -1) {
+        let _thisActionName = '';
+        if ($j.inArray(GetFieldsName(AxActiveAction), FNames) != -1) {
+            startIndex = AxActiveAction.lastIndexOf("_");
+            _thisActionName = AxActiveAction.substring(startIndex + 1);
+        }
+        if (_thisActionName.indexOf("F") != -1) {
+
+            activerow = parseInt(GetActiveRow(AxActiveAction), 10) + 1;
+            var fIndx = _thisActionName.lastIndexOf("F");
+            dcNo = parseInt(_thisActionName.toString().substring(fIndx + 1));
+            actionName = _thisActionName.substring(0, fIndx - 3);
+        }
     }
     // for all else condion defualt value of 0 will go.
 
@@ -1204,9 +1357,14 @@ function CallActionExt(actionName, fileup, remarks, dsignaction, isScript,ruleSc
         if (isScript == false || isScript == "false")
             axrulesFlds = "";
         callBackFunDtls = "CallActionExt♠" + actionName + "♠" + fileup + "♠" + remarks + "♠" + dsignaction;
+        var source = "t";
+        if (typeof transid != "undefined" && (transid == "sect" || transid == "a__rp"))
+            source = "t" + transid;
+        let _isLoadFromDraft = "false";
+        if (typeof isLoadFromDraft != "undefined")
+            _isLoadFromDraft = isLoadFromDraft;
         GetProcessTime();
-        //const encryptedValues = encryptTstDetails(JSON.stringify(ChangedFieldValues));
-        //ASB.WebService.CallActionWS(ChangedFields, ChangedFieldDbRowNo, encryptedValues, DeletedDCRows, DeletedFieldValue, ArrActionLog, visDcname, txt, fup, "t", delRows, chngRows, tstDataId, files, isScript, axrulesFlds, ruleScriptCall, resTstHtmlLS, SuccessCallbackAction, OnException);
+        //ASB.WebService.CallActionWS(ChangedFields, ChangedFieldDbRowNo, ChangedFieldValues, DeletedDCRows, DeletedFieldValue, ArrActionLog, visDcname, txt, fup, source, delRows, chngRows, tstDataId, files, isScript, axrulesFlds, ruleScriptCall, resTstHtmlLS, _isLoadFromDraft, SuccessCallbackAction, OnException);
         const callActionRequest = {
             fldArray: ChangedFields,
             fldDbRowNo: ChangedFieldDbRowNo,
@@ -1218,7 +1376,7 @@ function CallActionExt(actionName, fileup, remarks, dsignaction, isScript,ruleSc
             visibleDcs: visDcname,
             s: txt,
             f: fup,
-            source: "t",
+            source: source,
             delRows: delRows,
             changedRows: chngRows,
             key: tstDataId,
@@ -1229,7 +1387,8 @@ function CallActionExt(actionName, fileup, remarks, dsignaction, isScript,ruleSc
             axRulesFlds: axrulesFlds,
             axRulesScript: ruleScriptCall,
 
-            resTstHtmlLS: resTstHtmlLS
+            resTstHtmlLS: resTstHtmlLS,
+            isLoadFromDraft: _isLoadFromDraft
         };
         const encryptedRequest = encryptTstDetails(JSON.stringify(callActionRequest));
         ASB.WebService.CallActionWS(encryptedRequest, SuccessCallbackAction, OnException);
@@ -1240,7 +1399,7 @@ function CallActionExt(actionName, fileup, remarks, dsignaction, isScript,ruleSc
         AxWaitCursor(false);
         var execMess = exp.name + "^♠^" + exp.message;
         showAlertDialog("error", 2030, "client", execMess);
-        UpdateExceptionMessageInET("ActionWS exception : "+exp.message);
+        UpdateExceptionMessageInET("ActionWS exception : " + exp.message);
         GetProcessTime();
         GetTotalElapsTime();
     }
@@ -1249,6 +1408,7 @@ function CallActionExt(actionName, fileup, remarks, dsignaction, isScript,ruleSc
 
 //callback function from the callaction webservice.
 function SuccessCallbackAction(result, eventArgs) {
+    let attaErrors = "";
     if (result != "") {
         if (result.split("♠*♠").length > 1) {
             tstDataId = result.split("♠*♠")[0];
@@ -1257,16 +1417,24 @@ function SuccessCallbackAction(result, eventArgs) {
         if (result.split("*♠*").length > 1) {
             var serverprocesstime = result.split("*♠*")[0];
             var requestProcess_logtime = result.split("*♠*")[1];
+            if (requestProcess_logtime.split("♣$♣").length > 1)
+                attaErrors = requestProcess_logtime.split("♣$♣")[1];
             result = result.split("*♠*")[2];
             WireElapsTime(serverprocesstime, requestProcess_logtime);
         } else {
             UpdateExceptionMessageInET("Error : " + result);
         }
     }
-
+    try {
+        if (typeof attaErrors != "undefined" && attaErrors != "") {
+            let _attaErrors = attaErrors;
+            attaErrors = "";
+            ShowDialog('error', _attaErrors);
+        }
+    } catch (ex) { }
     if (result != "") {// && result.toLowerCase().indexOf("access violation") === -1) {
         let _istimeTaking = false;
-        if (result.indexOf('{"msg":"This proces taking time is more than expected. You will get a notification once completed"}') == -1) {
+        if (result.indexOf('{"msg":"This process taking long time than expected. You will get notified once process is completed."}') == -1) {
             actionCallbackFlag = actionCallFlag;
             $("#icons,#btnSaveTst,.BottomToolbarBar a:not(.btndis),.wizardNextPrevWrapper").css({ "pointer-events": "auto" });
             ArrActionLog = "";
@@ -1327,6 +1495,123 @@ function SuccessCallbackAction(result, eventArgs) {
         if (typeof transid != "undefined" && ((transid == "pgv2a" && callBackFunDtls.indexOf("CallActionExt♠script16♠") > -1 || callBackFunDtls.indexOf("CallActionExt♠script17♠") > -1) || (transid == "pgv2m" && callBackFunDtls.indexOf("CallActionExt♠script16♠") > -1 || callBackFunDtls.indexOf("CallActionExt♠script17♠") > -1) || (transid == "pgv2c" && callBackFunDtls.indexOf("CallActionExt♠script18♠") > -1 || callBackFunDtls.indexOf("CallActionExt♠script19♠") > -1))) {
             AxProcessObjSaveRedirectAction(result);
         }
+        else if (transid == "job_s" && AxActiveAction == "iSave") {
+            let isSuccessFullSave = (typeof result != "undefined" && result.indexOf('{\"result\":[{\"save\": \"success\"}]}') > -1);
+            if (isSuccessFullSave) {
+                var period = $("#jobschedule000F1").val();
+                var tmpPeriod = period.toLowerCase().trim();
+                var sendOn = "";
+                if (tmpPeriod == "every week") {
+                    sendOn = $("#weekday000F1").val()
+                }
+                else if (tmpPeriod == "every month" || tmpPeriod == "every quarter") {
+                    sendOn = $("#jday000F1").val()
+                }
+                else if (tmpPeriod == "custom") {
+                    sendOn = $("#noofmins000F1").val()
+                }
+                let _glCulture = eval(callParent('glCulture'));
+                let start_date = $("#jobstartfrom000F1").val();
+                if (_glCulture.toLowerCase() === "en-us" && start_date) {
+                    let parts = start_date.split('/');
+                    if (parts.length === 3) {
+                        let month = parts[0];
+                        let day = parts[1];
+                        let year = parts[2];
+                        start_date = day + '/' + month + '/' + year;
+                    }
+                }
+                $.ajax({
+                    type: "POST",
+                    url: "../aspx/AxPEG.aspx/AxPushToQueue",
+                    data: JSON.stringify({
+                        queueName: "ARMAxpertJobsQueue",
+                        queueJson: {
+                            "start_date": start_date,
+                            "period": period,
+                            "sendtime": $("#axptm_starttime000F1").val(),
+                            "sendon": sendOn,
+                            "project": $("#appname000F1").val(),
+                            "jobname": $("#jname000F1").val(),
+                            "username": callParentNew("mainUserName")
+                        }
+                    }),
+                    cache: false,
+                    async: false,
+                    dataType: 'json',
+                    contentType: "application/json",
+                    success: function (response) {
+                        try {
+                            var result = JSON.parse(response.d);
+                            if (!result.result.success) {
+                                showAlertDialog("error", "Error occurred while Queue call-" + result.result.message);
+                                flag = true;
+                            }
+                        }
+                        catch (e) {
+                            showAlertDialog("error", "Error occurred while Queue call-" + response.d)
+                            flag = true;
+                        }
+                    },
+                    error: function (error) {
+                        ShowDialog("error", "Error occurred while Queue call-" + error.responseJSON.Message);
+                        flag = true;
+                    }
+                });
+            }
+        } else if (transid == "a__pn" && AxActiveAction == "script5") {
+            let isSuccessFullSave = (typeof result != "undefined" && result.indexOf('{\"result\":[{\"save\": \"success\"}]}') > -1);
+            if (isSuccessFullSave) {
+                let _glCulture = eval(callParent('glCulture'));
+                let start_date = $("#startdate000F1").val();
+                if (_glCulture.toLowerCase() === "en-us" && start_date) {
+                    let parts = start_date.split('/');
+                    if (parts.length === 3) {
+                        let month = parts[0];
+                        let day = parts[1];
+                        let year = parts[2];
+                        start_date = day + '/' + month + '/' + year;
+                    }
+                }
+                $.ajax({
+                    type: "POST",
+                    url: "../aspx/AxPEG.aspx/AxPushToQueue",
+                    data: JSON.stringify({
+                        queueName: "ARMPeriodicNotificationQueue",
+                        queueJson: {
+                            "project": callParentNew("mainProject"),
+                            "notification": $("#name000F1").val(),
+                            "username": callParentNew("mainUserName"),
+                            "start_date": start_date,
+                            "period": $("#frequency000F1").val(),
+                            "sendon": $("#sendday000F1").val(),
+                            "sendtime": $("#sendtime000F1").val()
+                        }
+                    }),
+                    cache: false,
+                    async: false,
+                    dataType: 'json',
+                    contentType: "application/json",
+                    success: function (response) {
+                        try {
+                            var result = JSON.parse(response.d);
+                            if (!result.result.success) {
+                                showAlertDialog("error", "Error occurred while Queue call-" + result.result.message);
+                                flag = true;
+                            }
+                        }
+                        catch (e) {
+                            showAlertDialog("error", "Error occurred while Queue call-" + response.d)
+                            flag = true;
+                        }
+                    },
+                    error: function (error) {
+                        ShowDialog("error", "Error occurred while Queue call-" + error.responseJSON.Message);
+                        flag = true;
+                    }
+                });
+            }
+        }
 
         if (AxActionSave == true && parent.axMainPageReload == transid)// TO Reload mainnew page for cloud application.
         {
@@ -1346,13 +1631,22 @@ function SuccessCallbackAction(result, eventArgs) {
             actionCallbackFlag = actionCallFlag;
             $("#icons,#btnSaveTst,.BottomToolbarBar a,.wizardNextPrevWrapper,.toolbarRightMenu a:not([title=Search],[onclick*=CallListView]),.toolbarRightMenu button").css({ "pointer-events": "none" });
             ArrActionLog = "";
+            if (window.document.location.href.indexOf("tstruct.aspx") > -1) {
+                SetFormDirty(false);
+                callParentNew("isSessionCleared=", true);
+                AxWaitCursor(true);
+                ShowDimmer(true);
+                if (window.opener)
+                    GetFormLoadData("AxIsPop=true");
+                else
+                    GetFormLoadData("");
+            }
         }
     }
     else {
-        if(window.document.location.href.indexOf("tstruct.aspx")>-1)
-        {     
+        if (window.document.location.href.indexOf("tstruct.aspx") > -1) {
             DataReloadDuringActionError();
-        }else{
+        } else {
             $("#dvlayout").hide();
             AxWaitCursor(false);
             ShowDimmer(false);
@@ -1361,10 +1655,9 @@ function SuccessCallbackAction(result, eventArgs) {
     }
 }
 
-function DataReloadDuringActionError(errorMsg="")
-{    
-    if(typeof clickedButtonCaption=="undefined" || clickedButtonCaption=="")
-        clickedButtonCaption="Task";
+function DataReloadDuringActionError(errorMsg = "") {
+    if (typeof clickedButtonCaption == "undefined" || clickedButtonCaption == "")
+        clickedButtonCaption = "Task";
     var glType = eval(callParent('gllangType'));
     var isRTL = false;
     if (glType == "ar")
@@ -1380,14 +1673,14 @@ function DataReloadDuringActionError(errorMsg="")
             disableBackDrop('bind');
         },
         escapeKey: 'buttonB',
-        content: errorMsg==""?clickedButtonCaption +" not completed due to an unexpected error.":clickedButtonCaption +" not completed due to "+errorMsg,
+        content: errorMsg == "" ? clickedButtonCaption + " not completed due to an unexpected error." : clickedButtonCaption + " not completed due to " + errorMsg,
         buttons: {
             buttonA: {
                 text: "Retry",
                 btnClass: 'btn btn-primary',
-                action: function () {                        
+                action: function () {
                     CallAvActionCB.close();
-                    clickedButtonCaption="";
+                    clickedButtonCaption = "";
                     actionCallbackFlag = actionCallFlag;
                     //$("#icons,#btnSaveTst,.BottomToolbarBar a,.wizardNextPrevWrapper").css({ "pointer-events": "auto" });
                     $("#icons,#btnSaveTst,.BottomToolbarBar a,.wizardNextPrevWrapper").not('.disabled.btndis').css({ "pointer-events": "auto" });
@@ -1400,7 +1693,7 @@ function DataReloadDuringActionError(errorMsg="")
                 text: "Abort",
                 btnClass: 'btn btn-bg-light btn-color-danger btn-active-light-danger',
                 action: function () {
-                    clickedButtonCaption="";
+                    clickedButtonCaption = "";
                     window.location.href = window.location.href;
                 }
             }
@@ -1421,7 +1714,7 @@ var AxFormLoadSkipped = false;
 //Function which fills the values from result json into the fields.
 function AssignLoadValues(resultJson, calledFrom, actnName, navigationURL) {
     actnName = typeof actnName != "undefined" ? actnName : "";
-    if (resultJson == "This proces taking time is more than expected. You will get a notification once completed") {
+    if (resultJson == "This process taking long time than expected. You will get notified once process is completed." || resultJson == '{"error":[{"msg":"This process taking long time than expected. You will get notified once process is completed."}]}') {
         showAlertDialog("info", appGlobalVarsObject.lcm[491]);
         return;
     }
@@ -1439,12 +1732,13 @@ function AssignLoadValues(resultJson, calledFrom, actnName, navigationURL) {
 
         if (typeof calledFrom != "undefined" && calledFrom == "Iview")
             strSingleLineText = strSingleLineText.replace(/\\"/g, "'");
-        
+
         strSingleLineText = strSingleLineText.replace(/\\/g, ";bkslh");
 
         //Adding this line of code for <script></script>
         strSingleLineText = strSingleLineText.replace(new RegExp("&lt", "g"), "<");
         strSingleLineText = strSingleLineText.replace(new RegExp("&gt", "g"), ">");
+        strSingleLineText = strSingleLineText.replace(/â€¢/g, "•");     
         if (strSingleLineText == "")
             continue;
         try {
@@ -1518,29 +1812,28 @@ function AssignLoadValues(resultJson, calledFrom, actnName, navigationURL) {
         else if (myJSONObject.timetaken) {
             ExecTimetaken(myJSONObject.timetaken);
         }
-        else if(myJSONObject.result && calledFrom != "Iview" && document.title.toLowerCase() != "iview")
-        {
-            if(myJSONObject.result[0].action){
-                let erMsg="";
-                try{
+        else if (myJSONObject.result && calledFrom != "Iview" && document.title.toLowerCase() != "iview") {
+            if (myJSONObject.result[0].action) {
+                let erMsg = "";
+                try {
                     var resvalRetry = resultJson.split("*$*");
                     for (var indR = 0; indR < resvalRetry.length; indR++) {
                         var strSingleLineTextRetry = resvalRetry[indR].toString().replace(new RegExp("\\n", "g"), "");
                         strSingleLineTextRetry = strSingleLineTextRetry.replace(new RegExp("\\t", "g"), "&#9;");
                         strSingleLineTextRetry = strSingleLineTextRetry.replace(/\\/g, ";bkslh");
-                        var myJSONObjectRetry="";
-                        if (strSingleLineTextRetry != ""){
+                        var myJSONObjectRetry = "";
+                        if (strSingleLineTextRetry != "") {
                             try {
                                 myJSONObjectRetry = $j.parseJSON(strSingleLineTextRetry);
                             }
                             catch (ex) {
                             }
                         }
-                        if (myJSONObjectRetry!="" && myJSONObjectRetry.error) {
-                            erMsg=myJSONObjectRetry.error[0].msg;
+                        if (myJSONObjectRetry != "" && myJSONObjectRetry.error) {
+                            erMsg = myJSONObjectRetry.error[0].msg;
                         }
                     }
-                }catch(ex){}
+                } catch (ex) { }
                 DataReloadDuringActionError(erMsg);
                 break;
             }
@@ -1577,7 +1870,9 @@ function AssignLoadValues(resultJson, calledFrom, actnName, navigationURL) {
             if (myJSONObject.axamend[0].readonlytrans == 'true') {
                 ReadonlyformPeg();
                 AxAmendmentReadOnly = "true";
-            }
+                AxPegAmdreadOnly = "true";
+            } else
+                AxPegAmdreadOnly = "false";
             if (myJSONObject.axamend[0].status != '')
                 AxAmendStatusBar(myJSONObject.axamend);
         }
@@ -1745,7 +2040,7 @@ function ExecRefreshIviewRows(rowData) {
                         var selectedRow = parseInt(rowno || "1");
                         ivDatas[selectedRow - 1] = _this.rowData[ind];
                         ivDatas[selectedRow - 1][getPropertyAccess("rowno")] = selectedRow.toString();
-                        refreshRow(ivirDataTableApi.row(selectedRow - 1), ivDatas[selectedRow - 1],false);
+                        refreshRow(ivirDataTableApi.row(selectedRow - 1), ivDatas[selectedRow - 1], false);
                     });
                 }
             }
@@ -2075,7 +2370,43 @@ function ExecData(dataJsonObj, calledFrom, isExcelImp = false) {
                     continue;
                 }
                 if (calledFrom != "CallAdd") {
-                    SetRows(dcNo, fldValue, delRows, calledFrom, dcOldHasData, dcHasRows);
+                    if ((calledFrom == "FillGrid" || calledFrom == "GetDep") && isMobile && !axInlineGridEdit && AxpGridForm == "form") {
+                        let _fillCond = FillCondition[ind];
+                        if (calledFrom == "GetDep" && typeof _fillCond != "undefined" && delRows.indexOf("d*") > -1) {
+                            if (isMobile && !axInlineGridEdit && AxpGridForm == "form" && $("#gridHd" + dcNo + " tbody tr").length > 0) {
+                                var fDcRowCount = GetDcRowCount(dcNo);
+                                DeleteAllRows(dcNo, fDcRowCount, "FillGrid");
+                            }
+                        }
+
+                        if (_fillCond == "APPEND" && delRows.indexOf("d*") == -1) {
+                            if ($("#gridHd" + dcNo + " tbody tr").length == 0) {
+                                delRows = "d*," + delRows;
+                            }
+                            SetRows(dcNo, fldValue, delRows, calledFrom, dcOldHasData, dcHasRows);
+                        } else if (_fillCond == "INIT" && delRows.indexOf("d*") > -1) {
+                            let _iNode = [];
+                            for (let i = 1; i <= fldValue; i++) {
+                                _iNode.push("i" + i);
+                            }
+                            let commaSeparated = _iNode.join(",");
+                            delRows = "d*," + commaSeparated;
+                            SetRows(dcNo, fldValue, delRows, calledFrom, dcOldHasData, dcHasRows);
+                        } else if (_fillCond == "AOWE") {
+                            if (delRows == "d*" && fldValue != "0") {
+                                let _iNode = [];
+                                for (let i = 1; i <= fldValue; i++) {
+                                    _iNode.push("i" + i);
+                                }
+                                let commaSeparated = _iNode.join(",");
+                                delRows = "d*," + commaSeparated;
+                            }
+                            SetRows(dcNo, fldValue, delRows, calledFrom, dcOldHasData, dcHasRows);
+                        } else if (calledFrom == "GetDep" && typeof _fillCond == "undefined") {
+                            SetRows(dcNo, fldValue, delRows, calledFrom, dcOldHasData, dcHasRows);
+                        }
+                    } else
+                        SetRows(dcNo, fldValue, delRows, calledFrom, dcOldHasData, dcHasRows);
                     if (calledFrom == "LoadData")//On loaddat need to hide column which are hided in designmode. 
                         fillgridColOptVisibility(dcNo);
                 }
@@ -2920,6 +3251,9 @@ function ExecWorkflow(wfJsonObj) {
                 btnarr = btn.split("~");
                 ReadonlyWfButtons();
                 for (var k = 0; k < btnarr.length; k++) {
+                    if ($j("#selectbox").length == 0) {
+                        $(".dropbox .wfselectbox").replaceWith(`<div class="wfselectbox d-none"><div class="menu menu-sub menu-sub-dropdown menu-column menu-rounded menu-gray-800 menu-state-bg-light-primary fw-bold w-200px py-3" data-kt-menu="true" data-popper-placement="bottom-end" id="selectbox"></div></div>`);
+                    }
                     if (btnarr[k] == "a") {
                         $j("#btntabapprove").prop("disabled", false);
                         $j("#btntabapprove").removeClass("disablewfbuttons").addClass("enablewfbuttons");
@@ -2983,11 +3317,42 @@ function ExecWorkflow(wfJsonObj) {
             if (wfJsonObj[i].readonlyform == "true") {
                 //AxOnApproveDisable = true;
                 Readonlyform();
+
+                let _saveBtn = $('a[onclick*="javascript:FormSubmit();"]');
+                _saveBtn.addClass("disabled").css({ "pointer-events": "none" }).off("click").on("click", function (e) {
+                    e.preventDefault();
+                    e.stopImmediatePropagation();
+                });
             }
         }
         if (wfJsonObj[i].allowcancel) {
             AxAllowCancel = wfJsonObj[i].allowcancel.toString().toLowerCase() == 'true';
+            if (wfJsonObj[i].allowcancel.toString().toLowerCase() == 'false') {
+                let _delBtn = $('a[onclick*="javascript:DeleteTstruct();"]');
+                _delBtn.addClass("disabled").css({ "pointer-events": "none", "opacity": "0.5" }).off("click").on("click", function (e) {
+                    e.preventDefault();
+                    e.stopImmediatePropagation();
+                });
+            }
         }
+        //try {
+        //    if (wfJsonObj[i].allowedit) {
+        //        let _allowedit = wfJsonObj[i].allowedit.toString().toLowerCase();
+        //        if (_allowedit == 'false') {
+        //            let _saveBtn = $('a[onclick*="javascript:FormSubmit();"]');
+        //            _saveBtn.addClass("disabled").css({ "pointer-events": "none" }).off("click").on("click", function (e) {
+        //                e.preventDefault();
+        //                e.stopImmediatePropagation();
+        //            });
+
+        //            //let _actBtn = $('a[onclick*="javascript:CallAction("]');
+        //            //_actBtn.addClass("disabled").css({ "pointer-events": "none", "opacity": "0.5" }).off("click").on("click", function (e) {
+        //            //    e.preventDefault();
+        //            //    e.stopImmediatePropagation();
+        //            //});
+        //        }
+        //    }
+        //} catch (ex) { }
         if (wfJsonObj[i].maxlevel) {
             maxLevels = wfJsonObj[i].maxlevel;
         }
@@ -2999,12 +3364,13 @@ function ExecWorkflow(wfJsonObj) {
         }
         if (wfJsonObj[i].levels) {
             var usernames = getWfUsrName(maxLevels, wfJsonObj[i].levels);
+            var usernamesUc = getWfUsrNameUs(maxLevels, wfJsonObj[i].levels);
             var statusWrk = getWfStatus(maxLevels, wfJsonObj[i].levels);
             if (wfJsonObj[i].levels.length == 0)
                 continue;
             var lno = wfJsonObj[i].levels[0].lno;
             if ($.inArray("", usernames) == -1) {
-                htmlwf = constructWrkHtml(maxLevels, usernames, statusWrk, elno, wfJsonObj[i].levels);
+                htmlwf = constructWrkHtml(maxLevels, usernames, statusWrk, elno, wfJsonObj[i].levels, usernamesUc);
                 $(htmlwf).insertAfter($(".icobtn"));
                 $("#stratWrkf").after($(".workflowMsg").detach());
                 if ($("#workflowdropdown").length != 0) {
@@ -3020,7 +3386,7 @@ function ExecWorkflow(wfJsonObj) {
                 popoverWrkFl();
             }
             else {
-                getWfLevelUSsrs($.inArray("", usernames), maxLevels, usernames, statusWrk, elno, wfJsonObj[i].levels);
+                getWfLevelUSsrs($.inArray("", usernames), maxLevels, usernames, statusWrk, elno, wfJsonObj[i].levels, usernamesUc);
                 if ($("#workflowdropdown").length != 0) {
                     $("#workflowdropdown").append($("#selectbox").detach());
                     $("#selectbox").removeClass("initialized");
@@ -3245,6 +3611,17 @@ function ExecFormControl(formControlJsonObj, calledFrom) {
                 }
                 tstReadOnly = true;
                 Readonlyform();
+
+                let _saveBtn = $('a[onclick*="javascript:FormSubmit();"]');
+                _saveBtn.addClass("disabled").css({ "pointer-events": "none" }).off("click").on("click", function (e) {
+                    e.preventDefault();
+                    e.stopImmediatePropagation();
+                });
+                let _delBtn = $('a[onclick*="javascript:DeleteTstruct();"]');
+                _delBtn.addClass("disabled").css({ "pointer-events": "none", "opacity": "0.5" }).off("click").on("click", function (e) {
+                    e.preventDefault();
+                    e.stopImmediatePropagation();
+                });
             }
         }
 
@@ -3641,7 +4018,7 @@ function CheckUrlSpecialChars(value) {
     value = value.replace(/&/g, "%26");
     value = value.replace(/'/g, "%27");
     value = value.replace(/"/g, "%22");
-    value = value.replace("+", "%2b");
+    value = value.replace(/\+/g, "%2b");
     value = value.replace(/ /g, "%20");
     value = value.replace(/\\/g, "%5C");
     value = value.replace(/</g, "%3C");
@@ -3959,7 +4336,7 @@ function ExecCommand(cmdJsonObj, actnName, axpConfigNavType, calledFrom = "") {
                                     var winobj = window.open(na, "", params);
                                     winobj.moveTo(0, 0);
                                     winobj.focus();
-                                }                                
+                                }
                             }
                             catch (ex) {
                                 UpdateExceptionMessageInET("openfile exception : " + ex.message);
@@ -4118,6 +4495,21 @@ function ExecCommand(cmdJsonObj, actnName, axpConfigNavType, calledFrom = "") {
                 var btnSave = $j("#btnSaveTst");
                 if (btnSave.length > 0)
                     btnSave.attr("disabled", "disabled");
+                $j("#icons,.tstructMainBottomFooter").find("a").each(function () {
+                    if ((typeof $j(this).attr("title") !== "undefined" && $j(this).attr("title").toLowerCase() === "save") || ($j(this).clone().find('i').remove().end().text().trim().toLowerCase() === "save")) {
+                        $j(this).prop("disabled", true).addClass('disabled btndis').css({
+                            "pointer-events": "none",
+                            "cursor": "default"
+                        }).attr('tabindex', -1);
+                        return false;
+                    }
+                });
+
+                let _actBtn = $('a[onclick*="javascript:CallAction("]');
+                _actBtn.addClass("disabled").css({ "pointer-events": "none", "opacity": "0.5" }).off("click").on("click", function (e) {
+                    e.preventDefault();
+                    e.stopImmediatePropagation();
+                });
             }
         }
         else if (cmdName == "opentstruct" || cmdName == "clear") {
@@ -4163,6 +4555,10 @@ function ExecCommand(cmdJsonObj, actnName, axpConfigNavType, calledFrom = "") {
 
                 if ((typeof cmdJsonObj[i].parentrefresh) != "undefined" && cmdJsonObj[i].parentrefresh == "true") {
                     eval(callParent('isRefreshParentOnClose') + "= true");
+                    if (typeof isTstRefreshParentOnClose != "undefined")
+                        isTstRefreshParentOnClose = "true";
+                    else if (typeof isIvRefreshParentOnClose != "undefined")
+                        isIvRefreshParentOnClose = "true";
                 }
 
                 //var openpopup = window.open('tstruct.aspx?act=open&transid=' + tstid + tparams, popname, 'width=800,height=500,scrollbars=yes,resizable=yes');
@@ -4218,29 +4614,70 @@ function ExecCommand(cmdJsonObj, actnName, axpConfigNavType, calledFrom = "") {
                     popup = "";
             }
 
-            if (popup == "pop") {
-                tparams = tparams + "&AxPop=true";
-
-                if ((typeof cmdJsonObj[i].parentrefresh) != "undefined" && cmdJsonObj[i].parentrefresh == "true") {
-                    eval(callParent('isRefreshParentOnClose') + "= true");
+            let axoldmodelReadMode = "false";
+            let trReadOnlyMode = '';
+            if ((typeof cmdJsonObj[i].readonly) != "undefined" && cmdJsonObj[i].readonly == "true") {
+                trReadOnlyMode = "true";
+                if (typeof callParentNew('axOldModelFlag') != "undefined" && callParentNew('axOldModelFlag') == "true")
+                    axoldmodelReadMode = "true";
+            }
+            if (axoldmodelReadMode == "false" && trReadOnlyMode == "true") {
+                if (popup == "pop") {
+                    tparams = tparams + "&AxPop=true";
+                    if ((typeof cmdJsonObj[i].parentrefresh) != "undefined" && cmdJsonObj[i].parentrefresh == "true") {
+                        eval(callParent('isRefreshParentOnClose') + "= true");
+                        if (typeof isTstRefreshParentOnClose != "undefined")
+                            isTstRefreshParentOnClose = "true";
+                        else if (typeof isIvRefreshParentOnClose != "undefined")
+                            isIvRefreshParentOnClose = "true";
+                    }
+                    var loadpopup = 'EntityForm.aspx?tstid=' + tstid + tparams + `&act=load&isDupTab=${callParentNew('isDuplicateTab')}&loadformdata=true`;
+                    createPopup(loadpopup, true);
                 }
+                else if (popup == "newpage") {
+                    popupFullPage("EntityForm.aspx?tstid=" + tstid + tparams + `&isDupTab=${callParentNew('isDuplicateTab')}` + "&act=load&loadformdata=true");
+                }
+                else if (popup != "split") {
+                    callParentNew("LoadIframe(EntityForm.aspx?tstid=" + tstid + tparams + `&isDupTab=${callParentNew('isDuplicateTab')}` + "&act=load&loadformdata=true");
+                }
+                else if (popup == "split") {
+                    let _loadformdata = '';
+                    if (trReadOnlyMode == "true")
+                        _loadformdata = '&trromode=' + trReadOnlyMode;
+                    callParentNew(`OpenOnPropertyBase(${"tstruct.aspx?act=load&transid=" + tstid + tparams + `&openerIV=${typeof isListView != "undefined" ? iName : tstid}&isIV=${typeof isListView != "undefined" ? !isListView : "false"}&isDupTab=${callParentNew('isDuplicateTab')}${_loadformdata}`})`, 'function');
+                }
+            } else {
+                let _loadformdata = '';
+                if (trReadOnlyMode == "true")
+                    _loadformdata = '&trromode=' + trReadOnlyMode;
+                if (popup == "pop") {
+                    tparams = tparams + "&AxPop=true";
 
-                //var loadpopup = window.open('tstruct.aspx?act=load&transid=' + tstid + tparams, popname, 'width=900,height=500,scrollbars=yes,resizable=yes');
-                var loadpopup = 'tstruct.aspx?act=load&transid=' + tstid + tparams + `&openerIV=${typeof isListView != "undefined" ? iName : tstid}&isIV=${typeof isListView != "undefined" ? !isListView : "false"}&isDupTab=${callParentNew('isDuplicateTab')}`;
-                createPopup(loadpopup, true);
-            }
-            else if (popup == "newpage") {
-                popupFullPage("tstruct.aspx?act=load&transid=" + tstid + tparams + `&openerIV=${typeof isListView != "undefined" ? iName : tstid}&isIV=${typeof isListView != "undefined" ? !isListView : "false"}&isDupTab=${callParentNew('isDuplicateTab')}`);
-            }
-            else if (popup != "split") {
-                let _thisDummyLoad = GetTstHtmlLsKey(tstid);
-                let _tstURI = "tstruct.aspx?act=load&transid=" + tstid + tparams + `&openerIV=${typeof isListView != "undefined" ? iName : tstid}&isIV=${typeof isListView != "undefined" ? !isListView : "false"}&isDupTab=${callParentNew('isDuplicateTab')}${_thisDummyLoad}`;
-                _tstURI = _tstURI.replace(/♠/g, '%e2%99%a0');
-                callParentNew("lastLoadtstId=", _tstURI);
-                window.document.location.href = "tstruct.aspx?act=load&transid=" + tstid + tparams + `&openerIV=${typeof isListView != "undefined" ? iName : tstid}&isIV=${typeof isListView != "undefined" ? !isListView : "false"}&isDupTab=${callParentNew('isDuplicateTab')}${_thisDummyLoad}`;
-            }
-            else if (popup == "split") {
-                callParentNew(`OpenOnPropertyBase(${"tstruct.aspx?act=load&transid=" + tstid + tparams + `&openerIV=${typeof isListView != "undefined" ? iName : tstid}&isIV=${typeof isListView != "undefined" ? !isListView : "false"}&isDupTab=${callParentNew('isDuplicateTab')}`})`, 'function');
+                    if ((typeof cmdJsonObj[i].parentrefresh) != "undefined" && cmdJsonObj[i].parentrefresh == "true") {
+                        eval(callParent('isRefreshParentOnClose') + "= true");
+                        if (typeof isTstRefreshParentOnClose!="undefined")
+                            isTstRefreshParentOnClose = "true";
+                        else if (typeof isIvRefreshParentOnClose != "undefined")
+                            isIvRefreshParentOnClose = "true";
+                    }
+
+                    //var loadpopup = window.open('tstruct.aspx?act=load&transid=' + tstid + tparams, popname, 'width=900,height=500,scrollbars=yes,resizable=yes');
+                    var loadpopup = 'tstruct.aspx?act=load&transid=' + tstid + tparams + `&openerIV=${typeof isListView != "undefined" ? iName : tstid}&isIV=${typeof isListView != "undefined" ? !isListView : "false"}&isDupTab=${callParentNew('isDuplicateTab')}${_loadformdata}`;
+                    createPopup(loadpopup, true);
+                }
+                else if (popup == "newpage") {
+                    popupFullPage("tstruct.aspx?act=load&transid=" + tstid + tparams + `&openerIV=${typeof isListView != "undefined" ? iName : tstid}&isIV=${typeof isListView != "undefined" ? !isListView : "false"}&isDupTab=${callParentNew('isDuplicateTab')}${_loadformdata}`);
+                }
+                else if (popup != "split") {
+                    let _thisDummyLoad = GetTstHtmlLsKey(tstid);
+                    let _tstURI = "tstruct.aspx?act=load&transid=" + tstid + tparams + `&openerIV=${typeof isListView != "undefined" ? iName : tstid}&isIV=${typeof isListView != "undefined" ? !isListView : "false"}&isDupTab=${callParentNew('isDuplicateTab')}${_thisDummyLoad}${_loadformdata}`;
+                    _tstURI = _tstURI.replace(/♠/g, '%e2%99%a0');
+                    callParentNew("lastLoadtstId=", _tstURI);
+                    window.document.location.href = "tstruct.aspx?act=load&transid=" + tstid + tparams + `&openerIV=${typeof isListView != "undefined" ? iName : tstid}&isIV=${typeof isListView != "undefined" ? !isListView : "false"}&isDupTab=${callParentNew('isDuplicateTab')}${_thisDummyLoad}${_loadformdata}`;
+                }
+                else if (popup == "split") {
+                    callParentNew(`OpenOnPropertyBase(${"tstruct.aspx?act=load&transid=" + tstid + tparams + `&openerIV=${typeof isListView != "undefined" ? iName : tstid}&isIV=${typeof isListView != "undefined" ? !isListView : "false"}&isDupTab=${callParentNew('isDuplicateTab')}${_loadformdata}`})`, 'function');
+                }
             }
         }
         else if (cmdName == "openiview") {
@@ -4280,7 +4717,7 @@ function ExecCommand(cmdJsonObj, actnName, axpConfigNavType, calledFrom = "") {
                 }
                 else
                     popup = "";
-            }           
+            }
             let _parentIview = "";
             try {
                 _parentIview = callParentNew('iName');
@@ -4292,8 +4729,12 @@ function ExecCommand(cmdJsonObj, actnName, axpConfigNavType, calledFrom = "") {
                 tparams = tparams + "&AxIsPop=true";
                 if ((typeof cmdJsonObj[i].parentrefresh) != "undefined" && cmdJsonObj[i].parentrefresh == "true") {
                     eval(callParent('isRefreshParentOnClose') + "= true");
+                    if (typeof isTstRefreshParentOnClose != "undefined")
+                        isTstRefreshParentOnClose = "true";
+                    else if (typeof isIvRefreshParentOnClose != "undefined")
+                        isIvRefreshParentOnClose = "true";
                 }
-                if ((ivn == null || ivn == "") && _parentIview!="") {
+                if ((ivn == null || ivn == "") && _parentIview != "") {
                     ivn = callParentNew('iName');
                     var loadpopup = 'iview.aspx?ivname=' + ivn + "&" + tparams + `&isDupTab=${callParentNew('isDuplicateTab')}`, popname;
                     createPopup(loadpopup, true);
@@ -4418,6 +4859,25 @@ function ExecCommand(cmdJsonObj, actnName, axpConfigNavType, calledFrom = "") {
                     if (curFrame.attr("id") === "axpiframe") {
                         axFramReload = true;
                         ReloadMiddleIframe();
+                    }
+
+                    if (typeof transid != "undefined" && transid == "sect") {
+                        try {
+                            htmlCustomSaveRedirect();
+                        } catch (ex) { }
+                    }
+                    if (typeof transid != "undefined" && transid == "a__rp") {
+                        try {
+                            htmlCustomSaveRedirectReact();
+                        } catch (ex) { }
+                    }
+
+                    if (typeof transid != "undefined" && transid == "ad_lg") {
+                        try {
+                            saveAction = false;
+                            AxActionSave = false;
+                            btn22langDownload();
+                        } catch (ex) { }
                     }
                 }
             }
@@ -4554,19 +5014,19 @@ function SetRows(dcNo, rowCount, delRows, calledFrom, oldHasData, dcHasRows) {
 
                 if (rowNo == "*") {
                     var dcRowCnt = GetDcRowCount(dcNo);
-                    if (dcHasRows != "no") {
-                        SetRowsInDc(dcNo, currentRowCnt, calledFrom);
-                        if ((!axInlineGridEdit && AxpGridForm == "form") || (isMobile && mobileCardLayout != "none"))
-                            DeleteFromGridRow(dcNo, rowNo, this, calledFrom);
-                        if (delRows == "d*,") {
-                            if (gridDummyRowVal.length > 0) {
-                                gridDummyRowVal.map(function (v) {
-                                    if (v.split("~")[0] == dcNo)
-                                        gridDummyRowVal.splice($.inArray(v, gridDummyRowVal), 1);
-                                });
-                            }
+                    /* if (dcHasRows != "no") {*/
+                    SetRowsInDc(dcNo, currentRowCnt, calledFrom);
+                    if ((!axInlineGridEdit && AxpGridForm == "form") || (isMobile && mobileCardLayout != "none"))
+                        DeleteFromGridRow(dcNo, rowNo, this, calledFrom);
+                    if (delRows == "d*,") {
+                        if (gridDummyRowVal.length > 0) {
+                            gridDummyRowVal.map(function (v) {
+                                if (v.split("~")[0] == dcNo)
+                                    gridDummyRowVal.splice($.inArray(v, gridDummyRowVal), 1);
+                            });
                         }
                     }
+                    /* }*/
                 }
                 else {
                     DeleteDbRow(dcNo, rowNo, calledFrom);
@@ -4640,8 +5100,7 @@ function SetRows(dcNo, rowCount, delRows, calledFrom, oldHasData, dcHasRows) {
                                 AddNewFormRowInDc(dcNo, calledFrom);
                             else
                                 AddNewRowInDc(dcNo, calledFrom);
-                            if((calledFrom == "GetDep" || calledFrom == "Action") && strDelRows[i].toString() == "i1" && delRows.indexOf("d*") != -1 && dcHasRows == "yes")
-                            {
+                            if ((calledFrom == "GetDep" || calledFrom == "Action") && strDelRows[i].toString() == "i1" && delRows.indexOf("d*") != -1 && dcHasRows == "yes") {
                                 if (gridDummyRowVal.length > 0) {
                                     gridDummyRowVal.map(function (v) {
                                         if (v.split("~")[0] == dcNo)
@@ -4665,6 +5124,24 @@ function SetRows(dcNo, rowCount, delRows, calledFrom, oldHasData, dcHasRows) {
                                 });
                             }
 
+                        }
+                        else if (calledFrom == "FillGrid" && strDelRows[i].toString() == "i1" && delRows.indexOf("i2") == -1 && delRows.indexOf("d*") != -1 && dcHasRows == "yes" && !axInlineGridEdit && AxpGridForm == "form") {
+                            AddNewFormRowInDc(dcNo, calledFrom);
+                            if (gridDummyRowVal.length > 0) {
+                                gridDummyRowVal.map(function (v) {
+                                    if (v.split("~")[0] == dcNo)
+                                        gridDummyRowVal.splice($.inArray(v, gridDummyRowVal), 1);
+                                });
+                            }
+                        }
+                        else if (calledFrom == "GetDep" && strDelRows[i].toString() == "i1" && delRows.indexOf("i2") == -1 && delRows.indexOf("d*") != -1 && dcHasRows == "no" && !axInlineGridEdit && AxpGridForm == "form") {
+                            AddNewFormRowInDc(dcNo, calledFrom);
+                            if (gridDummyRowVal.length > 0) {
+                                gridDummyRowVal.map(function (v) {
+                                    if (v.split("~")[0] == dcNo)
+                                        gridDummyRowVal.splice($.inArray(v, gridDummyRowVal), 1);
+                                });
+                            }
                         }
                     }
                 }
@@ -4839,6 +5316,9 @@ function ClearRowsInGrid(gridDcNo, calledFrom) {
                     }
                     else if (i == rCount - 1)
                         ClientRowNo[ind] = "001";
+                } else if (RowDcNo[ind] == gridDcNo && ClientRowNo[0] != "001") {
+                    if (i == rCount - 1)
+                        ClientRowNo[ind] = "001";
                 }
             }
 
@@ -4981,14 +5461,14 @@ function DoFormControlPrivilege(fldName, value) {
                 //B-Delete button disable
                 var strValue = value.toString().toUpperCase();
                 if (strValue == "B")
-                    DisableDeleteBtn("grdchkItemTd" + rowNo + "F" + dcNo, strValue,dcNo);
+                    DisableDeleteBtn("grdchkItemTd" + rowNo + "F" + dcNo, strValue, dcNo);
                 //A-Current row enable.
                 else if (strValue == "A")
-                    DisableDeleteBtn("grdchkItemTd" + rowNo + "F" + dcNo, strValue,dcNo);
+                    DisableDeleteBtn("grdchkItemTd" + rowNo + "F" + dcNo, strValue, dcNo);
                 //C-Current Row disable
                 else if (strValue == "C") {
                     //Get current img button and disabled here
-                    DisableDeleteBtn("grdchkItemTd" + rowNo + "F" + dcNo, strValue,dcNo);
+                    DisableDeleteBtn("grdchkItemTd" + rowNo + "F" + dcNo, strValue, dcNo);
 
                     //Get current row controls and  disabled here
                     var flds = GetGridFields(dcNo);
@@ -5004,10 +5484,10 @@ function DoFormControlPrivilege(fldName, value) {
                         });
                     }
                 }
-                  //D-Current Row disable and Delete button enabled.
+                //D-Current Row disable and Delete button enabled.
                 else if (strValue == "D") {
                     //Get current img button and enabled here
-                    DisableDeleteBtn("grdchkItemTd" + rowNo + "F" + dcNo, strValue,dcNo);
+                    DisableDeleteBtn("grdchkItemTd" + rowNo + "F" + dcNo, strValue, dcNo);
 
                     //Get current row controls and  disabled here
                     var flds = GetGridFields(dcNo);
@@ -5036,15 +5516,15 @@ function DisNewGridDelBtn(dcNo, rowNo, strValue) {
             $("#sp" + dcNo + "R" + rowNo + "F" + dcNo + " td:first").find('.glyphicon.glyphicon-trash').addClass('disabled').prop("disabled", true);
             if (strValue == "C")
                 $("#sp" + dcNo + "R" + rowNo + "F" + dcNo + " td:first").find('.glyphicon.glyphicon-pencil.icon-software-pencil').addClass('disabled').prop("disabled", true);
-       }else if (strValue == "D") {
-                $("#sp" + dcNo + "R" + rowNo + "F" + dcNo + " td:first").find('.glyphicon.glyphicon-trash').removeClass('disabled').prop("disabled", false);
-                $("#sp" + dcNo + "R" + rowNo + "F" + dcNo + " td:first").find('.glyphicon.glyphicon-trash').parent().removeClass('disabled').prop("disabled", false)
+        } else if (strValue == "D") {
+            $("#sp" + dcNo + "R" + rowNo + "F" + dcNo + " td:first").find('.glyphicon.glyphicon-trash').removeClass('disabled').prop("disabled", false);
+            $("#sp" + dcNo + "R" + rowNo + "F" + dcNo + " td:first").find('.glyphicon.glyphicon-trash').parent().removeClass('disabled').prop("disabled", false)
         }
     }
     catch (ex) { }
 }
 
-function DisableDeleteBtn(delBtnId, strValue,dcNo) {
+function DisableDeleteBtn(delBtnId, strValue, dcNo) {
     delImg = $j("#" + delBtnId);
     if (delImg.length > 0) {
         if (strValue == "C" || strValue == "B") {
@@ -5056,8 +5536,8 @@ function DisableDeleteBtn(delBtnId, strValue,dcNo) {
         else {
             $j("#" + delBtnId).prop("disabled", false);
             $j("#" + delBtnId).bind('click');
-            $j("#chkallgridrow"+dcNo).prop("disabled", false);
-            $j("#chkallgridrow"+dcNo).bind('click');       
+            $j("#chkallgridrow" + dcNo).prop("disabled", false);
+            $j("#chkallgridrow" + dcNo).bind('click');
         }
     }
 }
@@ -5072,7 +5552,7 @@ function AttachFiles() {
         if (!AxRulesBtnConMsgParser(event.currentTarget)) {
             return;
         }
-    }    
+    }
     $j("#attachment-overlay").removeClass("d-none");
 }
 
@@ -5140,8 +5620,8 @@ function ConstructAttachments() {
     }
 
     hdnattachcounts += "<input id=hdncount type=hidden value=" + attcount + ">";
-    if(attcount>0)
-    $j("#attachment-overlay").removeClass("d-none");
+    if (attcount > 0)
+        $j("#attachment-overlay").removeClass("d-none");
     if (GetFieldIndex("axp_attachedfiles") != -1) {
         var expAttField = GetActualFieldName("axp_attachedfiles");
         var attValue = filenamearray.join(',');
@@ -5172,14 +5652,14 @@ function RemoveNewFiles(filename) {
 }
 
 var attFileName = "";
-var delFiles="";
+var delFiles = "";
 //Function to call the webservice to remove the uploaded attachments.
-function RemoveFile(fname, rid,delFileObj) {
+function RemoveFile(fname, rid, delFileObj) {
     if (typeof tstructCancelled != "undefined" && tstructCancelled.toLowerCase() === "cancelled") {
         showAlertDialog("warning", eval(callParent('lcm[303]')));
         return;
     }
-    delFiles=delFileObj;
+    delFiles = delFileObj;
     attFileName = ReplaceUrlSpecialChars(fname);
     var cutMsg = eval(callParent('lcm[47]'));
     var glType = eval(callParent('gllangType'));
@@ -5272,6 +5752,7 @@ function RemoveArrVal(flname, arrayname) {
 //Function to call the service to view the attachments.
 function OpenAttachment(a, b, isNew) {
     a = ReplaceUrlSpecialChars(a);
+    a = CheckSpecialCharsInXml(a);
     var ofXml = '<root axpapp="' + proj + '"  sessionid="' + sid + '"  filename="' + a + '" transid="' + tst + '"  recordid="' + b + '"   trace="♦♦GetAttachedFile♦">';
 
     try {
@@ -5413,9 +5894,9 @@ function EvalPrepared(fldName, rowNo, exprStr, exprType) {
                 res = eval(s);
         }
         catch (ex) {
-            try {     
+            try {
                 s = s.replace(/\\/g, ";bkslh");
-                var res = eval("'" + s + "'");    
+                var res = eval("'" + s + "'");
                 res = res.replace(/;bkslh/g, "\\");
             }
             catch (exp) {
@@ -5807,6 +6288,38 @@ function SuccessCallbackDrafts(result, eventArgs) {
     ShowDimmer(false);
 }
 
+function SaveAsDraftNew() {
+    if (CheckBtnReadOnly('SaveAsDraftNew()')) {
+        return;
+    }
+    try {
+        if (AxGlobalChange == true) {
+            var strTabDCStatus = getTabDCStatus();
+            ASB.WebService.SaveAsDraftNew(ChangedFields, ChangedFieldDbRowNo, ChangedFieldValues, DeletedDCRows, tst, tstDataId, strTabDCStatus, resTstHtmlLS, SuccessCallbackDraftsNew, OnSaveDraftException);
+        }
+    }
+    catch (exp) {
+        ShowDimmer(false);
+        AxWaitCursor(false);
+    }
+}
+
+function SuccessCallbackDraftsNew(result, eventArgs) {
+    if (result != "" && result.split("♠*♠").length > 1) {
+        tstDataId = result.split("♠*♠")[0];
+        result = result.split("♠*♠")[1];
+    }
+    if (CheckSessionTimeout(result))
+        return;
+    resTstHtmlLS = "";
+    if (typeof result != "undefined" && result != "" && result.startsWith('error:')) {
+        showAlertDialog("error", result.replace('error:', ''));
+    } else
+        showAlertDialog("success", "Draft saved successfully.");
+    ShowDimmer(false);
+    AxWaitCursor(false);
+}
+
 function OnSaveDraftException(result) {
     AxWaitCursor(false);
     ShowDimmer(false);
@@ -6185,6 +6698,32 @@ function OpenPdfFile(cmdVal, filepath, docID, dirName, saveAction) {
         success: function (data) {
             if (data.d != null || data.d != "") {
                 if (data.d != "error") {
+                    if (typeof jQBrowser == 'undefined' && isMobile) {
+                        try {
+                            var URL = data.d;
+                            var W;
+                            try {
+                                var params = [
+                                    'height=' + screen.height,
+                                    'width=' + screen.width,
+                                    'fullscreen=yes', // only works in IE
+                                    'scrollbars=yes',
+                                    'resizable=yes'
+                                ].join(',');
+
+                                callParentNew("SetUnload(false)", "function");
+                                callParentNew("isFileDownload=", true);
+
+                                W = window.open(URL, "", params);
+                                W.moveTo(0, 0);
+                                W.window.focus();
+                            } catch (ex) {
+                                UpdateExceptionMessageInET("printfile exception : " + ex.message);
+                                showAlertDialog("warning", eval(callParent('lcm[356]')));
+                            }
+                        } catch (ex) { }
+                    }
+
                     if (jQBrowser.chrome || jQBrowser.opera || jQBrowser.safari) {
                         try {
                             if (!isMobile) {
@@ -6256,7 +6795,7 @@ function OpenPdfFile(cmdVal, filepath, docID, dirName, saveAction) {
                                 W.moveTo(0, 0);
                                 W.window.focus();
                             } catch (ex) {
-                                UpdateExceptionMessageInET("printfile exception : " + ex.message);    
+                                UpdateExceptionMessageInET("printfile exception : " + ex.message);
                                 showAlertDialog("warning", eval(callParent('lcm[356]')));
                             }
                         }
@@ -6383,7 +6922,7 @@ function ExecErrorMsg(ErroMsgJsonObj, calledFrom) {
 
     for (var i = 0; i < ErroMsgJsonObj.length; i++) {
         var errMsg = ErroMsgJsonObj[i].msg;
-        var errFld="";
+        var errFld = "";
         // if (ErroMsgJsonObj[i].errfld)
         //     errFld = ErroMsgJsonObj[i].errfld;
 
@@ -6448,16 +6987,14 @@ function ExecErrorMsg(ErroMsgJsonObj, calledFrom) {
                         var fldName = focusFldId + rowNo + "F" + dcNo;
                         var focusFld = $j("#" + fldName);
                         if (focusFld.length > 0) {
-                            if(IsTabDc(dcNo))
-                            {
-                                if(!$("#ank"+dcNo).hasClass('active'))
-                                {
-                                   let ankId= $("#ank"+dcNo).parents("ul#myTab").find("a.active").attr("id");
-                                   $("#"+ankId).removeClass("active");
-                                   let ackTabId=ankId.substr(3);
-                                   $("#tab-"+ackTabId).removeClass('show active');
-                                   $("#tab-"+dcNo).addClass('show active');
-                                   $("#ank"+dcNo).addClass('active');
+                            if (IsTabDc(dcNo)) {
+                                if (!$("#ank" + dcNo).hasClass('active')) {
+                                    let ankId = $("#ank" + dcNo).parents("ul#myTab").find("a.active").attr("id");
+                                    $("#" + ankId).removeClass("active");
+                                    let ackTabId = ankId.substr(3);
+                                    $("#tab-" + ackTabId).removeClass('show active');
+                                    $("#tab-" + dcNo).addClass('show active');
+                                    $("#ank" + dcNo).addClass('active');
                                 }
                             }
 
@@ -6584,7 +7121,29 @@ function getWfUsrName(maxlevel, jsonStr) {
     }
     return usernames;
 }
-
+function getWfUsrNameUs(maxlevel, jsonStr) {
+    var usernamesUC = [];
+    for (var i = 1; i < (parseInt(maxlevel) + 1); i++) {
+        var temp = "";
+        for (var j = 0; j < jsonStr.length; j++) {
+            if (jsonStr[j].lno == i && $j("#hdnWfLno").val() != "-1") {
+                if (temp == "")
+                    temp += typeof jsonStr[j].uc != "undefined" ? jsonStr[j].uc : "";
+                else
+                    temp += ',' + (typeof jsonStr[j].uc != "undefined" ? jsonStr[j].uc : "");
+            } else if ($j("#hdnWfLno").val() == "-1") {
+                if (temp == "")
+                    try {
+                        temp += typeof jsonStr[$j("#hdnWfELno").val()].uc != "undefined" ? jsonStr[$j("#hdnWfELno").val()].uc : "";
+                    } catch (ex) {
+                        temp += typeof jsonStr[j].uc != "undefined" ? jsonStr[j].uc : "";
+                    }
+            }
+        }
+        usernamesUC.push(temp);
+    }
+    return usernamesUC;
+}
 function getWfStatus(maxlevel, jsonStr) {
     var userSt = [];
     var prevLabel = false;
@@ -6633,17 +7192,17 @@ function getWfStatus(maxlevel, jsonStr) {
     return userSt;
 }
 
-function getWfLevelUSsrs(lvlIdx, maxLevels, usernames, statusWrk, elno, levelJson) {
+function getWfLevelUSsrs(lvlIdx, maxLevels, usernames, statusWrk, elno, levelJson, usernamesUc) {
     WrkflFlag = true;
     ShowDimmer(true);
     var recid = $j("#recordid000F0").val();
-    var htmlwrk = constructWrkHtml(maxLevels, usernames, statusWrk, elno, levelJson);
+    var htmlwrk = constructWrkHtml(maxLevels, usernames, statusWrk, elno, levelJson, usernamesUc);
     $(htmlwrk).insertAfter($(".icobtn"));
     $("#stratWrkf").after($(".workflowMsg").detach());
     popoverWrkFl();
 }
 
-function constructWrkHtml(maxLevels, usernames, statusWrk, elno, levelJson) {
+function constructWrkHtml(maxLevels, usernames, statusWrk, elno, levelJson, usernamesUc) {
     var htmlwf = "";
     var htmlwfNew = "";
     var levelno = 0;
@@ -6678,9 +7237,12 @@ function constructWrkHtml(maxLevels, usernames, statusWrk, elno, levelJson) {
             status = "Pending";
             if (status.toLowerCase() == 'pending' && usernames[l] != "" && usernames[l] == user)
                 htmlwfNew = "Approval pending with you. "
-            else if (status.toLowerCase() == 'pending' && usernames[l] != "" && usernames[l] != user)
-                htmlwfNew = "Approval pending with " + usernames[l] + " ";
-
+            else if (status.toLowerCase() == 'pending' && usernames[l] != "" && usernames[l] != user) {
+                if (typeof usernamesUc[l] != "undefined" && usernamesUc[l] != "")
+                    htmlwfNew = "Approval pending with " + usernamesUc[l] + " ";
+                else
+                    htmlwfNew = "Approval pending with " + usernames[l] + " ";
+            }
         }
         else if (typeof levelJson[levelno] != "undefined" && levelJson[levelno].lno == elno && parseInt(elno) == (l + 1)) {
             var wfContent = $j("#lblStatus").text();
@@ -6731,28 +7293,36 @@ function constructWrkHtml(maxLevels, usernames, statusWrk, elno, levelJson) {
                     htmlwfNew = "Approval pending with you. ";
             }
             else if (status.toLowerCase() == 'pending' && usernames[l] != user) {
-                if (usernames[l].indexOf(',') > -1)
-                    htmlwfNew = "Approval pending with " + usernames[l] + " ";
-                else
-                    htmlwfNew = "Approval pending with " + usernames[l] + " ";
+                if (usernames[l].indexOf(',') > -1) {
+                    if (typeof usernamesUc[l] != "undefined" && usernamesUc[l] != "")
+                        htmlwfNew = "Approval pending with " + usernamesUc[l] + " ";
+                    else
+                        htmlwfNew = "Approval pending with " + usernames[l] + " ";
+                }
+                else {
+                    if (typeof usernamesUc[l] != "undefined" && usernamesUc[l] != "")
+                        htmlwfNew = "Approval pending with " + usernamesUc[l] + " ";
+                    else
+                        htmlwfNew = "Approval pending with " + usernames[l] + " ";
+                }
             }
             else if (status.toLowerCase() == 'approved' && usernames[l] == user) {
                 var wfContent = $j("#lblStatus").text();
                 var userRegex = new RegExp("'?" + user.replace('.', '\\.') + "'?", 'ig');
-                var userFirstName = user.split('.')[0]; 
+                var userFirstName = user.split('.')[0];
                 var userFirstNameRegex = new RegExp("'?" + userFirstName + "'?", 'ig');
                 var wfContentUsr = wfContent.match(userRegex) || wfContent.match(userFirstNameRegex);
                 if (wfContentUsr != null) {
                     wfContentUsr.forEach(function (wfcu) {
                         let wfcuWithoutQuotes = wfcu.replace(/'/g, '');
                         if (wfcuWithoutQuotes.indexOf(".") > -1) {
-                            let replwfcu = wfcuWithoutQuotes.replace(/\./g, '♣'); 
-                            wfContent = wfContent.replace(wfcuWithoutQuotes, replwfcu); 
+                            let replwfcu = wfcuWithoutQuotes.replace(/\./g, '♣');
+                            wfContent = wfContent.replace(wfcuWithoutQuotes, replwfcu);
                         }
                     });
                 }
-                var lblst = wfContent.split('.'); 
-                let wfUser = user.replace(/\./g, '♣'); 
+                var lblst = wfContent.split('.');
+                let wfUser = user.replace(/\./g, '♣');
                 lblst.forEach(function (val) {
                     if (val.trim() !== "") {
                         if (val.indexOf(wfUser) > -1 || val.indexOf(" " + userFirstName + " ") > -1) {
@@ -6828,7 +7398,7 @@ function popupFullPage(NavigationURL) {
     // frm.attr("src", NavigationURL);
     try {
         frm[0].contentWindow.location.href = NavigationURL;
-    } catch (ex) {}
+    } catch (ex) { }
 }
 
 function setIviewNavigationData(paramsString, iviewName) {
@@ -6844,58 +7414,56 @@ function setIviewNavigationData(paramsString, iviewName) {
     }
 }
 
- function callExecuteScriptApi(type,btnName,apiInfo)
-    {
-        if (actionCallFlag == actionCallbackFlag) {
-            actionCallFlag = Math.random();
-            $("#icons,#btnSaveTst,.BottomToolbarBar a").css({ "pointer-events": "auto" });
-        } else {
-            $("#icons,#btnSaveTst,.BottomToolbarBar a").css({ "pointer-events": "none" });
-            return;
-        }
-        AxWaitCursor(true);
-        ShowDimmer(true);
-        try {
-
-            ASB.WebService.CallExecuteScriptAPI(type, tstDataId, btnName, apiInfo, resTstHtmlLS, SuccessCallbackExecuteScriptApi, OnException);
-        }
-        catch (exp) {
-            actionCallbackFlag = actionCallFlag;
-            $("#icons,#btnSaveTst,.BottomToolbarBar a,.wizardNextPrevWrapper").css({ "pointer-events": "auto" });
-            AxWaitCursor(false);
-            ShowDimmer(false);
-            var execMess = exp.name + "^♠^" + exp.message;
-            showAlertDialog("error", 2030, "client", execMess);
-        }
+function callExecuteScriptApi(type, btnName, apiInfo) {
+    if (actionCallFlag == actionCallbackFlag) {
+        actionCallFlag = Math.random();
+        $("#icons,#btnSaveTst,.BottomToolbarBar a").css({ "pointer-events": "auto" });
+    } else {
+        $("#icons,#btnSaveTst,.BottomToolbarBar a").css({ "pointer-events": "none" });
+        return;
     }
+    AxWaitCursor(true);
+    ShowDimmer(true);
+    try {
+
+        ASB.WebService.CallExecuteScriptAPI(type, tstDataId, btnName, apiInfo, resTstHtmlLS, SuccessCallbackExecuteScriptApi, OnException);
+    }
+    catch (exp) {
+        actionCallbackFlag = actionCallFlag;
+        $("#icons,#btnSaveTst,.BottomToolbarBar a,.wizardNextPrevWrapper").css({ "pointer-events": "auto" });
+        AxWaitCursor(false);
+        ShowDimmer(false);
+        var execMess = exp.name + "^♠^" + exp.message;
+        showAlertDialog("error", 2030, "client", execMess);
+    }
+}
 
 function SuccessCallbackExecuteScriptApi(result, eventArgs) {
     if (result != "" && result.split("♠*♠").length > 1) {
         tstDataId = result.split("♠*♠")[0];
         result = result.split("♠*♠")[1];
     }
-        actionCallbackFlag = actionCallFlag;
-        $("#icons,#btnSaveTst,.BottomToolbarBar a,.wizardNextPrevWrapper").css({ "pointer-events": "auto" });
-        if (CheckSessionTimeout(result)) {
-            return;
-        }
-        resTstHtmlLS = "";
-        let resJson=JSON.parse(result);
-        if(typeof resJson.result[0].error!="undefined")
-        {
-            if(typeof resJson.result[0].error.msg!="undefined")
-                showAlertDialog("error", resJson.result[0].error.msg);
-            else
-                showAlertDialog("error", resJson.result[0].error[0].msg);
-        }else{           
-            showAlertDialog("success", resJson.result[0].msg);
-        }
-        ArrActionLog = "";
-        AxWaitCursor(false);
-        ShowDimmer(false);
+    actionCallbackFlag = actionCallFlag;
+    $("#icons,#btnSaveTst,.BottomToolbarBar a,.wizardNextPrevWrapper").css({ "pointer-events": "auto" });
+    if (CheckSessionTimeout(result)) {
+        return;
     }
+    resTstHtmlLS = "";
+    let resJson = JSON.parse(result);
+    if (typeof resJson.result[0].error != "undefined") {
+        if (typeof resJson.result[0].error.msg != "undefined")
+            showAlertDialog("error", resJson.result[0].error.msg);
+        else
+            showAlertDialog("error", resJson.result[0].error[0].msg);
+    } else {
+        showAlertDialog("success", resJson.result[0].msg);
+    }
+    ArrActionLog = "";
+    AxWaitCursor(false);
+    ShowDimmer(false);
+}
 
-function EvaluateDirectScript (dataString){
+function EvaluateDirectScript(dataString) {
     return Evaluate("", "", dataString, "exp");
 }
 
@@ -6908,16 +7476,53 @@ function ReadonlyformPeg() {
     $(".BottomToolbarBar").find('a').addClass('disabled');
     $(".BottomToolbarBar").find('a').attr('disabled', true);
     $(".BottomToolbarBar").find('a').attr('tabindex', -1);
-    $(".toolbarRightMenu").find('a').addClass('disabled');
-    $(".toolbarRightMenu").find('a').attr('disabled', true);
-    $(".toolbarRightMenu").find('button').attr('disabled', true);
-    $(".toolbarRightMenu").find('button').addClass('disabled');
-    $(".toolbarRightMenu").find('button').css({ "pointer-events": "none" });
-    $(".toolbarRightMenu").find('a').attr('tabindex', -1);
-    $(".toolbarRightMenu").find('button').attr('tabindex', -1);
-    $(".toolbarRightMenu").find('a').css({ "pointer-events": "none" });
+
+    //$(".toolbarRightMenu").find('a').addClass('disabled');
+    //$(".toolbarRightMenu").find('a').attr('disabled', true);
+    //$(".toolbarRightMenu").find('a').attr('tabindex', -1);
+    //$(".toolbarRightMenu").find('a').css({ "pointer-events": "none" });
+    //$(".toolbarRightMenu").find('button').attr('disabled', true);
+    //$(".toolbarRightMenu").find('button').addClass('disabled');
+    //$(".toolbarRightMenu").find('button').css({ "pointer-events": "none" });
+    //$(".toolbarRightMenu").find('button').attr('tabindex', -1);
+
+    $(".toolbarRightMenu").find('button:not(#btnAppsHeader)').attr('disabled', true);
+    $(".toolbarRightMenu").find('button:not(#btnAppsHeader)').addClass('disabled');
+    $(".toolbarRightMenu").find('button:not(#btnAppsHeader)').css({ "pointer-events": "none" });
+    $(".toolbarRightMenu").find('button:not(#btnAppsHeader)').attr('tabindex', -1);
+    //$(".toolbarRightMenu").find("a").each(function () {
+    //    var onclickVal = $(this).attr("onclick") || "";
+    //    if (!onclickVal.includes("CallAction(")) {
+    //        $(this).addClass("disabled").css("pointer-events", "none").attr("tabindex", -1).attr("aria-disabled", "true").removeAttr("onclick");
+    //    }
+    //});
+
+    $(".toolbarRightMenu").find("a").each(function () {
+        var $a = $(this);
+        var onclickVal = $a.attr("onclick") || "";
+        if (!onclickVal.includes("CallAction(")) {
+            disableLink($a);
+            return;
+        }
+        var match = onclickVal.match(/CallAction\s*\(\s*['"]([^'"]+)['"]/);
+        if (!match) {
+            disableLink($a);
+            return;
+        }
+        var actionName = match[1];
+        var index = tstActionName.indexOf(actionName);
+        if (index === -1) {
+            disableLink($a);
+            return;
+        }
+        if (typeof actSaveTask !== "undefined" && typeof actSaveTask[index] !== "undefined" && String(actSaveTask[index]).toLowerCase() === "save") {
+            disableLink($a);
+        }
+    });
+
+
     $(".tstructBottomLeftButton").find('.lnkPrev,.lnkNext,a').addClass('disabled');
-    $(".tstructBottomLeftButton").find('.lnkPrev,.lnkNext,a').attr('disabled', true);  
+    $(".tstructBottomLeftButton").find('.lnkPrev,.lnkNext,a').attr('disabled', true);
     $(".tstructBottomLeftButton").find('.lnkPrev,.lnkNext,a').attr('tabindex', -1);
     $(".tstructBottomLeftButton").find('.lnkPrev,.lnkNext,a').css({ "pointer-events": "none" });
     $(".dz-hidden-input").prop("disabled", true);
@@ -6930,7 +7535,14 @@ function ReadonlyformPeg() {
     _obj.addClass('btndis');
     _obj.css("pointer-events", 'none');
     _obj.css("cursor", 'default');
-    _obj.attr('tabindex', -1);
+    _obj.attr('tabindex', -1);   
+}
+function disableLink($a) {
+    $a.addClass("disabled")
+        .css("pointer-events", "none")
+        .attr("tabindex", -1)
+        .attr("aria-disabled", "true")
+        .removeAttr("onclick");
 }
 
 function PEGStatusBar(pegMsg) {
@@ -7080,8 +7692,11 @@ function PEGStatusBar(pegMsg) {
         $("#lblpegtext").append(_reCall);
     }
 
-    if (typeof pegMsg[0].readonlytrans != "undefined" && pegMsg[0].readonlytrans == "true")
-        $(".tstructMainBottomFooter").addClass("d-none");
+    if (typeof pegMsg[0].readonlytrans != "undefined" && pegMsg[0].readonlytrans == "true") {
+        $(".tstructMainBottomFooter").addClass("d-none").addClass("pegreadonlytrans");
+        AxPegAmdreadOnly = "true";
+    } else
+        AxPegAmdreadOnly = "false";
 
     if (typeof pegMsg[0].comments != "undefined" && pegMsg[0].comments != "") {
         if ($("#lblPegComments").length > 0)
@@ -7166,4 +7781,53 @@ function GetTstHtmlLsKey(_tId) {
         _isDummyLoad = "&dummyload=false♠";
     }
     return _isDummyLoad;
+}
+function ExecuteScriptPushtoQueue(_scripName, _scriptCaption, _queueName) {
+    AxWaitCursor(true);
+    ShowDimmer(true);
+    try {
+        let tid = transid;
+        var visDcname = GetOpenTabDcs();
+        var delRows = GetDeletedRows();
+        var chngRows = GetChangedRows();
+        var rid = $j("#recordid000F0").val();
+        let txt = '<root axpapp="' + proj + '" trace="' + trace + '" recordid="' + rid + '"  fno="" afiles=""  dcname="' + visDcname + '" actrow="" sessionid="' + sid + '"  stype="tstructs" sname="' + tid + '" actname="" __file="" options="true" dsignstatus=""><varlist><row>';
+        ASB.WebService.ExecuteScriptPushtoQueue(ChangedFields, ChangedFieldDbRowNo, ChangedFieldValues, DeletedDCRows, DeletedFieldValue, ArrActionLog, visDcname, txt, delRows, chngRows, tstDataId, resTstHtmlLS, tid, rid, _scripName, _scriptCaption, _queueName, tstructCaption, SuccessCallbackScriptPushtoQueue, OnException);
+    }
+    catch (exp) {
+        actionCallbackFlag = actionCallFlag;
+        $("#icons,#btnSaveTst,.BottomToolbarBar a,.wizardNextPrevWrapper").css({ "pointer-events": "auto" });
+        AxWaitCursor(false);
+        ShowDimmer(false);
+        var execMess = exp.name + "^♠^" + exp.message;
+        showAlertDialog("error", 2030, "client", execMess);
+    }
+}
+function SuccessCallbackScriptPushtoQueue(result, eventArgs) {
+    if (result != "" && result.split("♠*♠").length > 1) {
+        tstDataId = result.split("♠*♠")[0];
+        result = result.split("♠*♠")[1];
+    }
+    actionCallbackFlag = actionCallFlag;
+    $("#icons,#btnSaveTst,.BottomToolbarBar a,.wizardNextPrevWrapper").css({ "pointer-events": "auto" });
+    if (CheckSessionTimeout(result)) {
+        return;
+    }
+    if (result == "keyexist") {
+        showAlertDialog('warning', "Previous request still in process. Please wait till you get the notification");
+    } else if (result.startsWith("RMQError:")) {
+        showAlertDialog("error", result.replace("RMQError:", ""));
+    }
+    else {
+        resTstHtmlLS = "";
+        let resJson = JSON.parse(result);
+        if (typeof resJson.result.success != "undefined" && resJson.result.success) {
+            showAlertDialog("success", resJson.result.message);
+        } else {
+            showAlertDialog("error", resJson.result.message);
+        }
+    }
+    ArrActionLog = "";
+    AxWaitCursor(false);
+    ShowDimmer(false);
 }

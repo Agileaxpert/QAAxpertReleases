@@ -154,7 +154,7 @@
                                             }
 
                                             if(openListviewConf?.propsval == "true"){
-                                                childObj.target = `${childObj.target.replace("tstruct.aspx?transid=", "iview.aspx?ivname=")}&tstcaption=${(childObj.name || findGetParameter("transid", childObj.target))}`;
+                                                childObj.target = `${childObj.target.replace("tstruct.aspx?transid=", "iview.aspx?ivname=")}&tstcaption=${findGetParameter("transid", childObj.target)}`;
 
                                                 isListView = true;
                                             }else{
@@ -2626,7 +2626,9 @@
                     contentType: "application/json",
                     success: function (data) {
                         gloSrchPageNo = 0;
-                        if (data.d.indexOf("*♦*") != -1) {
+                        if (data.d != null && data.d.startsWith("error:"))
+                            showAlertDialog("error", data.d.replace(/^error:/, ''));
+                        else if (data.d.indexOf("*♦*") != -1) {
                             var srchData = data.d.split("*♦*");
                             gloSrchLimit = srchData[0];
                             console.log("GlobalSearch RowCount-" + srchData[0]);
@@ -2715,7 +2717,7 @@
                             var qstr ="";
                             if(srcDtls[1]!="null" && srcDtls[1]!="")
                                 qstr= GetGloSrchQueryString(srcDtls[1]);
-                            loadurl = `iview.aspx?ivname=${srcDtls[0]}&tstcaption=${(itemText || srcDtls[0])+qstr}`;
+                            loadurl = `iview.aspx?ivname=${srcDtls[0]}&tstcaption=${srcDtls[0] + qstr}`;
                         }
                         else
                             var loadurl = searchLoadIframe(searchType, data.link.split('♦')[1], true);

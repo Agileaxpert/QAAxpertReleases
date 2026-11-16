@@ -205,7 +205,7 @@ Home Cunfiguration Page Templete
                             </div>
                             <!--end::Aside Toggle-->
                             <!--begin::Aside toggler-->
-                            <div class="btn btn-icon w-auto ps-0 btn-active-color-primary d-none d-lg-inline-flex me-2 me-lg-5 active---" data-kt-toggle="true" data-kt-toggle-state="active" data-kt-toggle-target="body" data-kt-toggle-name="aside-minimize">
+                            <div id="impopen" class="btn btn-icon w-auto ps-0 btn-active-color-primary d-none d-lg-inline-flex me-2 me-lg-5 active---" data-kt-toggle="true" data-kt-toggle-state="active" data-kt-toggle-target="body" data-kt-toggle-name="aside-minimize">
                                 <span class="material-icons material-icons-style material-icons-2 rotate-180">
                                     menu
                                 </span>
@@ -615,6 +615,181 @@ Home Cunfiguration Page Templete
                                     <!--end::Menu wrapper-->
                                 </div>
                                 <!--end::Quick links-->
+                                <!--begin::Dev Studio options-->
+                                <div class="d-flex align-items-center ms-1 ms-lg-2" id="axpertstudio">
+                                    <!--begin::Menu wrapper-->
+                                    <div class="btn btn-icon btn-active-light-primary w-30px h-30px w-md-40px h-md-40px" id="AllDevOptions" data-kt-menu-trigger="click" data-kt-menu-attach="parent" data-kt-menu-placement="bottom-end" data-kt-menu-backdrop="true">
+                                        <img class="notif-new" src="../images/devops/axpertstudio.png">
+                                    </div>
+                                    <!--begin::Menu-->
+                                    <div class="DevOptions menu menu-sub menu-sub-dropdown menu-column w-sm-250px w-md-600px w-lg-600px overflow-sm-auto " data-kt-menu="true" style="">
+                                        <!-- min-h-150px h-sm-150px h-md-500px -->
+                                        <div class="card-body py-5 scroll-y me-n5 pe-5">
+                                            <!--begin::Scroll-->
+                                            <!--begin:Nav-->
+                                            <div class="row g-0">
+                                                <!--begin:Item-->
+
+                                                <div id="Tstruct" class="col-md-3 col-sm-6 col-6">
+                                                    <a href="#" data-ax-click='openDeveloperStudio("tstreact")' title="Tstruct" class="d-flex flex-column flex-center h-100 p-6 bg-hover-light border-bottom border-0">
+                                                        <img loading="lazy" width="64" height="64" src="../images/devops/tstruct.png">
+                                                        <span class="divTitle fs-5 fw-bold text-gray-800 mb-0">Tstruct</span>
+                                                        <span class="divSubTitle fs-7 text-gray-400">Forms</span>
+                                                    </a>
+                                                </div>
+
+                                                <div id="Iview" class="col-md-3 col-sm-6 col-6">
+                                                    <a href="#" data-ax-click='openDeveloperStudio("ivreact")' title="Iview" class="d-flex flex-column flex-center h-100 p-6 bg-hover-light border-bottom border-0">
+                                                        <img src="../images/devops/iview.png">
+                                                        <span class="divTitle fs-5 fw-bold text-gray-800 mb-0">Iview</span>
+                                                        <span class="divSubTitle fs-7 text-gray-400">Reports</span>
+                                                    </a>
+                                                </div>
+
+                                                <!--<div id="Cards" class="col-md-3 col-sm-6 col-6">
+        <a href="#" data-ax-click='openDeveloperStudio("iaxpcards")' class="d-flex flex-column flex-center h-100 p-6 bg-hover-light border-bottom border-0">
+            <img src="../images/devops/cards.png">
+            <span class="divTitle fs-5 fw-bold text-gray-800 mb-0">Cards</span>
+            <span class="divSubTitle fs-7 text-gray-400">Cards</span>
+        </a>
+    </div>-->
+
+                                                <div id="pluginCustomCode" class="col-md-3 col-sm-6 col-6">
+                                                    <a href="#" data-ax-click='openPluginEditor()'  title="Custom Plugins" class="d-flex flex-column flex-center h-100 p-6 bg-hover-light border-bottom border-0">
+                                                        <img src="../images/icons/plugin.png">
+                                                        <span class="divTitle fs-5 fw-bold text-gray-800 mb-0">Custom Plugins</span>
+                                                        <span class="divSubTitle fs-7 text-gray-400">Plugin</span>
+                                                    </a>
+                                                </div>
+
+                                                <!--<div id="CustomPages" class="col-md-3 col-sm-6 col-6">
+                                                    <a href="#" data-ax-click='openDeveloperStudio("ihplist")' title="Custom Pages" class="d-flex flex-column flex-center h-100 p-6 bg-hover-light border-bottom border-0">
+                                                        <img src="../images/devops/custom-pages.png">
+                                                        <span class="divTitle fs-5 fw-bold text-gray-800 mb-0">Custom Pages</span>
+                                                        <span class="divSubTitle fs-7 text-gray-400">HTML</span>
+                                                    </a>
+                                                </div>-->
+
+                                                <div id="ADS" class="col-md-3 col-sm-6 col-6">
+                                                    <a href="#" data-ax-click='openDeveloperStudio("icsqlist")' title="Axpert Data Sources" class="d-flex flex-column flex-center h-100 p-6 bg-hover-light border-bottom border-0">
+                                                        <img src="../images/devops/custom-data-sourse.png">
+                                                        <span class="divTitle fs-5 fw-bold text-gray-800 mb-0">Axpert Data Sources</span>
+                                                        <span class="divSubTitle fs-7 text-gray-400">ADS</span>
+                                                    </a>
+                                                </div>
+
+                                                <div id="APIPlugins" class="col-md-3 col-sm-6 col-6">
+                                                    <a href="#" data-ax-click='openDeveloperStudio("iexapidef")' title="API Plugins" class="d-flex flex-column flex-center h-100 p-6 bg-hover-light border-bottom border-0">
+                                                        <img src="../images/devops/Api-plugin.png">
+                                                        <span class="divTitle fs-5 fw-bold text-gray-800 mb-0">API Plugins</span>
+                                                        <span class="divSubTitle fs-7 text-gray-400">External APIs</span>
+                                                    </a>
+                                                </div>
+
+                                                <div id="DevOptions" class="col-md-3 col-sm-6 col-6">
+                                                    <a href="#" data-ax-click='openDeveloperStudio("idop_list")' title="Developer Options" class="d-flex flex-column flex-center h-100 p-6 bg-hover-light border-bottom border-0">
+                                                        <img src="../images/devops/dev-options.png">
+                                                        <span class="divTitle fs-5 fw-bold text-gray-800 mb-0">Dev Options</span>
+                                                        <span class="divSubTitle fs-7 text-gray-400">Dev Options</span>
+                                                    </a>
+                                                </div>
+
+                                                <div id="AxpertJobs" class="col-md-3 col-sm-6 col-6">
+                                                    <a href="#" data-ax-click='openDeveloperStudio("ijobtsk")' title="Axpert Jobs" class="d-flex flex-column flex-center h-100 p-6 bg-hover-light border-bottom border-0">
+                                                        <img src="../images/devops/axpert-jobs.png">
+                                                        <span class="divTitle fs-5 fw-bold text-gray-800 mb-0">Axpert Jobs</span>
+                                                        <span class="divSubTitle fs-7 text-gray-400">Axpert Jobs</span>
+                                                    </a>
+                                                </div>
+
+                                                <div id="DevLanguages" class="col-md-3 col-sm-6 col-6">
+                                                    <a href="#" data-ax-click='openDeveloperStudio("iaxlangs")' title="Axpert Languages" class="d-flex flex-column flex-center h-100 p-6 bg-hover-light border-bottom border-0">
+                                                        <img src="../images/devops/languages.png">
+                                                        <span class="divTitle fs-5 fw-bold text-gray-800 mb-0">Languages</span>
+                                                        <span class="divSubTitle fs-7 text-gray-400">Languages</span>
+
+                                                    </a>
+                                                </div>
+
+                                                <div id="DevPublish" class="col-md-3 col-sm-6 col-6">
+                                                    <a href="#" data-ax-click='openDeveloperStudio("ipublist")' title="Publish" class="d-flex flex-column flex-center h-100 p-6 bg-hover-light border-bottom border-0">
+                                                        <img src="../images/devops/publish.png">
+                                                        <span class="divTitle fs-5 fw-bold text-gray-800 mb-0">Publish</span>
+                                                        <span class="divSubTitle fs-7 text-gray-400">Publish</span>
+
+                                                    </a>
+                                                </div>
+
+                                                <div id="CustomDataType" class="col-md-3 col-sm-6 col-6">
+                                                    <a href="#" data-ax-click='openDeveloperStudio("icdlist")' title="Custom Data Type" class="d-flex flex-column flex-center h-100 p-6 bg-hover-light border-bottom border-0">
+                                                        <img src="../images/devops/custom-data-type.png">
+                                                        <span class="divTitle fs-5 fw-bold text-gray-800 mb-0">Custom Data Type</span>
+                                                        <span class="divSubTitle fs-7 text-gray-400">Data Type</span>
+                                                    </a>
+                                                </div>
+
+                                                <div id="Appvariables" class="col-md-3 col-sm-6 col-6">
+                                                    <a href="#" data-ax-click='openDeveloperStudio("iaxvars")' title="Application Variables" class="d-flex flex-column flex-center h-100 p-6 bg-hover-light border-bottom border-0">
+                                                        <img src="../images/devops/app-variables.png">
+                                                        <span class="divTitle fs-5 fw-bold text-gray-800 mb-0">App Variables</span>
+                                                        <span class="divSubTitle fs-7 text-gray-400">App Variables</span>
+                                                    </a>
+                                                </div>
+
+                                                <div id="DevExplorer" class="col-md-3 col-sm-6 col-6">
+                                                    <a href="#" data-ax-click='openDeveloperStudio("AxDBScript.aspx")' title="Data Base Explorer" class="d-flex flex-column flex-center h-100 p-6 bg-hover-light border-bottom border-0">
+                                                        <img src="../images/devops/DB-Explorer.png">
+                                                        <span class="divTitle fs-5 fw-bold text-gray-800 mb-0">DB Explorer</span>
+                                                        <span class="divSubTitle fs-7 text-gray-400">DB Explorer</span>
+                                                    </a>
+                                                </div>
+
+                                                <div id="ArrangeMenu" class="col-md-3 col-sm-6 col-6">
+                                                    <a href="#" data-ax-click='openDeveloperStudio("ArrangeMenu.aspx")' title="Arrange Menu" class="d-flex flex-column flex-center h-100 p-6 bg-hover-light border-bottom border-0">
+                                                        <img src="../images/devops/ArrangeMenu.png">
+                                                        <span class="divTitle fs-5 fw-bold text-gray-800 mb-0">Arrange Menu</span>
+                                                        <span class="divSubTitle fs-7 text-gray-400">Arrange Menu</span>
+                                                    </a>
+                                                </div>
+
+                                                <div id="EmailDefinitions" class="col-md-3 col-sm-6 col-6">
+                                                    <a href="#" data-ax-click='openDeveloperStudio("iemaildef")' title="Email Definitions" class="d-flex flex-column flex-center h-100 p-6 bg-hover-light border-bottom border-0">
+                                                        <img src="../images/devops/email-definition.png">
+                                                        <span class="divTitle fs-5 fw-bold text-gray-800 mb-0">Email Definitions</span>
+                                                        <span class="divSubTitle fs-7 text-gray-400">Definitions</span>
+                                                    </a>
+                                                </div>
+                                                <div id="TableDescriptor" class="col-md-3 col-sm-6 col-6">
+                                                    <a href="#" data-ax-click='openDeveloperStudio("iad___tbd")' title="Table Type Field Descriptor" class="d-flex flex-column flex-center h-100 p-6 bg-hover-light border-bottom border-0">
+                                                        <img src="../images/devops/table-filed-descriptor.png">
+                                                        <span class="divTitle fs-5 fw-bold text-gray-800 mb-0">Table Field Descriptor</span>
+                                                        <span class="divSubTitle fs-7 text-gray-400">Descriptor</span>
+                                                    </a>
+                                                </div>
+
+                                                <div id="QueueListing" class="col-md-3 col-sm-6 col-6">
+                                                    <a href="#" data-ax-click='openDeveloperStudio("iad__qls")' title="Queue Listing" class="d-flex flex-column flex-center h-100 p-6 bg-hover-light border-bottom border-0">
+                                                        <img src="../images/devops/queue-Listing.png">
+                                                        <span class="divTitle fs-5 fw-bold text-gray-800 mb-0">Queue Listing</span>
+                                                        <span class="divSubTitle fs-7 text-gray-400">Queue</span>
+                                                    </a>
+                                                </div>
+                                                <div id="MemDBConsole" class="col-md-3 col-sm-6 col-6">
+                                                    <a href="#" data-ax-click='openDeveloperStudio("iinmemdb")' title="Mem DB Console" class="d-flex flex-column flex-center h-100 p-6 bg-hover-light border-bottom border-0">
+                                                        <img src="../images/devops/Mem-DB-Console.png">
+                                                        <span class="divTitle fs-5 fw-bold text-gray-800 mb-0">Mem DB Console</span>
+                                                        <span class="divSubTitle fs-7 text-gray-400">Mem DB</span>
+                                                    </a>
+                                                </div>
+                                                <!--end:Item-->
+                                            </div>
+                                            <!--end:Nav-->
+                                        </div>
+                                    </div>
+                                </div>
+                                <!--end::Menu-->
+                                <!--end::Menu wrapper-->
+                                <!--end::Dev Studio options-->
                                 <!--begin::User-->
                                 <div class="d-flex align-items-center ms-2 ms-lg-3">
                                     <!--begin::Menu wrapper-->
@@ -927,8 +1102,7 @@ Home Cunfiguration Page Templete
         </div>
 
         <!-- Custom Js -->
-        <script src="">
-</script>
+        <script src=""></script>
 </template>
 <script type="text/javascript">
     /**
@@ -951,18 +1125,18 @@ Home Cunfiguration Page Templete
         files.js.push("/Js/handlebars.min.js?v=3");
         files.js.push("/Js/handleBarsHelpers.min.js");
 
-        files.js.push("/Js/AxInterface.min.js?v=13");//min
+        files.js.push("/Js/AxInterface.min.js?v=24");//min
         files.js.push("/ThirdParty/Highcharts/highcharts.js");
         files.js.push("/ThirdParty/Highcharts/highcharts-3d.js");
         files.js.push("/ThirdParty/Highcharts/highcharts-more.js");
         files.js.push("/ThirdParty/Highcharts/highcharts-exporting.js");
-        files.js.push("/Js/high-charts-functions.min.js?v=23");//min
+        files.js.push("/Js/high-charts-functions.min.js?v=24");//min
 
         files.js.push("/ThirdParty/DataTables-1.10.13/media/js/jquery.dataTables.js");
         files.js.push("/ThirdParty/DataTables-1.10.13/media/js/dataTables.bootstrap.js");
 
         files.js.push("/ThirdParty/DataTables-1.10.13/extensions/Extras/moment.min.js");
-        files.js.push("/ThirdParty/fullcalendar-6.1.8/index.global.min.js");
+        // files.js.push("/ThirdParty/fullcalendar-6.1.8/index.global.min.js");
         files.css.push("/ThirdParty/fullcalendar/lib/main.min.css");
         files.js.push("/ThirdParty/fullcalendar/lib/main.min.js");
 
@@ -980,12 +1154,13 @@ Home Cunfiguration Page Templete
     if (!customStyleApplied) {
         // files.css.push("/Css/axpertUI.min.css?v=50");
     }
-    files.css.push("/Css/AxNotifications.min.css?v=1");
+    files.css.push("/Css/LayoutTheme_old.min.css?v=11");
+    files.css.push("/Css/AxNotifications.min.css?v=2");
     files.css.push("/Css/HomeConfigPageCards_old.min.css?v=2");
     files.js.push("/Js/signalr.min.js");
-    files.js.push("/Js/axpertUI_homecards_old.min.js?v=11");
-    files.js.push("/Js/AxNotifications.min.js?v=5");
-    files.js.push("/Js/HomeConfigPageCards.min.js?v=14");
+    files.js.push("/Js/axpertUI_homecards_old.min.js?v=15");
+    files.js.push("/Js/AxNotifications.min.js?v=19");
+    files.js.push("/Js/HomeConfigPageCards.min.js?v=16");
     files.js.push("/Js/AxHtml.min.js?v=2");
     var dirLeft = true;
 
@@ -998,6 +1173,14 @@ Home Cunfiguration Page Templete
         callBack: function () {
             $("body").addClass("mixed-theme");
             renderTemplete('template.templateContent');
+            var userOptionsMenu = document.querySelector("#AllUserOptions + [data-kt-menu='true']");
+            if (userOptionsMenu) {
+                userOptionsMenu.addEventListener("click", function (event) {
+                    var link = event.target.closest("a[href='#']");
+                    if (link && userOptionsMenu.contains(link))
+                        event.preventDefault();
+                }, true);
+            }
 
             $(function () {
                 objHomePageCards.init();
@@ -1251,6 +1434,12 @@ Home Cunfiguration Page Templete
                                             title: "Developer"
                                         }
                                     },
+                                    axpertstudio: {
+                                        div: "#axpertstudio",
+                                        title: {
+                                            title: "Axpert Developer Studio"
+                                        }
+                                    },
                                     configurationStudio: {
                                         div: "#configurationStudio",
                                         title: {
@@ -1387,8 +1576,234 @@ Home Cunfiguration Page Templete
                                         div: "#WorkFlow",
                                         title: lcm[398],
                                     },
-                                },
 
+                                    //CustomPages: {
+                                    //    div: "#CustomPages",
+                                    //    atitle: lcm[549].split(" ")[0] + " " + lcm[549].split(" ")[1],
+                                    //    title: {
+                                    //        div: ".divTitle",
+                                    //        title: lcm[549].split(" ")[0] + " " + lcm[549].split(" ")[1]
+                                    //    },
+                                    //    subTitle: {
+                                    //        div: ".divSubTitle",
+                                    //        title: lcm[549].split(" ")[2]
+                                    //    }
+                                    //},
+
+                                    pluginCustomCode: {
+                                        div: "#pluginCustomCode",
+                                        atitle: lcm[550].split(" ")[0] + " " + lcm[550].split(" ")[1],
+                                        title: {
+                                            div: ".divTitle",
+                                            title: lcm[550].split(" ")[0] + " " + lcm[550].split(" ")[1]
+                                        },
+                                        subTitle: {
+                                            div: ".divSubTitle",
+                                            title: lcm[550].split(" ")[2]
+                                        }
+                                    },
+                                    Iview: {
+                                        div: "#Iview",
+                                        atitle: lcm[551].split(" ")[0],
+                                        title: {
+                                            div: ".divTitle",
+                                            title: lcm[551].split(" ")[0]
+                                        },
+                                        subTitle: {
+                                            div: ".divSubTitle",
+                                            title: lcm[551].split(" ")[1]
+                                        }
+                                    },
+
+                                    Tstruct: {
+                                        div: "#Tstruct",
+                                        atitle: lcm[552].split(" ")[0],
+                                        title: {
+                                            div: ".divTitle",
+                                            title: lcm[552].split(" ")[0]
+                                        },
+                                        subTitle: {
+                                            div: ".divSubTitle",
+                                            title: lcm[552].split(" ")[1]
+                                        }
+                                    },
+
+                                    AxpertJobs: {
+                                        div: "#AxpertJobs",
+                                        atitle: lcm[553],
+                                        title: {
+                                            div: ".divTitle",
+                                            title: lcm[553]
+                                        },
+                                        subTitle: {
+                                            div: ".divSubTitle",
+                                            title: lcm[553]
+                                        }
+                                    },
+
+                                    DevOptions: {
+                                        div: "#DevOptions",
+                                        atitle: lcm[567],
+                                        title: {
+                                            div: ".divTitle",
+                                            title: lcm[554]
+                                        },
+                                        subTitle: {
+                                            div: ".divSubTitle",
+                                            title: lcm[554]
+                                        }
+                                    },
+
+                                    APIPlugins: {
+                                        div: "#APIPlugins",
+                                        atitle: lcm[555].split(" ")[0] + " " + lcm[555].split(" ")[1],
+                                        title: {
+                                            div: ".divTitle",
+                                            title: lcm[555].split(" ")[0] + " " + lcm[555].split(" ")[1]
+                                        },
+                                        subTitle: {
+                                            div: ".divSubTitle",
+                                            title: lcm[555].split(" ")[2] + " " + lcm[555].split(" ")[3]
+                                        }
+                                    },
+                                    ADS: {
+                                        div: "#ADS",
+                                        atitle: lcm[556].split(" ")[0] + " " + lcm[556].split(" ")[1] + " " + lcm[556].split(" ")[2],
+                                        title: {
+                                            div: ".divTitle",
+                                            title: lcm[556].split(" ")[0] + " " + lcm[556].split(" ")[1] + " " + lcm[556].split(" ")[2]
+                                        },
+                                        subTitle: {
+                                            div: ".divSubTitle",
+                                            title: lcm[556].split(" ")[3]
+                                        }
+                                    },
+                                    Appvariables: {
+                                        div: "#Appvariables",
+                                        atitle: lcm[568],
+                                        title: {
+                                            div: ".divTitle",
+                                            title: lcm[557]
+                                        },
+                                        subTitle: {
+                                            div: ".divSubTitle",
+                                            title: lcm[557]
+                                        }
+                                    },
+                                    CustomDataType: {
+                                        div: "#CustomDataType",
+                                        atitle: lcm[558].split(" ")[0] + " " + lcm[558].split(" ")[1] + " " + lcm[558].split(" ")[2],
+                                        title: {
+                                            div: ".divTitle",
+                                            title: lcm[558].split(" ")[0] + " " + lcm[558].split(" ")[1] + " " + lcm[558].split(" ")[2]
+                                        },
+                                        subTitle: {
+                                            div: ".divSubTitle",
+                                            title: lcm[558].split(" ")[1] + " " + lcm[558].split(" ")[2]
+                                        }
+                                    },
+
+                                    DevPublish: {
+                                        div: "#DevPublish",
+                                        atitle: lcm[559],
+                                        title: {
+                                            div: ".divTitle",
+                                            title: lcm[559]
+                                        },
+                                        subTitle: {
+                                            div: ".divSubTitle",
+                                            title: lcm[559]
+                                        }
+                                    },
+
+                                    DevLanguages: {
+                                        div: "#DevLanguages",
+                                        atitle: lcm[569],
+                                        title: {
+                                            div: ".divTitle",
+                                            title: lcm[560]
+                                        },
+                                        subTitle: {
+                                            div: ".divSubTitle",
+                                            title: lcm[560]
+                                        }
+                                    },
+
+                                    TableDescriptor: {
+                                        div: "#TableDescriptor",
+                                        atitle: lcm[570],
+                                        title: {
+                                            div: ".divTitle",
+                                            title: lcm[561]
+                                        },
+                                        subTitle: {
+                                            div: ".divSubTitle",
+                                            title: lcm[561].split(" ")[2]
+                                        }
+                                    },
+
+                                    EmailDefinitions: {
+                                        div: "#EmailDefinitions",
+                                        atitle: lcm[562],
+                                        title: {
+                                            div: ".divTitle",
+                                            title: lcm[562]
+                                        },
+                                        subTitle: {
+                                            div: ".divSubTitle",
+                                            title: lcm[562].split(" ")[2]
+                                        }
+                                    },
+
+                                    ArrangeMenu: {
+                                        div: "#ArrangeMenu",
+                                        atitle: lcm[563],
+                                        title: {
+                                            div: ".divTitle",
+                                            title: lcm[563]
+                                        },
+                                        subTitle: {
+                                            div: ".divSubTitle",
+                                            title: lcm[563]
+                                        }
+                                    },
+                                    DevExplorer: {
+                                        div: "#DevExplorer",
+                                        atitle: lcm[571],
+                                        title: {
+                                            div: ".divTitle",
+                                            title: lcm[564]
+                                        },
+                                        subTitle: {
+                                            div: ".divSubTitle",
+                                            title: lcm[564]
+                                        }
+                                    },
+                                    MemDBConsole: {
+                                        div: "#MemDBConsole",
+                                        atitle: lcm[565],
+                                        title: {
+                                            div: ".divTitle",
+                                            title: lcm[565]
+                                        },
+                                        subTitle: {
+                                            div: ".divSubTitle",
+                                            title: lcm[565].split(" ")[0] + " " + lcm[565].split(" ")[1]
+                                        }
+                                    },
+                                    QueueListing: {
+                                        div: "#QueueListing",
+                                        atitle: lcm[566],
+                                        title: {
+                                            div: ".divTitle",
+                                            title: lcm[566]
+                                        },
+                                        subTitle: {
+                                            div: ".divSubTitle",
+                                            title: lcm[566].split(" ")[0]
+                                        }
+                                    },
+                                },
                                 settings: appGlobalVarsObject._CONSTANTS.axpertUserSettings
                             },
                             search: {
@@ -1454,7 +1869,9 @@ Home Cunfiguration Page Templete
                     appGlobalVarsObject._CONSTANTS.history = tempaxpertUIObj.history;
 
                     appGlobalVarsObject.methods.toggleCompressModeUI($("body"));
-
+                    try {
+                        axpertDevOptAccess();
+                    } catch (ex) { }
                 } catch (ex) { }
                 //end AxpertUI Init
 

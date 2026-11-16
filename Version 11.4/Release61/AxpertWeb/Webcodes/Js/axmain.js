@@ -459,7 +459,7 @@ function BeforeWindowClose() {
 
             if (!localSessionVal || localSessionVal == 0) {
                 var isExeSave = ExecutionTraceInterval(true);
-                clearLocalStorage(['projInfo-', 'versionInfo-', 'langInfo-', 'hybridGUID-', 'hybridDeviceId-', 'compressedMode-', 'duplicateUser-', 'instanceName-', 'customGlobalStylesExist-', 'axGlobalThemeStyle-', 'axThemeFldr-'], true);
+                clearLocalStorage(['projInfo-', 'versionInfo-', 'langInfo-', 'hybridGUID-', 'hybridDeviceId-', 'compressedMode-', 'duplicateUser-', 'instanceName-', 'customGlobalStylesExist-', 'axGlobalThemeStyle-', 'axThemeFldr-', 'tstDDFVal♠'], true);
                 window.localStorage.removeItem("axpertLocalsession");
                 if (isExeSave)
                     ASB.WebService.SignOut();
@@ -776,7 +776,15 @@ function AxAfterMainPageLoad(mCollapse) {
 
 
 function prevbtn_click(thisobject) {
+    if (typeof $($(thisobject).find('button'))[0] != "undefined") {
+        if ($($(thisobject).find('button'))[0].style.pointerEvents === "none") {
+            return false;
+        }
+        $($(thisobject).find('button'))[0].style.pointerEvents = "none";
+    }
     if (thisobject.hasClass('linkGray')) {
+        if (typeof $($(thisobject).find('button'))[0] != "undefined")
+            $($(thisobject).find('button'))[0].style.pointerEvents = "auto";
         return false;
     }
 
@@ -1823,7 +1831,7 @@ function DoUtilitiesEvent(type) {
             break;
         case "ImportData":
             // displayBootstrapModalDialog('Import Data', 'lg', '410px', true, '../aspx/ImportNew.aspx', true);
-            let myImportModal = new BSModal("ImportData", "Import Data", "<iframe src='../aspx/ImportNew.aspx'  class='vw-100 vh-100'></iframe>", () => {
+            let myImportModal = new BSModal("ImportData", "Import Data", "<iframe src='../aspx/ImportAll.aspx'  class='vw-100 vh-100'></iframe>", () => {
                 //shown callback
                 $(".btn-close").focus();
                 // $("#btnClose").hide()
@@ -2419,7 +2427,10 @@ function updateHistList() {
     if (appLinkHistoryLabel.length >= 10) {
         histLi += '<li class="clearHisItem">Clear List</li>';
     }
-    $(appGlobalVarsObject._CONSTANTS.history.staging.div).html(histLi);
+    try {
+        if (typeof appGlobalVarsObject._CONSTANTS.history != "undefined")
+            $(appGlobalVarsObject._CONSTANTS.history.staging.div).html(histLi);
+    } catch (ex) { }
 }
 
 function updateLinks(that, calledFrom) {
@@ -2465,8 +2476,15 @@ function updateLinks(that, calledFrom) {
     menuLabel = "";
     LoadIframe(appLinkHistory[curPageIndex]);
     if (curPageIndex == 0) {
-        $(appGlobalVarsObject._CONSTANTS.navigation.backButton.div).hide();
+        if (isMobile) {
+            //do nothing
+        } else
+            $(appGlobalVarsObject._CONSTANTS.navigation.backButton.div).hide();
     }
+    setTimeout(function () {
+        if (typeof $($(that).find('button'))[0] != "undefined")
+            $($(that).find('button'))[0].style.pointerEvents = "auto";
+    }, 0);
 }
 
 $(document).on('click', 'li.clearHisItem', function () {
@@ -2951,3 +2969,75 @@ window.addEventListener('load', function () {
         return;
     }
 });
+function getKeysWithPrefix(prefix) {
+    var allKeys = Object.keys(localStorage);
+    var matchingKeys = allKeys.filter(function (key) {
+        return key.startsWith(prefix);
+    });
+
+    return matchingKeys;
+}
+//function clearKeysByFormat(input) {
+//    try {
+//        var parts = input.split("♣");
+//        var start = parts[0];
+//        var end = parts[1];
+//        var allKeys = Object.keys(localStorage);
+//        allKeys.forEach(function (key) {
+//            if (key.startsWith(start) && key.includes(end)) {
+//                localStorage.removeItem(key);
+//            }
+//        });
+//    } catch (ex) { }
+//}
+function clearKeysByFormat(input) {
+    try {
+        var parts = input.split("♣");
+        var start = parts[0];
+        var end = parts[1];
+        if (typeof indexedDB == "undefined")
+            return;
+        var request = indexedDB.open("AxDropdownCacheDB", 1);
+        request.onupgradeneeded = function (event) {
+            var db = event.target.result;
+            if (!db.objectStoreNames.contains("dropdowns")) {
+                var store = db.createObjectStore("dropdowns", { keyPath: "key" });
+                store.createIndex("timestamp", "timestamp", { unique: false });
+            }
+        };
+        request.onsuccess = function (event) {
+            var db = event.target.result;
+            try {
+                var tx = db.transaction("dropdowns", "readwrite");
+                var store = tx.objectStore("dropdowns");
+                var cursorRequest = store.openCursor();
+                cursorRequest.onsuccess = function (event) {
+                    var cursor = event.target.result;
+                    if (cursor) {
+                        var key = cursor.primaryKey;
+                        if (typeof key === "string" && key.startsWith(start) && key.includes(end)) {
+                            cursor.delete();
+                        }
+                        cursor.continue();
+                    }
+                };
+                cursorRequest.onerror = function (event) {
+                    // handle error if required
+                };
+                tx.oncomplete = function () {
+                    db.close();
+                };
+                tx.onerror = function (event) {
+                    db.close();
+                };
+            } catch (ex) {
+                db.close();
+            }
+        };
+        request.onerror = function () {
+            // handle error if required
+        };
+    } catch (ex) {
+        // handle error if required
+    }
+}

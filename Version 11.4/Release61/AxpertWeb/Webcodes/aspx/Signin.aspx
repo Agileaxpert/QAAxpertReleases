@@ -50,9 +50,11 @@
     <script src="../ThirdParty/jquery-confirm-master/jquery-confirm.min.js?v=2" type="text/javascript"></script>
     <script src="../Js/noConflict.min.js?v=1" type="text/javascript"></script>
     <script src="../Js/alerts.min.js?v=33" type="text/javascript"></script>
-    <script type="text/javascript" src="../Js/login.min.js?v=95"></script>
+    <script type="text/javascript" src="../Js/login.min.js?v=121"></script>
     <script type="text/javascript" src="../Js/lang/content-<%=langType%>.js?v=64"></script>
-    <script src="../Js/common.min.js?v=149" type="text/javascript"></script>
+    <script src="../Js/jsencrypt.js?v=1" type="text/javascript"></script>
+    <script src="../Js/crypto-js.js?v=1" type="text/javascript"></script>
+    <script src="../Js/common.min.js?v=167" type="text/javascript"></script>
     <script type="text/javascript">
         history.go(1);
         var cdt = new Date();
@@ -78,10 +80,13 @@
         var office365clientKey = '<%=office365clientKey%>';
         var ssoredirecturl = '<%=ssoredirecturl%>';
         var ExecTraceOn = '<%=ExecTraceOn%>';
-
+        var onlyssoKey = '<%=onlyssoKey%>';
+        var multipleAccessCode = '<%=multipleAccessCode%>';
         var projUrl = top.window.location.href.toLowerCase().substring("0", top.window.location.href.indexOf("/aspx/"));
         localStorage.removeItem('web_browser-' + projUrl);
         localStorage.removeItem('web_browser_dup-' + projUrl);
+        localStorage.removeItem("axpertLogoutLock-" + projUrl);
+        var axiLogin = '<%=axiLogin%>';
     </script>
 
     <script src="../Js/sso.min.js?v=2" type="text/javascript"></script>
@@ -140,7 +145,7 @@
                                 <div class="text-center mb-8">
                                     <div class="form-title">
 
-                                        <img class="mb-2" src="assets/media/axpert/loginlogo.png" loading="lazy" />
+                                        <img id="projectLogo" style="display: none;" class="mb-2" src="../images/loginlogo.png" loading="lazy" />
                                         <div>
                                             <asp:Label ID="lblSignin" class="form-label fs-1 fw-boldest text-dark" runat="server" meta:resourcekey="lblSignin">Sign In</asp:Label>
                                         </div>
@@ -193,7 +198,7 @@
                                         </div>
                                     </div>
 
-                                    <div class="control-group">
+                                    <%-- <div class="control-group">
                                         <div class=" agform form-check form-switch form-check-custom form-check-solid px-1 align-self-end mb-4" id="axstaysignin" runat="server" visible="false">
                                             <div class="controls my-2">
                                                 <div class="input-icon left">
@@ -202,10 +207,21 @@
                                                 </div>
                                             </div>
                                         </div>
-                                    </div>
-                                    <div class="fv-plugins-message-container invalid-feedback"></div>
+                                    </div>--%>
+                                    <%--<div class="fv-plugins-message-container invalid-feedback"></div>--%>
 
-                                    <%if (ConfigurationManager.AppSettings["enableCaptcha"] != null && ConfigurationManager.AppSettings["enableCaptcha"].ToString() == "true")
+                                    <asp:Panel ID="pnlCaptcha" runat="server" Visible="false">
+                                        <div class="control-group">
+                                            <div class="fv-row mb-8 fv-plugins-icon-container">
+                                                <div class="d-flex flex-stack">
+                                                    <asp:Label ID="lblcaptcha" runat="server" CssClass="form-label fs-6 fw-boldest text-dark">Captcha</asp:Label>
+                                                </div>
+                                                <BotDetect:WebFormsCaptcha ID="DynamicCaptcha" runat="server" UserInputID="CaptchaCodeTextBox" CodeStyle="Alphanumeric" CodeLength="7" SoundEnabled="false" AutoReloadExpiredCaptchas="true" AutoReloadTimeout="7200" />
+                                                <asp:TextBox ID="CaptchaCodeTextBox" runat="server" CssClass="m-wrap placeholder-no-fix form-control form-control-solid" placeholder="Enter captcha" aria-label="Enter captcha" />
+                                            </div>
+                                        </div>
+                                    </asp:Panel>
+                                    <%--  <%if (ConfigurationManager.AppSettings["enableCaptcha"] != null && ConfigurationManager.AppSettings["enableCaptcha"].ToString() == "true")
                                         { %>
                                     <div class="control-group">
                                         <div class="fv-row mb-8 fv-plugins-icon-container">
@@ -218,7 +234,7 @@
                                             <asp:TextBox ID="CaptchaCodeTextBox" runat="server" CssClass="m-wrap placeholder-no-fix form-control form-control-solid"></asp:TextBox>
                                         </div>
                                     </div>
-                                    <%  } %>
+                                    <%  } %>--%>
 
                                     <div class="form-actions d-flex flex-row flex-column-fluid">
                                         <div class="d-flex flex-row-fluid">
@@ -305,7 +321,7 @@ c-45 8 -53 30 -33 91 22 70 14 75 -11 7z"
 
                                     <div class="copyrightlabs">
                                         <div class="">
-                                            <span id="dvCopyRight" runat="server" class="copyrightpara text-dark mb-2 fw-bolder">�2020 Agile Labs Pvt. Ltd. All Rights Reserved.</span>
+                                            <span id="dvCopyRight" runat="server" class="copyrightpara text-dark mb-2 fw-bolder">Powered by Axpert</span>
                                             <span id="axpertVer" class="text-dark mb-2 fw-bolder float-end" runat="server"></span>
                                         </div>
                                         <div class="clearfix"></div>
@@ -324,6 +340,12 @@ c-45 8 -53 30 -33 91 22 70 14 75 -11 7z"
                                 <asp:Button runat="server" Text="OTP Login" title="OTP Login" TabIndex="0" ID="btnOTPLogin" class="d-none" OnClick="btnOTPLogin_Click" />
                                 <asp:Button runat="server" Text="Resend OTP" title="PWD OTP" TabIndex="0" ID="btnResendOtp" class="d-none" OnClick="btnResendOtp_Click" />
                                 <asp:Button runat="server" Text="Windows SSO" title="Windows SSO" TabIndex="0" ID="WindowCloneBtn" class="d-none" OnClientClick="return chkLoginFormNew(this);" OnClick="WindowsBtn_Click" />
+
+                                <asp:Panel runat="server" ID="panelAxiLogin" Visible="false">
+                                    <div class="d-flex flex-row-fluid">
+                                        <asp:Button runat="server" Text="AxiLogin" title="AxiLogin" TabIndex="0" ID="btnAxiLogin" class="btn btn-lg btn-primary mb-5 w-100 d-none" OnClick="btnAxiLogin_Click" />
+                                    </div>
+                                </asp:Panel>
                             </div>
                         </div>
                         <input type="hidden" runat="server" name="hdnAxProjs" id="hdnAxProjs" />
@@ -332,6 +354,7 @@ c-45 8 -53 30 -33 91 22 70 14 75 -11 7z"
                         <input type="hidden" runat="server" name="hdnHybridDeviceId" id="hdnHybridDeviceId" />
                         <input type="hidden" runat="server" name="hdnTimeZone" id="hdnTimeZone" />
                         <input type="hidden" runat="server" name="hdnProjName" id="hdnProjName" />
+                        <input type="hidden" runat="server" name="hdnUserName" id="hdnUserName" />
                         <input type="hidden" runat="server" name="hdnLoginAttempt" id="hdnLoginAttempt" />
                         <input type="hidden" runat="server" name="hdnProjLang" id="hdnProjLang" />
                         <input type="hidden" runat="server" name="hdnPuser" id="hdnPuser" />
@@ -347,7 +370,10 @@ c-45 8 -53 30 -33 91 22 70 14 75 -11 7z"
                         <input type="hidden" id="hdnbtforLogin" runat="server" />
                         <input type="hidden" id="hdnSrtforLogin" runat="server" />
                         <input type="hidden" id="hdnBwsrid" runat="server" />
-
+                        <input type="hidden" id="hdnEncKey" runat="server" />
+                        <input type="hidden" id="hdnKeepMeSignin" runat="server" />
+                        <input type="hidden" id="hdnKeepMeSigninFlag" runat="server" />
+                        <input type="hidden" id="hdnPrevTab" runat="server" />
                         <asp:HiddenField ID="_antiforgery" runat="server" />
                     </asp:Panel>
                 </form>
@@ -359,6 +385,7 @@ c-45 8 -53 30 -33 91 22 70 14 75 -11 7z"
         <input type="hidden" runat="server" name="mobDevice" id="mobDevice" />
         <input type="hidden" runat="server" name="duplicateUser" id="duplicateUser" />
         <input type="hidden" runat="server" name="hbtforDupLogin" id="hbtforDupLogin" />
+        <input type="hidden" runat="server" name="hdnBwsridNew" id="hdnBwsridNew" />
         <button type="submit" runat="server" title="Login" id="btnSubmitUser" class="hotbtn btn hide" />
     </form>
 

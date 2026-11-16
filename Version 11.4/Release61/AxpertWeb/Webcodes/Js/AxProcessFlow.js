@@ -4,10 +4,9 @@ var LoadIframe = callParentNew("LoadIframe");
 var cardsData = {}, cardsDesign = {}, xmlMenuData = "", menuJson = "";
 var _horizontalFlow = true;
 var _autoLoadNextTask = true;
-var _pagesize = 100;
-var _pageno = 1;
-var pendingtasksJson = {}, processflowJson = {}, taskdetailsJson = {}, completedtasksJson = {};
-var _pendingTaskCount = 0;
+var dtCulture = eval(callParent('glCulture'));
+var processflowJson = {}, taskdetailsJson = {}
+var TaskCount = 0;
 callParentNew("AxNotifyMsgId=", '');
 let cardsDashboardObj = {
     dirLeft: true,
@@ -25,8 +24,83 @@ const queryString = window.location.search;
 //const urlParams = new URLSearchParams(queryString);
 var taskcards = "";
 
+const myDiv = document.getElementById('body_Container');
+
 class AxProcessFlow {
     constructor() {
+        this._entity = {
+            inValid: function (elem) {
+                return elem == null || typeof elem == "undefined" || elem == "";
+            },
+            "metaData": [{
+                    "fldname": "DropDown",
+                    "fldcap": "Task Status",
+                    "fdatatype": "c",
+                    "cdatatype": "DropDown",
+                    "hide": "F"
+                },
+                {
+                    "fldname": "DropDown",
+                    "fldcap": "Task Type",
+                    "fdatatype": "c",
+                    "cdatatype": "DropDown",
+                    "hide": "F"
+                },
+                {
+                    "fldname": "DropDown",
+                    "fldcap": "Message Type",
+                    "fdatatype": "c",
+                    "cdatatype": "DropDown",
+                    "hide": "F"
+                },
+                {
+                    "fldname": "DropDown",
+                    "fldcap": "Process Name",
+                    "fdatatype": "c",
+                    "cdatatype": "DropDown",
+                    "hide": "F"
+                },
+                {
+                    "fldname": "DropDown",
+                    "fldcap": "User Name",
+                    "fdatatype": "c",
+                    "cdatatype": "DropDown",
+                    "hide": "F"
+                },
+                {
+                    "fldname": "Date",
+                    "fldcap": "Date",
+                    "fdatatype": "d",
+                    "cdatatype": "Date",
+                    "hide": "F"
+                },
+                {
+                    "fldname": "Numeric",
+                    "fldcap": "Numeric",
+                    "fdatatype": "n",
+                    "cdatatype": "Numeric",
+                    "hide": "F"
+                },
+                {
+                    "fldname": "Text",
+                    "fldcap": "Text",
+                    "fdatatype": "t",
+                    "cdatatype": "Text",
+                    "hide": "F"
+                }
+            ]
+        }
+        this.tasksJson = {}
+        this.filterChanged = false
+        this.pageNo = 1
+        this.pageSize = 20
+        this.count = 0
+        this.isFetching = false
+        this.lastScrollLeft = 0
+        this.lastScrollTop = 0
+        this.isDropdownClick = false
+        this.filterkey = "All"
+        this.isInitialized = false;
         this.isAxpertFlutter = !this.isNullOrEmpty(armToken);
         this.cardParams = {};
         this.cardFlds = {};
@@ -71,7 +145,7 @@ class AxProcessFlow {
             
                
                         <div class="d-flex flex-column task-name">
-<div class="d-flex">
+                        <div class="d-flex">
                             <input type="checkbox" value="" class="form-check-input task-list-checkbox my-auto" data-taskid="{{taskid}}" >
                             <a href="javascript:void(0)"  class="text-gray-800 fw-bolder fs-6 task-title pt-0 pb-2 px-0" title="{{displaytitle}}"><span href="javascript:void(0)"><span class="material-icons material-icons-style material-icons-1 display-icon task-listing-icons">{{displayicon}}</span>{{displaytitle}}</span></a>
                             </div><div class="task-subtitle">{{displaycontent}}</div>
@@ -99,6 +173,8 @@ class AxProcessFlow {
         this.getUrlParams();
         this.horizontalFlow = _horizontalFlow;
         this.autoLoadNextTask = _autoLoadNextTask;
+        this.isScrollAtBottomWithinDiv = this.isScrollAtBottomWithinDiv.bind(this);
+        this.fetchProcessList = this.fetchProcessList.bind(this);
 
         this.processVars = {
             plistTbIcons: ["add_task", "receipt_long", "post_add", "library_books", "free_cancellation", "published_with_changes"],
@@ -214,7 +290,10 @@ class AxProcessFlow {
             if (result.success) {
                 let json = JSON.parse(result.response);
                 if (json.d == 'Error in ARM connection.') {
-                    showAlertDialog("error", 'Error in ARM connection.');
+                    showAlertDialog('error', appGlobalVarsObject.lcm[572]);
+                    return;
+                } else if (json.d.startsWith('<!DOCTYPE HTML PUBLIC ')) {
+                    showAlertDialog('error', appGlobalVarsObject.lcm[572]);
                     return;
                 }
                 let dataResult = _this.dataConvert(json, "ARM");
@@ -300,6 +379,8 @@ class AxProcessFlow {
     }
 
     refreshProcess(keyValue) {
+        this.refreshPage();
+        return;
         ShowDimmer(true);
         const params = new URLSearchParams(location.search);
         params.set('keyvalue', keyValue);
@@ -329,47 +410,44 @@ class AxProcessFlow {
         document.querySelector("#horizontal-processbar").classList.remove("d-none");
     }
 
-    fetchProcessList(name, from) {
-        let _this = this, data = {}, url = "";
-        if (typeof from != 'undefined' && from == 'TaskCompletion')
-            url = "../aspx/AxPEG.aspx/AxGetCompletedTasks";
-        else
-            url = "../aspx/AxPEG.aspx/AxGetPendingActiveTasks";
+    fetchProcessList() {
+        const url = "../aspx/AxPEG.aspx/AxGetAllActiveTasks";
+        const data = {
+            pageNo: this.pageNo,
+            pageSize: this.pageSize,
+            filter: this.filterkey.toLocaleLowerCase()
+        };
 
-        data = { pageNo: _pageno, pageSize: _pagesize };
-
-        this.callAPI(url, data, true, result => {
+        this.callAPI(url, data, true, (result) => {
             if (result.success) {
-                let json = JSON.parse(result.response);
-                if (json.d == 'Error in ARM connection.') {
+                const json = JSON.parse(result.response);
+
+                if (json.d === "Error in ARM connection.") {
                     ShowDimmer(false);
-                    showAlertDialog("error", 'Error in ARM connection.');
+                   showAlertDialog('error', appGlobalVarsObject.lcm[572]);
+                    return;
+                } else if (json.d.startsWith('<!DOCTYPE HTML PUBLIC ')) {
+                    ShowDimmer(false);
+                    showAlertDialog('error', appGlobalVarsObject.lcm[572]);
                     return;
                 }
-                let dataResult = _this.dataConvert(json, "ARM");
-                //processflowJson = dataResult.result.processflow;
-                //taskdetailsJson = dataResult.result.taskdetails[0];
-                _pendingTaskCount = dataResult.result.count;
-                if (typeof from != 'undefined' && from == 'TaskCompletion') {
-                    completedtasksJson = dataResult.result.completedtasks;
-                    if (typeof completedtasksJson != "undefined" && completedtasksJson.length > 0)
-                        _this.showProcessList('completed');
-                    else
-                        ShowDimmer(false);
+
+                const dataResult = this.dataConvert(json, "ARM");
+                this.tasksJson = dataResult.result.tasks || []; // Safeguard for empty tasks
+                if (this.tasksJson.length > 0) {
+                    this.showProcessList(); // Append new data
+                } else {
+                    this.showNoMoreRecords(); // Display "No more records" message
                 }
-                else {
-                    pendingtasksJson = dataResult.result.pendingtasks;
-                    if (pendingtasksJson.length > 0)
-                        _this.showProcessList('pending');
-                    else
-                        ShowDimmer(false);
-                }
-                //_this.showProgressNew();
-                //_this.openTask('', taskdetailsJson.taskname,taskdetailsJson.tasktype, taskdetailsJson.transid, taskdetailsJson.keyfield, taskdetailsJson.keyvalue, taskdetailsJson.recordid, taskdetailsJson.taskid, taskdetailsJson.indexno, 'LeftPanel');
-                ////openTask(this, '${plst.taskname}','${plst.tasktype}','${plst.transid}','${plst.keyfield}','${plst.keyvalue}','${plst.recordid}','${plst.taskid}', '${plst.indexno}', 'LeftPanel');"
+                ShowDimmer(false);
+            } else {
+                ShowDimmer(false);
+                showAlertDialog("error", "Failed to fetch tasks.");
             }
         });
-    };
+    }
+
+
 
     filterProcessList(reset) {
         if (reset)
@@ -696,6 +774,7 @@ class AxProcessFlow {
     };
 
     openTask(elem, taskName, taskType, transId, keyField, keyValue, recordId, taskId, indexNo, hLinkPage, hLinkParam, processName, messageType, calledFrom) {
+        document.getElementById('horizontal-processbar').innerHTML = ""
         ShowDimmer(true);
         this.currentIndex = parseInt(indexNo);
         this.keyField = keyField;
@@ -737,7 +816,36 @@ class AxProcessFlow {
             case "EXPORT":
                 this.DownloadExportFile(hLinkParam);
                 break;
+            default:
+                document.querySelector("#pd_timeline").classList.add("d-none");
+                let _errorTitle = $(elem).text().trim();
+                let _errorMessage = $(elem).closest('.row').find('.taskcontent').text();
+                this.showErrorModal(_errorTitle, _errorMessage);
+                ShowDimmer(false);
+                break;
         }
+    };
+
+     showErrorModal(title, message) {
+         $("#dynamicErrorModal").remove();
+    let modalHtml = `
+        <div class="modal fade" id="dynamicErrorModal" tabindex="-1">
+          <div class="modal-dialog">
+            <div class="modal-content">
+              <div class="modal-header bg-danger-- text-white--">
+                <h5 class="modal-title">${title}</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+              </div>
+              <div class="modal-body">${message}</div>
+              <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+              </div>
+            </div>
+          </div>
+        </div>`;
+         $("body").append(modalHtml);
+         let modal = new bootstrap.Modal(document.getElementById('dynamicErrorModal'));
+         modal.show();
     };
 
     
@@ -838,7 +946,7 @@ class AxProcessFlow {
         files.js.push("/../ThirdParty/Highcharts/highcharts.js");
         files.js.push("/../ThirdParty/Highcharts/highcharts-exporting.js");
         files.js.push("/../Js/high-charts-functions.min.js?v=20");
-        files.js.push("/../Js/AxInterface.min.js?v=13");
+        files.js.push("/../Js/AxInterface.min.js?v=24");
 
         files.js.push("/../ThirdParty/DataTables-1.10.13/media/js/jquery.dataTables.js");
         files.js.push("/../ThirdParty/DataTables-1.10.13/media/js/dataTables.bootstrap.js");
@@ -1069,7 +1177,7 @@ class AxProcessFlow {
         pageParams = pageParams.replace("^", "&");
         if (pageType.startsWith('i')) {
             pageType = pageType.substring(1);
-            url = `../aspx/iview.aspx?ivname=${pageType}&${pageParams}`;
+            url = `../aspx/ivtoivload.aspx?ivname=${pageType}&${pageParams}`;
         } else if (pageType.startsWith('t')) {
             pageType = pageType.substring(1);
             url = `../aspx/tstruct.aspx?transid=${pageType}&${pageParams}`;
@@ -1092,6 +1200,9 @@ class AxProcessFlow {
         if (pageType == '') {
             showAlertDialog("error", 'Page name should not be empty.');
             return false;
+        } else if (pageType == 'null') {
+            ShowDimmer(false);
+            return false;
         }
         let url = '';
         pageParams = pageParams.replace("^", "&");
@@ -1105,6 +1216,10 @@ class AxProcessFlow {
         } else if (pageType.startsWith('c')) {
             //pageType = pageType.substring(2);
             url = `../aspx/${pageParams}`;
+        } else if (pageType.startsWith('e')) {
+            this.DownloadExportFile(pageParams);
+            ShowDimmer(false);
+            return;
         }
         document.querySelector("#process_centerpanel").classList.add("d-none");
         document.querySelector("#horizontal-processbar").classList.add("d-none");
@@ -1146,14 +1261,16 @@ class AxProcessFlow {
                 if (result.success) {
                     let json = JSON.parse(result.response);
                     json = JSON.parse(json.d);
-                    json = JSON.parse(json.result.data);
                     let allTasks = '';
-                    json.forEach((item) => {
-                        allTasks += `<div class="d-flex custom-menu-item px-4 py-2 border-1 border-bottom">
+                    if (json.result.data.length > 0) {
+                        let allTasks = '';
+                        json = json.result.data;
+                        json.forEach((item) => {
+                            allTasks += `<div class="d-flex custom-menu-item px-4 py-2 border-1 border-bottom">
 <div class="symbol symbol-45px">
                         <span class="symbol-label">
-                            <img alt="{{processname}}" class=" w-30px" src="../custompages/icons/{{processname}}.png"
-                                onerror="this.onerror=null;this.src='../custompages/icons/default.png';">
+                            <img alt="{{processname}}" class=" w-30px" src="../images/homepageicon/{{processname}}.png"
+                                onerror="this.onerror=null;this.src='../images/homepageicon/default.png';">
 
                         </span></div>
             <div class="d-flex align-items-center " onclick="axProcessObj.openBulkApprovePopup('${item.processname}')">
@@ -1161,9 +1278,19 @@ class AxProcessFlow {
                             <span class="fw-normal fs-5 menu-task-text">${item.processname} (${item.pendingapprovals})</span>
                         </span></div>
                         </div>`;
-                    });
+                        });
 
-                    document.getElementsByTagName("pd-allTasksNew")[0].outerHTML = allTasks;
+                        if (document.getElementsByTagName("pd-allTasksNew") && document.getElementsByTagName("pd-allTasksNew").length > 0)
+                            document.getElementsByTagName("pd-allTasksNew")[0].outerHTML = allTasks;
+                    }
+                    else {
+                        showAlertDialog("warning", "No records available for approvals.");
+                        var menuElement = document.querySelector('[data-kt-menu="true"][data-id="pd_all_tasksNew"]');
+                        if (menuElement) {
+                            menuElement.classList.remove("show");
+                        }
+
+                    }
                 }
             });
 
@@ -1232,7 +1359,7 @@ class AxProcessFlow {
             if (result.success) {
                 let json = JSON.parse(result.response);
                 let dataResult = _this.dataConvert(json, "ARM");
-                _this.dataSources[name] = JSON.parse(dataResult);
+                _this.dataSources[name] = dataResult;
                 this.showBulkTasks();
                 ShowDimmer(false);
             } else {
@@ -1428,10 +1555,9 @@ class AxProcessFlow {
                 document.querySelector("#proFlw_Tree_button")?.classList.add("d-none")
             }
 
-            document.querySelectorAll("#pd_all_tasksNew").forEach((item) => {
-                KTMenu.getInstance(item).on("kt.menu.dropdown.show", function (item) {
+            document.querySelector("#pd_all_tasksNew").addEventListener('click', () => {
+                if (document.getElementsByTagName("pd-allTasksNew") && document.getElementsByTagName("pd-allTasksNew").length > 0)
                     axProcessObj.openBulkApprove();
-                });
             });
 
             document.querySelectorAll("#pd_timeline").forEach((item) => {
@@ -1445,6 +1571,10 @@ class AxProcessFlow {
             //    this.showProgress();
             //}
 
+            // changes related to activelist
+            myDiv.addEventListener('scroll', this.scrollListener);
+            this.toggleList()
+            this.toggleCheckbox()
         } catch (error) {
             this.catchError(error.message);
         }
@@ -1477,158 +1607,313 @@ class AxProcessFlow {
         // !this.isUndefined(document.getElementsByTagName("pd-annContent")[0]) && (document.getElementsByTagName("pd-annContent")[0].outerHTML = annContent);
     };
 
-    showProcessList(_type) {
-        ShowDimmer(true);
-        try {
-            const dataSource = typeof _type != "undefined" && _type == 'pending' ? pendingtasksJson : completedtasksJson;
-            let allTasks = ``;
+    // changes related to activelist
+    formatEventDate(eventDateTime) {
+        const eventDate = new Date(eventDateTime.replace(/(\d{2})\/(\d{2})\/(\d{4})/, "$2/$1/$3"));
+        const today = new Date();
+        const todayDateOnly = new Date(today.getFullYear(), today.getMonth(), today.getDate());
 
-            let tblContentPending = document.getElementById("plistContentPending");
-            let tblContentCompleted = document.getElementById("plistContentCompleted");
+        const eventDateOnly = new Date(eventDate.getFullYear(), eventDate.getMonth(), eventDate.getDate());
+
+        const dayDifference = Math.floor((todayDateOnly - eventDateOnly) / (1000 * 60 * 60 * 24));
+
+        const startOfThisWeek = new Date(todayDateOnly);
+        startOfThisWeek.setDate(todayDateOnly.getDate() - todayDateOnly.getDay()); // Sunday of this week
+
+        const startOfLastWeek = new Date(startOfThisWeek);
+        startOfLastWeek.setDate(startOfThisWeek.getDate() - 7); // Sunday of last week
+
+        const timeOnly = eventDate.toLocaleTimeString([], {
+            hour: '2-digit',
+            minute: '2-digit'
+        });
+        const dayName = eventDate.toLocaleDateString('en-US', {
+            weekday: 'short'
+        });
+        const fullDate = eventDate.toLocaleDateString('en-US', {
+            day: 'numeric',
+            month: 'short',
+            year: 'numeric'
+        });
+        const monthYear = `${eventDate.getMonth()}-${eventDate.getFullYear()}`;
+        const currentMonthYear = `${today.getMonth()}-${today.getFullYear()}`;
+
+        if (dayDifference === 0) {
+            return timeOnly;
+        } else if (dayDifference === 1) {
+            return `${dayName} ${timeOnly}`;
+        } else if (eventDateOnly >= startOfThisWeek && dayDifference <= 7) {
+            return `${dayName} ${timeOnly}`;
+        } else if (eventDateOnly >= startOfLastWeek && eventDateOnly < startOfThisWeek) {
+            return `${dayName} ${timeOnly}`;
+        } else if (monthYear === currentMonthYear) {
+            return `${eventDate.toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' })}`;
+        } else if (
+            eventDate.getMonth() === (today.getMonth() - 1 + 12) % 12 && // Handles year boundary
+            eventDate.getFullYear() === (today.getMonth() === 0 ? today.getFullYear() - 1 : today.getFullYear())
+        ) {
+            return `${eventDate.toLocaleDateString('en-US', { day: 'numeric', month: 'short' , year: 'numeric'})}`;
+        } else {
+            return fullDate;
+        }
+    }
+
+
+    getTimeframe(dateString) {
+        const today = new Date();
+
+        const [day, month, year] = dateString.split('/'); // Extract the day, month, and year
+        const targetDate = new Date(year, month - 1, day); // Use month - 1 as months are zero-indexed
+
+        today.setHours(0, 0, 0, 0);
+        targetDate.setHours(0, 0, 0, 0);
+
+        const diffTime = today.getTime() - targetDate.getTime();
+        const diffDays = diffTime / (1000 * 60 * 60 * 24);
+
+        if (diffDays === 0) return "Today";
+        if (diffDays === 1) return "Yesterday";
+
+        const dayOfWeek = today.getDay();
+        const startOfThisWeek = new Date(today);
+        startOfThisWeek.setDate(today.getDate() - dayOfWeek);
+
+        const startOfLastWeek = new Date(startOfThisWeek);
+        startOfLastWeek.setDate(startOfLastWeek.getDate() - 7);
+
+        const endOfLastWeek = new Date(startOfLastWeek);
+        endOfLastWeek.setDate(endOfLastWeek.getDate() + 6);
+
+        if (targetDate >= startOfThisWeek) return "This Week";
+        if (targetDate >= startOfLastWeek && targetDate <= endOfLastWeek) return "Last Week";
+
+        const thisMonth = today.getMonth();
+        const thisYear = today.getFullYear();
+        const startOfThisMonth = new Date(thisYear, thisMonth, 1);
+        const startOfLastMonth = new Date(thisYear, thisMonth - 1, 1);
+        const endOfLastMonth = new Date(thisYear, thisMonth, 0);
+
+        if (targetDate >= startOfThisMonth) return "This Month";
+        if (targetDate >= startOfLastMonth && targetDate <= endOfLastMonth) return "Last Month";
+
+        return "Previous records";
+    }
+
+
+    scrollListener(event) {
+        const myDiv = event.target;
+        const currentScrollTop = myDiv.scrollTop;
+        const currentScrollLeft = myDiv.scrollLeft;
+
+        if (this.lastScrollTop !== currentScrollTop) {
+            this.lastScrollTop = currentScrollTop;
+
+            if (!this.isFetching && axProcessObj.isScrollAtBottomWithinDiv(myDiv)) {
+                this.isFetching = true;
+                axProcessObj.pageNo++;
+
+                axProcessObj.fetchProcessList("task", "scroll");
+
+                setTimeout(() => {
+                    this.isFetching = false;
+                }, 500);
+            }
+        }
+
+        this.lastScrollLeft = currentScrollLeft;
+
+
+    }
+
+
+    isScrollAtBottomWithinDiv(divElement) {
+        const distanceToBottom = divElement.scrollHeight - (divElement.scrollTop + divElement.clientHeight);
+        return distanceToBottom <= 1;
+    }
+
+    showProcessList() {
+        const dataSource = axProcessObj.tasksJson
+
+        try {
 
             if (dataSource.length > 0) {
-
-                document.querySelector("#PROFLOW_Left").classList.remove("d-none");
-                document.querySelector("#PROFLOW_Right").classList.remove("right-only");
-
-                let allTaskCaps = [...new Set(dataSource.map((plst) => plst.taskname))];
-                let allTaskIcons = [...new Set(dataSource.map((plst) => plst.displayicon))].splice(0, allTaskCaps.length);
-                allTasks = `<div class="custom-menu-item px-3">
-                    <span class="custom-menu-link px-3 border-bottom">
-                        <span class="form-check form-check-custom form-check-solid me-4">
-                            <input class="form-check-input h-25px w-25px all-task" type="checkbox" checked="checked" />
-                        </span>                        
-                        <span class="fw-normal all-task-text">Unselect All</span>
-                        <button class="btn btn-sm btn-light-primary ms-auto btn-custom-border-radius" onclick="axProcessObj.taskFilter('task')">Apply</button>
-                    </span>
-                </div>`;
-                allTaskCaps.forEach((cap, indx) => {
-                    let ann = axProcessObj.allTskHTML;
-                    ann = ann.replace("</annCaption>", cap);
-                    ann = ann.replace("</annIcon>", allTaskIcons[indx]);
-                    allTasks += ann;
-                });
-
-                !this.isUndefined(document.getElementsByTagName("pd-allTasks")[0]) && (document.getElementsByTagName("pd-allTasks")[0].outerHTML = allTasks);
-
-                if (_type == 'pending') {
-                    let tblPending = document.createElement("table");
-                    tblPending.classList.add(..."table table-sm table-row-bordered table-responsive overflow-auto".split(" "));
-                    tblPending.setAttribute("id", "pendingList");
-
-
-                    let plistThead = Object.keys(axProcessObj.processVars.plistCols).map(key => axProcessObj.processVars.plistCols[key]).filter(obj => obj.hidden == false);
-                    let tbodyPending = document.createElement("tbody");
-                    let pendingCount = 0;
-
-                    Object.values(dataSource).map((plst) => {
-                        let newTr = document.createElement("tr");
-                        plistThead.map((col) => {
-                            let trTd = document.createElement("td");
-                            let tdData = axProcessObj.processListData(plst, col);
-                            trTd.innerHTML = tdData;
-                            trTd.setAttribute("data-fromuser", plst.fromuser);
-                            trTd.setAttribute("data-tasktime", plst.tasktime);
-                            newTr.appendChild(trTd);
-                        });
-                        tbodyPending.appendChild(newTr);
-                        pendingCount++;
-                    }).join("");
-
-                    tblPending.appendChild(tbodyPending);
-
-                    if (tblContentPending && pendingCount) {
-                        tblContentPending.innerHTML = "";
-                        tblContentPending.appendChild(tblPending);
+                const groupedData = axProcessObj.tasksJson.reduce((acc, item) => {
+                    const timeframe = axProcessObj.getTimeframe(item.eventdatetime.split(" ")[0]);
+                    if (!acc[timeframe]) {
+                        acc[timeframe] = [];
                     }
-                    else {
-                        let plistNoDataAlert = `<label class="form-label fs-4">No data available...!!!</label>`;
-                        tblContentPending.innerHTML = plistNoDataAlert;
-                    }
-                } else {
-                    let tblCompleted = document.createElement("table");
-                    tblCompleted.classList.add(..."table table-sm table-row-bordered table-responsive overflow-auto".split(" "));
-                    tblCompleted.setAttribute("id", "completedList");
+                    acc[timeframe].push(item);
+                    return acc;
+                }, {});
 
-                    let plistThead = Object.keys(axProcessObj.processVars.plistCols).map(key => axProcessObj.processVars.plistCols[key]).filter(obj => obj.hidden == false);
-
-                    let tbodyCompleted = document.createElement("tbody");
-                    let completedCount = 0;
-
-                    Object.values(dataSource).map((plst) => {
-                        let newTr = document.createElement("tr");
-                        plistThead.map((col) => {
-                            let trTd = document.createElement("td");
-                            let tdData = axProcessObj.processListData(plst, col);
-                            trTd.innerHTML = tdData;
-                            trTd.setAttribute("data-fromuser", plst.fromuser);
-                            trTd.setAttribute("data-tasktime", plst.tasktime);
-                            newTr.appendChild(trTd);
-                        });
-                        tbodyCompleted.appendChild(newTr);
-                        completedCount++;
-
-                    }).join("");
-
-                    tblCompleted.appendChild(tbodyCompleted);
-
-                    if (tblContentCompleted && completedCount) {
-                        tblContentCompleted.innerHTML = "";
-                        tblContentCompleted.appendChild(tblCompleted);
-                    }
-                    else {
-                        let plistNoDataAlert = `<label class="form-label fs-4">No data available...!!!</label>`;
-                        tblContentCompleted.innerHTML = plistNoDataAlert;
-                    }
+                if (this.isDropdownClick) {
+                    const container = document.getElementById('plistContent')
+                    container.innerHTML = ""
                 }
+                Object.keys(groupedData).forEach((timeframe) => {
+                    const existingAccordion = document.getElementById(`section-${timeframe.replace(/\s+/g, '')}`);
+                    if (existingAccordion) {
+                        const accordionBody = existingAccordion.querySelector(".accordion-body");
+                        accordionBody.insertAdjacentHTML(
+                            "beforeend",
+                            groupedData[timeframe].map((item) => this.generateTaskHTML(item)).join("")
+                        );
 
-                $("#pdFilFrom, #pdFilTo").flatpickr({
-                    dateFormat: "d-M-Y", //"d-m-Y H:i:S",
-                    enableTime: false,
+                    } else {
+                        this.createAccordionForTimeframe(timeframe, groupedData[timeframe], existingAccordion);
+
+                    }
                 });
 
-                KTMenu.init();
 
-                $(document).on("click", ".all-task", (event) => {
-                    let menuPr = document.querySelector("#pd_all_tasks");
-                    let menuDd = KTMenu.getInstance(menuPr);
-                    menuDd.element.children.forEach((ch, inx) => {
-                        if (inx != 0) {
-                            ch.getElementsByClassName("menu-task")[0].checked = event.currentTarget.checked;
+                document.querySelectorAll('.tasktitle', '#nextrecord', '#previousrecord').forEach(item => {
+                    item.addEventListener('click', function () {
+                        document.querySelectorAll('.tasktitle').forEach(row => {
+                            row.classList.remove('taskRowClicked')
+                            // const rowElement = row.closest('.listrow');
+                            // if (rowElement) {
+                            //     rowElement.style.backgroundColor = ''; // Reset background color
+                            // }
+                        });
+
+                        this.classList.add('taskRowClicked');
+
+                        // const listRowElement = this.closest('.listrow');
+                        // if (listRowElement) {
+                        //     listRowElement.style.backgroundColor = 'rgb(239 239 236)';
+                        // }
+
+                    })
+                });
+                if (!this.isInitialized) {
+                    //  const listRow = document.querySelector('.listrow[data-index="1"]');
+                    //  if (listRow) {
+                    //      const taskTitle = listRow.querySelector('.tasktitle');
+                    //      if (taskTitle) {
+                    //          taskTitle.click();
+                    //      }
+                    //     }
+
+                    document.getElementById("nextrecord").addEventListener("click", () => {
+                        this.navigateToRecord("next");
+
+                    });
+
+                    document.getElementById("previousrecord").addEventListener("click", () => {
+                        this.navigateToRecord("previous");
+                    });
+
+                    document.querySelectorAll('#alllist, #activelist, #completedlist').forEach((button) => {
+                        button.addEventListener('click', function () {
+                            
+
+                            // Remove the 'active' class from all buttons
+                            document.querySelectorAll('#alllist, #activelist, #completedlist').forEach((btn) => {
+                                btn.classList.remove('active');
+                            });
+
+                            // Add the 'active' class to the clicked button
+                            this.classList.add('active');
+
+                            // Update `axProcessObj` properties based on the clicked button
+                            axProcessObj.isDropdownClick = true;
+                            axProcessObj.filterkey = this.getAttribute("data-id"); // Extract 'all', 'active', 'completed'
+                            axProcessObj.pageNo = 1;
+                            axProcessObj.fetchProcessList();
+                        });
+                    });
+
+
+                    document.querySelector('.selectbtn[data-kt-menu-attach="parent"]').addEventListener('click', function (e) {
+                        e.preventDefault();
+                        
+                        const button = e.currentTarget;
+                        button.classList.toggle('toggleclicked');
+
+                        // Get the checkboxes with class names maincheckbox and task-checkbox
+                        const mainCheckbox = document.querySelector('.maincheckbox');
+                        const taskCheckboxes = document.querySelectorAll('.task-checkbox');
+
+
+                        document.querySelectorAll('.checkbox-wrapper').forEach(wrapper => {
+                            const userElement = wrapper.querySelector('.user');
+                            const checkbox = wrapper.querySelector('.task-checkbox');
+                            checkbox.classList.toggle('toggleclicked');
+
+                            if (button.classList.contains('toggleclicked')) {
+                                userElement.style.display = 'none';
+
+                                checkbox.style.visibility = 'visible';
+                                mainCheckbox.style.display = 'block';
+
+                            } else {
+                                userElement.style.display = 'flex';
+                                checkbox.style.visibility = 'hidden';
+                                mainCheckbox.style.display = 'none';
+                            }
+
+                        });
+                    });
+
+                    // Add keyup and keydown event listeners
+                    document.addEventListener("keydown", (e) => {
+                        
+                        if (e.key === "ArrowDown") {
+                            axProcessObj.navigateToRecordWithKeyboard("next");
+                        } else if (e.key === "ArrowUp") {
+                            axProcessObj.navigateToRecordWithKeyboard("previous");
                         }
                     });
-                    event.currentTarget.checked ? $(".all-task-text").text("Unselect All") : $(".all-task-text").text("Select All");
-                });
+
+                    document.querySelectorAll(".listrow").forEach((row) => {
+                        row.addEventListener("click", function () {
+                            
+                            // Remove 'selected' class from all list rows
+                            document.querySelectorAll(".listrow").forEach((r) => {
+                                r.style.outline = "none"
+                            });
 
 
-                $(document).on("click", ".menu-task", (event) => {
-                    let totalCheckBoxes = document.querySelectorAll(".menu-task");
-                    let checkedCheckBoxes = document.querySelectorAll(".menu-task:checked");
-                    if (totalCheckBoxes.length > 0 && totalCheckBoxes.length == checkedCheckBoxes.length) {
-                        document.querySelector(".all-task").checked = true;
-                        $(".all-task-text").text("Unselect All")
-                    }
-                    else {
-                        document.querySelector(".all-task").checked = false;
-                        $(".all-task-text").text("Select All")
-                    }
-                });
+                        });
+                    });
 
+                    document.querySelector('.accordion-button').addEventListener('click', (event) => {
+                        const accordionButton = event.target;
+
+                        // Check if the button is not collapsed
+                        if (accordionButton.classList.contains('collapsed')) {
+                            const bodyContainer = document.getElementById('body_Container');
+                            const plistContainer = document.getElementById('plistContent');
+
+                            if (bodyContainer && plistContainer) {
+                                const bodyHeight = bodyContainer.offsetHeight;
+                                const plistHeight = plistContainer.offsetHeight;
+                                const lastChild = plistContainer.children[plistContainer.children.length - 1];
+
+                                if (bodyHeight > plistHeight && lastChild && !lastChild.classList.contains('no-more-records')) {
+                                    // Enable scrollbar by adjusting the height
+                                    plistContainer.style.height = `${bodyHeight}px`;
+                                    bodyContainer.style.overflowY = 'auto'; // Ensure vertical scrollbar is enabled
+                                } else {
+                                    // Reset overflow if the condition is not met
+                                    //bodyContainer.style.overflowY = 'hidden';
+                                }
+                            }
+                        }
+                    });
+
+
+
+                    this.initializeTooltips();
+                    this.initializeDatePickers();
+                    this.setupSelectAllTasks();
+                    this.isInitialized = true;
+
+                }
             } else {
                 document.querySelector("#PROFLOW_Left").classList.add("d-none");
                 document.querySelector("#PROFLOW_Right").classList.add("right-only");
-                //document.getElementsByClassName("card-header")[0].classList.add("d-none");
-                //document.getElementsByClassName("card-footer")[0].classList.add("d-none");
-                //let plistNoDataAlert = `<label class="form-label fs-4">No data available...!!!</label>`;
-                //tblContentCompleted.innerHTML = plistNoDataAlert;
-                //tblContentPending.innerHTML = plistNoDataAlert;
             }
-
-            //if (!this.isUndefined(this.taskId) && !this.isNullOrEmpty(this.taskId)) {
-            //    let elem = document.querySelector(`.Procurement-list[data-taskid="${this.taskId}"]`);
-            //    elem?.click();
-            //    elem?.scrollIntoView();
-            //}
 
             if (!this.inValid(this.taskId) && !this.taskCompleted) {
                 this.setActiveInList(this.taskId);
@@ -1637,64 +1922,1061 @@ class AxProcessFlow {
         } catch (error) {
             this.catchError(error.message);
         }
+        this.isDropdownClick = false
+    }
 
-        document.querySelectorAll('.accordion-button').forEach((btn) => {
-            btn.addEventListener("click", function (e) {
-                let elem = this;
-                let target = elem.getAttribute('data-target');
-                elem.classList.toggle('collapsed');
-                document.querySelector(target).classList.toggle('show');
+    openFilters() {
+        
+        $('#filterModal').modal('show');
+        document.getElementById('filterGroupName').disabled = true;
+
+        if ($('#dvModalFilter').html() === "") {
+            axProcessObj.createFilterLayout();
+        }
+    }
+    createFilterLayout() {
+        $('#dvModalFilter').html("");
+
+
+        $.each(axProcessObj._entity.metaData, function (index, field) {
+            if (field.hide === 'T') {
+                return true;
+            }
+
+            axProcessObj.generateFilterHTML(field);
+
+            if (axProcessObj._entity.filterObj[field.fldname]) {
+                axProcessObj.updateFilterLayout(field.fldname, axProcessObj._entity.filterObj[field.fldname]);
+            }
+        });
+
+        // Initialize dropdown fields
+        document.querySelectorAll("#dvModalFilter .filter-fld[data-type=DropDown]").forEach(fld => {
+            let fldId = fld.id;
+            let dataArray = [...new Set(axProcessObj._entity.fldData[fldId])];
+
+            // Add a default option
+            $(fld).append($("<option></option>").val('0').html('--Select--'));
+
+            // Add unique values to the dropdown
+            dataArray.forEach(item => {
+                if (!axProcessObj._entity.inValid(item))
+                    fld.insertAdjacentHTML("beforeend", `<option value="${item}">${item}</option>`);
+            });
+
+            // Initialize Select2 for the dropdown
+            $(fld).select2({
+                multiple: true
+            }).on("select2:unselect select2:select", function (e) {
+                let fldNamesf = $(this).attr("id");
+                let fldAcValue = $(this).val();
+                fldAcValue = fldAcValue.filter(num => num !== '0');
+                $(this).val(fldAcValue);
+                $(this).trigger("change");
             });
         });
-        ShowDimmer(false);
-    };
+
+        // Initialize date pickers
+        var glCulture = eval(callParent('glCulture'));
+        var dtFormat = "d/m/Y";
+        if (glCulture == "en-us")
+            dtFormat = "m/d/Y";
+        $(".flatpickr-input").flatpickr({
+            dateFormat: dtFormat
+        });
+    }
+    convertDateFormat(dateStr) {
+        const parts = dateStr.split('/'); // Split the date by '/'
+        return `${parts[2]}-${parts[1]}-${parts[0]}`; // Return in yyyy-MM-dd format
+    }
+
+    filterModelClose() {
+        $('#filterGroupName').val('')
+        $('#filterGroupModalWrapper').modal('hide');
+
+        document.getElementById('filterGroupCheckbox').checked = false
+        document.getElementById('filterGroupName').disabled = true
+
+        $('#dvModalFilter').html("");
+        $('#filterModal').modal('hide');
+
+    }
+
+    generateFilterHTML(field) {
+        var fldtype = axProcessObj.getFieldDataType(field);
+        var fldcap = field.fldcap || '';
+        var fldname = field.fldname;
+        let filterHTML = '';
+        if (fldtype.toUpperCase() == "BUTTON" || fldtype.toUpperCase() == "ATTACHMENTS")
+            return;
+
+        if (field.fdatatype == "n")
+            fldtype = "Numeric";
+
+        switch (fldtype) {
+            case 'DropDown':
+                filterHTML = `<div class="row" data-type="${fldtype}"><div class="col-md-3 fldCaption"><p class="form-group ">${fldcap}</p> </div>
+                              <div class="col-md-9 fldCaption">
+                                <select class="form-control filter-fld"  data-type="${fldtype}" id="${fldname}" name="${fldtype}">
+                                <option value="All">All</option>
+                                </select>
+                              </div>`;
+
+                break;
+            case 'Numeric':
+                filterHTML = `<div class="row filter-fld" data-type="${fldtype}" id="${fldname}" data-type="${fldtype}">
+                <div class="col-md-3 fldCaption">
+                <p class="form-group ">${fldcap}</p>
+                </div> 
+                <div class="col-md-9">
+                <div class="form-group form-row fldCaption">
+                <div class="col-md-6 col">
+                <label>From</label>           
+                <input type="number" id="${fldname}_from" class="form-control" data-type="${fldtype}"/>
+                </div>
+                <div class="col-md-6 col">
+                <label>To</label>           
+                <input type="number" id="${fldname}_to" class="form-control" data-type="${fldtype}"/>
+                </div></div></div>`;
+                break;
+            case 'Date':
+                var dateOptions = ["Custom", "Today", "Yesterday", "Tomorrow", "This week", "Last week", "Next week", "This month", "Last month", "Next month", "This quarter", "Last quarter", "Next quarter", "This year", "Last year", "Next year"];
+                var dateOptionsId = ["customOption", "todayOption", "yesterdayOption", "tomorrowOption", "this_weekOption", "last_weekOption", "next_weekOption", "this_monthOption", "last_monthOption", "next_monthOption", "this_quarterOption", "last_quarterOption", "next_quarterOption", "this_yearOption", "last_yearOption", "next_yearOption"];
+
+                filterHTML += `<div class="row filter-fld" data-type="${fldtype}" id="${fldname}"><div class="col-md-3 fldCaption"><p class="form-group ">${fldcap}</p></div>
+                                <div class="col-md-4 fldCaption">
+                                <select class="form-select dateFilter" type="text" id="${fldname}_dateoption" name="${fldname}" data-field="${fldname}" onchange="axProcessObj.generateAdvFilterDates('${fldname}');">`;
+                for (var i = 0; i < dateOptions.length; i++) {
+                    filterHTML += `<option value=${dateOptionsId[i]}>${dateOptions[i]}</option>`;
+                }
+                filterHTML += `</select> 
+                                </div>
+                                <div class="col-md-5">
+    <div class="form-group form-row fldCaption">
+    <div class="col-md-6 col">
+    <label>From</label>           
+     <input id="${fldname}_from" name="${fldname}_from" value="" maxlength="10" type="date" class="form-control flatpickr-input" data-input="" onchange="axProcessObj.validateDateRange('${fldname}');">
+    </div>
+    <div class="col-md-6 col">
+    <label>To</label>           
+    <input id="${fldname}_to" name="${fldname}_to" value="" maxlength="10" type="date" class="form-control flatpickr-input" data-input="" onchange="axProcessObj.validateDateRange('${fldname}');">
+    </div></div></div>   
+                                </div>`;
+                break;
+            default:
+                filterHTML = `<div class="row" data-type="${fldtype}">
+                <div class="col-md-3 fldCaption">
+                <p class="form-group ">${fldcap}</p> 
+                </div>
+                <div class="col-md-4 fldValue"> 
+                <select class="form-select" type="text" id="${fldname}_searchoption" class="form-control">
+                <option value="STARTSWITH">Starts with</option>
+                <option value="CONTAINS">Contains</option>
+                <option value="ENDSWITH">Ends with</option>
+                </select></div>
+                <div class="col-md-5 fldValue"> <input type="text" id="${fldname}" class="form-control filter-fld" data-type="${fldtype}"/></div>
+                </div>`;
+                break;
+        }
+
+        $('#dvModalFilter').append(filterHTML);
+    }
+
+    getDatesBasedonSelection(selectionvalue) {
+
+        var fromToObj = {
+            from: "",
+            to: ""
+        };
+        var advFilterDtCulture = dtCulture == "en-us" ? "MM/DD/YYYY" : "DD/MM/YYYY";
+        switch (selectionvalue) {
+            case "customOption":
+                break;
+            case "todayOption":
+                var dateObj = new Date();
+                fromToObj.from = fromToObj.to = moment(dateObj).format(advFilterDtCulture);
+                break;
+            case "yesterdayOption":
+                var dateObj = new Date();
+                dateObj.setDate(dateObj.getDate() - 1);
+                fromToObj.from = fromToObj.to = moment(dateObj).format(advFilterDtCulture);
+                break;
+            case "tomorrowOption":
+                var dateObj = new Date();
+                dateObj.setDate(dateObj.getDate() + 1);
+                fromToObj.from = fromToObj.to = moment(dateObj).format(advFilterDtCulture);
+                break;
+            case "this_weekOption":
+                var dateObj = getFirstDayOfWeek(new Date());
+                fromToObj.from = moment(dateObj).format(advFilterDtCulture);
+                dateObj.setDate(dateObj.getDate() + 6);
+                fromToObj.to = moment(dateObj).format(advFilterDtCulture);
+                break;
+            case "last_weekOption":
+                var dateObj = getFirstDayOfWeek(new Date());
+                dateObj.setDate(dateObj.getDate() - 7)
+                fromToObj.from = moment(dateObj).format(advFilterDtCulture);
+                dateObj.setDate(dateObj.getDate() + 6);
+                fromToObj.to = moment(dateObj).format(advFilterDtCulture);
+                break;
+            case "next_weekOption":
+                var dateObj = getFirstDayOfWeek(new Date());
+                dateObj.setDate(dateObj.getDate() + 7)
+                fromToObj.from = moment(dateObj).format(advFilterDtCulture);
+                dateObj.setDate(dateObj.getDate() + 6);
+                fromToObj.to = moment(dateObj).format(advFilterDtCulture);
+                break;
+            case "this_monthOption":
+                var dateObj = getFirstDayOfWeek(new Date());
+                dateObj.setDate(1);
+                fromToObj.from = moment(dateObj).format(advFilterDtCulture);
+                dateObj.setMonth(dateObj.getMonth() + 1);
+                dateObj.setDate(0);
+                fromToObj.to = moment(dateObj).format(advFilterDtCulture);
+                break;
+            case "last_monthOption":
+                var dateObj = getFirstDayOfWeek(new Date());
+                dateObj.setDate(1);
+                dateObj.setMonth(dateObj.getMonth() - 1);
+                fromToObj.from = moment(dateObj).format(advFilterDtCulture);
+                dateObj.setMonth(dateObj.getMonth() + 1);
+                dateObj.setDate(0);
+                fromToObj.to = moment(dateObj).format(advFilterDtCulture);
+                break;
+            case "next_monthOption":
+                var dateObj = getFirstDayOfWeek(new Date());
+                dateObj.setDate(1);
+                dateObj.setMonth(dateObj.getMonth() + 1);
+                fromToObj.from = moment(dateObj).format(advFilterDtCulture);
+                dateObj.setMonth(dateObj.getMonth() + 1);
+                dateObj.setDate(0);
+                fromToObj.to = moment(dateObj).format(advFilterDtCulture);
+                break;
+            case "this_quarterOption":
+                var dateObj = new Date();
+                var thisQuarter = Math.floor(((dateObj).getMonth() + 3) / 3);
+                dateObj.setDate(1);
+                dateObj.setMonth((thisQuarter * 3) - 3);
+                fromToObj.from = moment(dateObj).format(advFilterDtCulture);
+                dateObj.setMonth(dateObj.getMonth() + 3);
+                dateObj.setDate(0);
+                fromToObj.to = moment(dateObj).format(advFilterDtCulture);
+                break;
+            case "last_quarterOption":
+                var dateObj = new Date();
+                var thisQuarter = Math.floor(((dateObj).getMonth() + 3) / 3) - 1;
+                if (thisQuarter == 0) {
+                    thisQuarter = 4;
+                    dateObj.setFullYear(dateObj.getFullYear() - 1);
+                }
+                dateObj.setDate(1);
+                dateObj.setMonth((thisQuarter * 3) - 3);
+                fromToObj.from = moment(dateObj).format(advFilterDtCulture);
+                dateObj.setMonth(dateObj.getMonth() + 3);
+                dateObj.setDate(0);
+                fromToObj.to = moment(dateObj).format(advFilterDtCulture);
+                break;
+            case "next_quarterOption":
+                var dateObj = new Date();
+                var thisQuarter = Math.floor(((dateObj).getMonth() + 3) / 3) + 1;
+                if (thisQuarter == 5) {
+                    thisQuarter = 1;
+                    dateObj.setFullYear(dateObj.getFullYear() + 1);
+                }
+                dateObj.setDate(1);
+                dateObj.setMonth((thisQuarter * 3) - 3);
+                fromToObj.from = moment(dateObj).format(advFilterDtCulture);
+                dateObj.setMonth(dateObj.getMonth() + 3);
+                dateObj.setDate(0);
+                fromToObj.to = moment(dateObj).format(advFilterDtCulture);
+                break;
+            case "this_yearOption":
+                var dateObj = new Date();
+                dateObj.setDate(1);
+                dateObj.setMonth(0);
+                fromToObj.from = moment(dateObj).format(advFilterDtCulture);
+                dateObj.setFullYear(dateObj.getFullYear() + 1);
+                dateObj.setMonth(0);
+                dateObj.setDate(0);
+                fromToObj.to = moment(dateObj).format(advFilterDtCulture);
+                break;
+            case "last_yearOption":
+                var dateObj = new Date();
+                dateObj.setFullYear(dateObj.getFullYear() - 1);
+                dateObj.setDate(1);
+                dateObj.setMonth(0);
+                fromToObj.from = moment(dateObj).format(advFilterDtCulture);
+                dateObj.setFullYear(dateObj.getFullYear() + 1);
+                dateObj.setMonth(0);
+                dateObj.setDate(0);
+                fromToObj.to = moment(dateObj).format(advFilterDtCulture);
+                break;
+            case "next_yearOption":
+                var dateObj = new Date();
+                dateObj.setFullYear(dateObj.getFullYear() + 1);
+                dateObj.setDate(1);
+                dateObj.setMonth(0);
+                fromToObj.from = moment(dateObj).format(advFilterDtCulture);
+                dateObj.setFullYear(dateObj.getFullYear() + 1);
+                dateObj.setMonth(0);
+                dateObj.setDate(0);
+                fromToObj.to = moment(dateObj).format(advFilterDtCulture);
+                break;
+        }
+
+        return fromToObj;
+    }
+
+    generateAdvFilterDates(dateFld) {
+
+        var selectionvalue = document.querySelector(`#${dateFld}_dateoption`).value;
+        var currentDate = new Date();
+        var fromDate = document.querySelector(`#${dateFld}_from`);
+        var toDate = document.querySelector(`#${dateFld}_to`);
+
+        var fromToObj = axProcessObj.getDatesBasedonSelection(selectionvalue);
+
+        fromDate.value = axProcessObj.convertDateFormat(fromToObj.from);
+        toDate.value = axProcessObj.convertDateFormat(fromToObj.to);
+
+        if (selectionvalue == "customOption") {
+            fromDate.disabled = false;
+            toDate.disabled = false;
+            fromDate.classList.add('disabledDate');
+            toDate.classList.add('disabledDate');
+        } else {
+            fromDate.disabled = true;
+            toDate.disabled = true;
+            fromDate.classList.remove('disabledDate');
+            toDate.classList.remove('disabledDate');
+        }
+
+    }
+    validateDateRange(fieldId) {
+        var fromDateElement = document.getElementById(fieldId + '_from');
+        var toDateElement = document.getElementById(fieldId + '_to');
+        var fromDate = fromDateElement.value;
+        var toDate = toDateElement.value;
+
+        if (fromDate && toDate) {
+            var fromDateObj = parseDate(fromDate);
+            var toDateObj = parseDate(toDate);
+
+            if (!fromDateObj || !toDateObj) {
+                alert('Invalid date format.');
+                return;
+            }
+
+            // Check if the "To" date is earlier than the "From" date
+            if (toDateObj < fromDateObj) {
+                alert('The "To" date cannot be earlier than the "From" date.');
+                // Clear the "To" date
+                toDateElement.value = '';
+            }
+        }
+    }
+    getFieldDataType(fldProps) {
+        // Corrected: Calling _entity's inValid method properly
+        if (axProcessObj._entity.inValid(fldProps.cdatatype)) {
+            if (fldProps.fdatatype == "n") return "Number";
+            else if (fldProps.fdatatype == "d") return "Date";
+            else if (fldProps.fdatatype == "c") return "Text";
+            else if (fldProps.fdatatype == "i") return "Image";
+            else if (fldProps.fdatatype == "t") return "Large Text";
+            else return "Text";
+        } else {
+            return fldProps.cdatatype;
+        }
+    }
+
+    updateFilterLayout(fieldId, filterDetails) {
+        filterChanged = true;
+
+        $('#dvModalFilter').children().each(function () {
+            let divDataType = $(this).attr('data-type');
+            let selectElement = $(this).find('div select');
+            let divEleId = selectElement.attr('id');
+            let divDataField = selectElement.attr('data-field');
+
+            let inputElement = $(this).find('div input');
+            let inputEleId = inputElement.attr('id');
+
+            // let selectedOptionValue = selectElement.val(); 
+
+            // let inputValue = inputElement.val();
+
+            for (const [key, value] of Object.entries(fieldId)) {
+                if (divEleId === key || divDataField === key || inputEleId === key) {
+                    const secondValue = value.split(',')[1];
+                    const dropdownElement = $(`#${divEleId}`);
+
+                    switch (divDataType) {
+                        case "DropDown":
+                            if (dropdownElement.prop('multiple')) {
+                                const values = secondValue.split(';');
+                                dropdownElement.val(values).trigger('change');
+                            } else {
+                                dropdownElement.val(secondValue).trigger('change');
+                            }
+                            break;
+
+                        case "Simple Text":
+                            inputElement.val(secondValue);
+                            break;
+
+                        case "Date":
+                            if (divEleId === "modifiedon_dateoption") {
+                                const fromDate = $('#modifiedon_from');
+                                const toDate = $('#modifiedon_to');
+                                const fromToObj = getDatesBasedonSelection(secondValue);
+
+                                fromDate.val(fromToObj.from);
+                                toDate.val(fromToObj.to);
+
+                                dropdownElement.val(secondValue).trigger('change');
+
+                                // Enable or disable date fields based on the selected option
+                                if (secondValue === "customOption") {
+                                    fromDate.prop('disabled', false).addClass('disabledDate');
+                                    toDate.prop('disabled', false).addClass('disabledDate');
+                                } else {
+                                    fromDate.prop('disabled', true).removeClass('disabledDate');
+                                    toDate.prop('disabled', true).removeClass('disabledDate');
+                                }
+                            }
+                            break;
+
+                        case "Numeric":
+                        case "Auto Generate":
+                            inputElement.val(secondValue);
+                            break;
+
+                        default:
+                            break;
+                    }
+                    break;
+                }
+            }
+        });
+
+        // Handle pillText if present
+        if (fieldId.pillText) {
+            $('#filterGroupName').val(fieldId.pillText);
+        }
+    }
+
+
+    navigateToRecordWithKeyboard(direction) {
+        const taskTitles = Array.from(document.querySelectorAll(".listrow .tasktitle"));
+        const listContainer = document.querySelector(".list-container");
+
+        let activeIndex = taskTitles.findIndex((item) =>
+            item.classList.contains("taskRowClicked")
+        );
+
+        if (activeIndex === -1 && taskTitles.length > 0) {
+            // If no row is active, select the first row
+            activeIndex = 0;
+            taskTitles[activeIndex].classList.add("taskRowClicked");
+            taskTitles[activeIndex].click();
+            taskTitles[activeIndex].closest('.listrow').style.outline = "1px solid black"; // Add outline border
+            // Scroll into view and adjust for header height
+            setTimeout(() => {
+                taskTitles[activeIndex].closest('.listrow').scrollIntoView({
+                    behavior: "smooth",
+                    block: "start"
+                });
+                const header = document.querySelector(".Page-Title-Bar");
+                if (header) {
+                    const headerHeight = header.offsetHeight || 0;
+                    window.scrollBy(0, -headerHeight);
+                }
+            }, 0);
+            return;
+        }
+
+        let targetIndex = direction === "next" ? activeIndex + 1 : activeIndex - 1;
+
+        if (targetIndex >= 0 && targetIndex < taskTitles.length) {
+            // Remove outline and class from the current active row
+            taskTitles[activeIndex].classList.remove("taskRowClicked");
+            taskTitles[activeIndex].closest('.listrow').style.outline = "none";
+
+            // Add outline and class to the new target row
+            taskTitles[targetIndex].classList.add("taskRowClicked");
+            taskTitles[targetIndex].click();
+            taskTitles[targetIndex].closest('.listrow').style.outline = "1px solid black";
+            setTimeout(() => {
+                taskTitles[targetIndex].closest('.listrow').scrollIntoView({
+                    behavior: "smooth",
+                    block: "start"
+                });
+                const header = document.querySelector(".Page-Title-Bar");
+                if (header) {
+                    const headerHeight = header.offsetHeight || 0;
+                    window.scrollBy(0, -headerHeight);
+                }
+            }, 0);
+
+            s
+        } else {
+            const message = direction === "next" ? "No more Next records." : "No more Previous records.";
+            showAlertDialog("info", message);
+        }
+    }
+
+
+    getRowIcon(rowdata) {
+        let iconHtml = '';
+        let tooltip = '';
+
+        if (rowdata.rectype === 'PEG') {
+            if (rowdata.taskstatus) {
+                switch (rowdata.taskstatus.toUpperCase()) {
+                    case 'RETURNED':
+                        tooltip = `<span class="badge  badge-light-danger fw-bold ">${rowdata.taskstatus.charAt(0).toUpperCase() + rowdata.taskstatus.slice(1)}</span>`;
+                        iconHtml = `<span class="material-icons" style="color:blueviolet" >reply</span>`;
+                        break;
+                    case 'WITHDRAWN':
+                        tooltip = `<span class="badge  badge-light-danger fw-bold ">${rowdata.taskstatus.charAt(0).toUpperCase() + rowdata.taskstatus.slice(1)}</span>`;
+                        iconHtml = `<span class="material-icons" style="color:red" >cancel</span>`;
+                        break;
+                    case 'APPROVED':
+                        tooltip = `<span class="badge  badge-light-success fw-bold ">${rowdata.taskstatus.charAt(0).toUpperCase() + rowdata.taskstatus.slice(1)}</span>`;
+                        iconHtml = `<span class="material-icons" style="color:#50cd89" >check_circle</span>`;
+                        break;
+                    case 'REJECTED':
+                        tooltip = `<span class="badge  badge-light-danger fw-bold ">${rowdata.taskstatus.charAt(0).toUpperCase() + rowdata.taskstatus.slice(1)}</span>`;
+                        iconHtml = `<span class="material-icons" style="color:red" >cancel</span>`;
+                        break;
+                    case 'CHECKED':
+                        tooltip = `<span class="badge  badge-light-success fw-bold ">${rowdata.taskstatus.charAt(0).toUpperCase() + rowdata.taskstatus.slice(1)}</span>`;
+                        iconHtml = `<span class="material-icons" style="color:#50cd89" >check_box</span>`;
+                        break;
+                    case 'MADE':
+                        tooltip = '';
+                        iconHtml = `<span class="material-icons" >done</span>`;
+                        break;
+                    case 'SKIPPED':
+                        tooltip = `<span class="badge  badge-light-danger fw-bold ">${rowdata.taskstatus.charAt(0).toUpperCase() + rowdata.taskstatus.slice(1)}</span>`;
+                        iconHtml = `<span class="material-icons text-primary" >skip_next</span>`;
+                        break;
+                    case 'SENT':
+                        tooltip = `<span class="badge  badge-light-danger fw-bold ">${rowdata.taskstatus.charAt(0).toUpperCase() + rowdata.taskstatus.slice(1)}</span>`;
+                        iconHtml = `<span class="material-icons" >skip_next</span>`;
+                        break;
+                    default:
+                        tooltip = '';
+                        iconHtml = `<span class="material-icons" title="PEG">assignment</span>`;
+                }
+            }
+             else if (rowdata.tasktype) {
+                 switch (rowdata.tasktype.toUpperCase()) {
+                     case 'APPROVE':
+                         tooltip = ``;
+                         iconHtml = `<span class="material-icons" >task</span>`;
+                         break;
+                     case 'CACHED SAVE':
+                         tooltip = ``;
+                         iconHtml = `<span class="material-icons" >save</span>`;
+                         break;
+                     case 'CHECK':
+                         tooltip = ``;
+                         iconHtml = `<span class="material-icons" >check</span>`;
+                         break;
+                     case 'MAKE':
+                         tooltip = ``;
+                         iconHtml = `<span class="material-icons" >construction</span>`;
+                         break;
+                     case 'EXPORT':
+                         tooltip = ``;
+                         iconHtml = `<span class="material-icons" >import_export</span>`;
+                         break;
+                     case 'REMINDERS':
+                         tooltip = ``;
+                         iconHtml = `<span class="material-icons" >notifications</span>`;
+                         break;
+                     default:
+                         tooltip = '';
+                         iconHtml = `<span class="material-icons" title="PEG">assignment</span>`;
+                 }
+             }
+        } else if (rowdata.rectype === 'MSG') {
+            if (rowdata.msgtype) {
+                switch (rowdata.msgtype.toUpperCase()) {
+                    case 'EXPORT EXCEL1':
+                        tooltip = `<span class="badge  badge-light-primary fw-bold ">Export Excel</span>`;
+                        iconHtml = `<span class="material-icons" >file_copy</span>`;
+                        break;
+                    case 'EXPORT PDF':
+                        tooltip = `<span class="badge  badge-light-primary fw-bold ">${rowdata.msgtype.charAt(0).toUpperCase() + rowdata.msgtype.slice(1)}</span>`;
+                        iconHtml = `<span class="material-icons" >picture_as_pdf</span>`;
+                        break;
+                    case 'EXPORT WORD':
+                        tooltip = `<span class="badge  badge-light-primary fw-bold ">${rowdata.msgtype.charAt(0).toUpperCase() + rowdata.msgtype.slice(1)}</span>`;
+                        iconHtml = `<span class="material-icons" >article</span>`;
+                        break;
+                    case 'PERIODIC NOTIFICATION':
+                        tooltip = `<span class="badge  badge-light-danger fw-bold ">${rowdata.msgtype.charAt(0).toUpperCase() + rowdata.msgtype.slice(1)}</span>`;
+                        iconHtml = `<span class="material-icons" >alarm</span>`;
+                        break;
+                    case 'FORM NOTIFICATION':
+                        tooltip = '';
+                        iconHtml = `<span class="material-icons" >notifications</span>`;
+                        break;
+                    case 'CCHED SAVE':
+                        tooltip = `<span class="badge  badge-light-danger fw-bold ">${rowdata.msgtype.charAt(0).toUpperCase() + rowdata.msgtype.slice(1)}</span>`;
+                        iconHtml = `<span class="material-icons" >save</span>`;
+                        break;
+                    case 'MESSAGE':
+                        tooltip = `<span class="badge  badge-light-success fw-bold ">${rowdata.msgtype.charAt(0).toUpperCase() + rowdata.msgtype.slice(1)}</span>`;
+                        iconHtml = `<span class="material-icons" >message</span>`;
+                        break;
+                    case 'REMINDERS':
+                        tooltip = `<span class="badge  badge-light-danger fw-bold ">${rowdata.msgtype.charAt(0).toUpperCase() + rowdata.msgtype.slice(1)}</span>`;
+                        iconHtml = `<span class="material-icons" >notifications</span>`;
+                        break;
+                    default:
+                        tooltip = '';
+                        iconHtml = `<span class="material-icons" title="Message">message</span>`;
+                }
+            }
+        }
+
+        return {
+            iconHtml,
+            tooltip
+        };
+    }
+
+
+
+
+  
+    toggleRowBackground(element) {
+        const allRows = document.querySelectorAll('.listrow');
+
+        const parentRow = element.closest('.listrow');
+
+        allRows.forEach(row => row.classList.remove('bg-changed'));
+
+        if (parentRow) {
+            parentRow.classList.add('bg-changed');
+        }
+    }
+
+    navigateToRecord(direction) {
+        
+        const taskTitles = Array.from(document.querySelectorAll(".listrow .tasktitle"));
+        const activeIndex = taskTitles.findIndex((item) =>
+            item.classList.contains("taskRowClicked")
+        );
+
+        if (activeIndex !== -1) {
+            let targetIndex = direction === "next" ? activeIndex + 1 : activeIndex - 1;
+
+            if (targetIndex >= 0 && targetIndex < taskTitles.length) {
+
+                taskTitles[targetIndex].click();
+            } else {
+                const myDiv = document.getElementById("body_Container");
+
+                if (direction === "next" && axProcessObj.isScrollAtBottomWithinDiv(myDiv)) {
+                    if (!this.isFetching) {
+                        this.isFetching = true;
+                        axProcessObj.pageNo++;
+                        axProcessObj.fetchProcessList("task", "scroll");
+
+                        setTimeout(() => {
+                            this.isFetching = false;
+                            const updatedTaskTitles = Array.from(document.querySelectorAll(".listrow .tasktitle"));
+                            if (updatedTaskTitles.length > taskTitles.length) {
+                                const newTargetIndex = updatedTaskTitles.findIndex((_, index) => index === targetIndex);
+                                if (newTargetIndex !== -1) {
+
+                                    updatedTaskTitles[newTargetIndex].click();
+                                } else {
+                                    showAlertDialog("info", "No more Next records.");
+                                }
+                            } else {
+                                showAlertDialog("info", "No more Next records.");
+                            }
+                        }, 500);
+                    }
+                } else {
+                    const message = direction === "next" ? "No more Next records." : "No more Previous records.";
+                    showAlertDialog("info", message);
+                }
+            }
+        } else {
+            showAlertDialog("info", "No currently selected task to navigate from.");
+        }
+    }
+
+
+    toggleCheckbox() {
+        document.querySelector('.maincheckbox').addEventListener('click', (e) => {
+            const button = e.currentTarget;
+            button.classList.toggle('selectclicked');
+
+
+            document.querySelectorAll('.checkbox-wrapper').forEach(wrapper => {
+                const userElement = wrapper.querySelector('.user');
+                const checkbox = wrapper.querySelector('.task-checkbox');
+                checkbox.classList.toggle('selectclicked');
+
+                if (button.classList.contains('selectclicked')) {
+                    checkbox.setAttribute('checked', true);
+                    userElement.style.display = 'none';
+                    checkbox.style.visibility = 'visible';
+                    button.style.display = 'blockwindow.top';
+
+                } else {
+                    checkbox.removeAttribute('checked');
+                    userElement.style.display = 'flex';
+                    checkbox.style.visibility = 'hidden';
+                    button.style.display = 'none';
+                    document.querySelector('.selectbtn[data-kt-menu-attach="parent"]').classList.remove('toggleclicked');
+                }
+            });
+        });
+
+
+
+
+    }
+
+    toggleList() {
+        document.getElementById("collapseicon").addEventListener("click", function () {
+            
+            const leftDiv = document.getElementById("PROFLOW_Left");
+            const rightDiv = document.getElementById("PROFLOW_Right");
+            const nextRec = document.getElementById('nextrecord');
+            const prevRec = document.getElementById('previousrecord')
+            leftDiv.classList.toggle("collapsed");
+            const mainCheckbox = document.querySelector('.maincheckbox');
+            mainCheckbox.style.display = 'none';
+
+            let filteredRows;
+            const listRows = Array.from(document.querySelectorAll('.listrow'));
+            // Filter rows where taskTitle exists and does not have the 'taskRowClicked' class
+            filteredRows = listRows.filter((listRow) => {
+                const taskTitle = listRow.querySelector('.tasktitle');
+                return taskTitle && taskTitle.classList.contains('taskRowClicked');
+            });
+            if (leftDiv.classList.contains("collapsed")) {
+                
+
+                let row = null;
+
+
+                // Find the row with data-index="1" in the filtered rows
+                const targetRow = listRows.find((listRow) => listRow.getAttribute('data-index') === "1");
+
+                if (targetRow && filteredRows.length == 0) {
+                    row = targetRow.querySelector('.tasktitle');
+                    if (row) {
+                        console.log(`Triggering click for taskTitle inside listRow with data-index: 1`);
+                        row.click();
+
+                    }
+                }
+
+                leftDiv.classList.add("d-none")
+                rightDiv.classList.remove("col-xl-8");
+                rightDiv.classList.add("col-xl-12");
+
+                this.setAttribute("data-bs-title", "Show record List");
+                this.setAttribute("data-bs-toggle", "tooltip");
+                this.setAttribute("data-bs-placement", "bottom");
+
+                const tooltipInstance = bootstrap.Tooltip.getInstance(this);
+                if (tooltipInstance) {
+                    tooltipInstance.dispose();
+                }
+                new bootstrap.Tooltip(this); // Initialize the new tooltip instance
+
+                nextRec.classList.remove("d-none")
+                prevRec.classList.remove("d-none")
+            } else {
+
+                if (filteredRows.length == 1) {
+                    const activeRow = filteredRows[0].querySelector('.tasktitle');
+                    if (activeRow) {
+                        console.log(`Scrolling to the taskTitle in the filtered row`);
+                        setTimeout(() => {
+                            activeRow.scrollIntoView({
+                                behavior: "smooth",
+                                block: "start"
+                            });
+                            const headerHeight = document.getElementsByClassName("Page-Title-Bar").offsetHeight;
+                            window.scrollBy(10, -headerHeight); // Adjust to avoid overlap
+                        }, 0);
+                    }
+                }
+
+                leftDiv.classList.remove("d-none");
+                rightDiv.classList.remove("col-xl-12");
+                rightDiv.classList.add("col-xl-8");
+
+                this.setAttribute("data-bs-title", "Hide record List");
+                this.setAttribute("data-bs-toggle", "tooltip");
+                this.setAttribute("data-bs-placement", "bottom");
+
+                const tooltipInstance = bootstrap.Tooltip.getInstance(this);
+                if (tooltipInstance) {
+                    tooltipInstance.dispose();
+                }
+                new bootstrap.Tooltip(this);
+                nextRec.classList.add("d-none")
+                prevRec.classList.add("d-none")
+            }
+
+
+
+        });
+    }
+
+
+    initializeTooltips() {
+     const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]');
+
+    tooltipTriggerList.forEach(tooltipTriggerEl => {
+        if (!tooltipTriggerEl.getAttribute('data-bs-title')) {
+            tooltipTriggerEl.removeAttribute('data-bs-title'); // Remove empty tooltips
+        }
+
+        let tooltipInstance = bootstrap.Tooltip.getInstance(tooltipTriggerEl);
+        if (tooltipInstance) {
+            tooltipInstance.dispose(); // Destroy old tooltip
+        }
+
+        new bootstrap.Tooltip(tooltipTriggerEl);
+    });
+	}
+
+
+    initializeDatePickers() {
+        $("#pdFilFrom, #pdFilTo").flatpickr({
+            dateFormat: "d-M-Y",
+            enableTime: false
+        });
+    }
+
+    setupSelectAllTasks() {
+        $(document).on("click", ".all-task", (event) => {
+            const isChecked = event.currentTarget.checked;
+
+
+            const menuPr = document.querySelector("#pd_all_tasks");
+            const menuDd = KTMenu.getInstance(menuPr);
+
+
+            menuDd.element.children.forEach((child, index) => {
+                const menuTask = child.querySelector(".menu-task");
+                if (menuTask) {
+                    menuTask.checked = isChecked;
+                }
+            });
+
+
+            $(".all-task-text").text(isChecked ? "Unselect All" : "Select All");
+        });
+
+
+        $(document).on("click", ".menu-task", () => {
+            const totalCheckBoxes = document.querySelectorAll(".menu-task");
+            const checkedCheckBoxes = document.querySelectorAll(".menu-task:checked");
+
+            const allTasksCheckbox = document.querySelector(".all-task");
+            const actionTextElement = $(".all-task-text");
+
+
+            if (totalCheckBoxes.length === checkedCheckBoxes.length) {
+                allTasksCheckbox.checked = true;
+                actionTextElement.text("Unselect All");
+            } else {
+                allTasksCheckbox.checked = false;
+                actionTextElement.text("Select All");
+            }
+        });
+    }
+
+
+    generateTaskHTML(item) {
+        this.count++
+        const eventTime = axProcessObj.formatEventDate(item.eventdatetime);
+        const displayTitleInitial = item.displaytitle ? item.displaytitle.charAt(0).toUpperCase() : "N/A";
+        const isActive = item.cstatus ?.toLowerCase() === "active" ? "active-row" : "completed-row";
+        var userName = item.fromuser ?.toLowerCase() === window.top.mainUserName ? " &nbsp; " : item.fromuser
+        var selectedclicked = document.querySelector('.selectbtn[data-kt-menu-attach="parent"]').classList.contains('selectclicked')
+        var statusIcon = this.getRowIcon(item)
+
+        if (selectedclicked) {
+            return `
+            <div class="container listrow ${isActive}" data-status="${item.cstatus}" data-index=${this.count}>
+            <div class="row">
+    
+                <div class="col-2 checkbox-wrapper">
+                <div>  <input type="checkbox" class="task-checkbox selectclicked" id="checkbox-${item.taskid}" checked
+                            style="visibility:visible"></div>
+                        <div class="user" style="display:none;">${statusIcon.iconHtml}</div>
+                </div>
+                <div class="col-7 col-content" style="${item.displaycontent ? '' : 'display: flex; align-items: center; justify-content: center;'}">
+                    <div>
+                        <a href="javascript:void(0)" class="tasktitle ProcessFlow_New-List-Title Procurement-list"
+                            onclick="axProcessObj.openTask(this, '${item.taskname}','${item.tasktype}','${item.transid}','${item.keyfield}','${item.keyvalue}','${item.recordid}','${item.taskid}', '${item.indexno}','${item.hlink_transid}','${item.hlink_params}','${item.processname}','${item.msgtype}', 'LeftPanel');axProcessObj.toggleRowBackground(this) "
+                            data-caption="${item.taskname}" data-bs-toggle="tooltip" data-bs-placement="bottom" data-bs-title="${item.displaytitle ? item.displaytitle : ''}">
+                            ${item.displaytitle || item.msgtype || "Untitled Task"}
+                        </a>
+                        </div>
+                        <div class="taskcontent">${item.displaycontent || ""}</div>
+                       <div class="rowicons">${statusIcon.tooltip}</div>
+                   
+                </div>
+                    <div class="col-3 timespace">
+                    <div class="nametime">${userName}</div>
+                        <div class="nametime" data-bs-toggle="tooltip" data-bs-placement="bottom" data-bs-title="${eventTime}">${eventTime}
+                        </div>
+                    </div>
+                </div>
+            </div>`;
+        }
+        return `
+        <div class="container listrow ${isActive}"data-status="${item.cstatus}" data-index=${this.count}>
+        <div class="row">
+            <div class="col-2 checkbox-wrapper">
+                <div><input type="checkbox" class="task-checkbox" id="checkbox-${item.taskid}"></div>
+                <div class="user">${statusIcon.iconHtml}</div>
+
+            </div>
+            <div class="col-7" style="${item.displaycontent ? '' : 'display: flex; align-items: center; justify-content: center;'}">
+                <div>
+                    <a href="javascript:void(0)" class="tasktitle ProcessFlow_New-List-Title Procurement-list" 
+                    onclick="axProcessObj.openTask(this, '${item.taskname}','${item.tasktype}','${item.transid}','${item.keyfield}','${item.keyvalue}','${item.recordid}','${item.taskid}', '${item.indexno}','${item.hlink_transid}','${item.hlink_params}','${item.processname}','${item.msgtype}', 'LeftPanel');axProcessObj.toggleRowBackground(this) "
+                    data-caption="${item.taskname}" data-bs-toggle="tooltip" data-bs-placement="bottom" data-bs-title="${item.displaytitle ? item.displaytitle : ''}">
+                        ${item.displaytitle || item.msgtype || "Untitled Task"}
+                    </a>
+                    </div>
+                    <div class="taskcontent">${item.displaycontent || ""}</div>
+                    <div class="rowicons">${statusIcon.tooltip}</div>
+           
+            </div>
+            <div class="timespace col-3">
+                <div class="nametime">${userName}</div>
+                <div class="nametime" data-bs-toggle="tooltip" data-bs-placement="bottom" data-bs-title="${eventTime}">${eventTime}</div>
+
+            </div>
+        
+        </div>
+    </div>`;
+
+    }
+
+    createAccordionForTimeframe(timeframe, tasks, existingAccordion) {
+        const isToday = timeframe === 'Today' ? 'style="display: none;"' : '';
+        const accHTML = `
+            <div class="accordion accordion-flush"  id="section-${timeframe.replace(/\s+/g, '')}">
+                <div class="accordion-item">
+                    <h2 class="accordion-header" id="heading-${timeframe}" ${isToday}>
+                        <button class="accordion-button" type="button"  
+                            data-bs-target="#collapse-${timeframe.replace(/\s+/g, '')}" aria-expanded="false" 
+                            aria-controls="collapse-${timeframe}" >
+                            ${timeframe}
+                        </button>
+                    </h2>
+                    <div id="collapse-${timeframe.replace(/\s+/g, '')}" class="accordion-collapse collapse show" 
+                        aria-labelledby="heading-${timeframe}" data-bs-parent="#section-${timeframe.replace(/\s+/g, '')}">
+                        <div class="accordion-body">
+                            ${tasks.map((task) => this.generateTaskHTML(task)).join("")}
+                        </div>
+                    </div>
+                </div>
+            </div>`;
+        document.getElementById("plistContent").insertAdjacentHTML("beforeend", accHTML);
+
+
+        const currentSection = document.getElementById(`section-${timeframe.replace(/\s+/g, '')}`);
+        const previousSection = currentSection ?.previousElementSibling;
+        const previousSectioncollapseButton = previousSection ?.querySelector('.accordion-button');
+
+
+
+        if (previousSection && previousSectioncollapseButton != null) {
+            if (previousSectioncollapseButton) {
+                previousSectioncollapseButton.classList.add('show-collapse-button')
+                previousSectioncollapseButton.setAttribute('data-bs-toggle', 'collapse')
+            } else {
+
+                previousSectioncollapseButton.classList.remove('show-collapse-button');
+                previousSectioncollapseButton.removeAttribute('data-bs-toggle', 'collapse')
+            }
+
+        }
+
+    }
+
+    showNoMoreRecords() {
+        const container = document.getElementById("plistContent");
+        const existingMessage = container.querySelector(".no-more-records");
+        if (!existingMessage) {
+            const messageDiv = document.createElement("div");
+            messageDiv.textContent = "No more records to display.";
+            messageDiv.className = "no-more-records";
+            messageDiv.style.color = "red";
+            messageDiv.style.margin = "10px";
+            messageDiv.style.padding = "10px";
+            messageDiv.style.textAlign = "center";
+            container.appendChild(messageDiv);
+        }
+
+        var currentSection = document.getElementById(`section-Previousrecords`);
+        currentSection ?.querySelector('.accordion-button').classList.add('show-collapse-button')
+        currentSection ?.querySelector('.accordion-button').setAttribute('data-bs-toggle', 'collapse')
+    }
 
     processListData(plst, col) {
         try {
-            let returnData = ``;
-            switch (col.caption) {
-                //case "Task Name":
-                //    returnData = `${axProcessObj.getProStatusDetails(col, plst)}
-                //    <a href="javascript:void(0);" class="text-dark cursor-pointer text-hover-primary fs-6 Procurement-list" onclick="axProcessObj.openTask(this, '${plst.taskname}','${plst.tasktype}','${plst.transid}','${plst.keyfield}','${plst.keyvalue}','${plst.recordid}','${plst.taskid}', '${plst.indexno}', 'LeftPanel');" data-caption="${plst.taskname}" data-keyvalue="${plst.keyvalue}" data-keyfield="${plst.keyfield}" data-processname="${plst.processname}" data-taskid="${plst.taskid}">${plst.displaytitle}</a>`;
-                //    break;
-                case "Task Name":
-                    returnData = `<div class="ProcessFlow_New-List-Items">
-                                                            <div class="d-flex align-items-center Ticket-Num ">
-                                                                <div class="symbol symbol-30px me-5">
-                                                                    <span class="symbol-label">
-                                                                        <span class="material-icons material-icons-style text-warning">add_task</span>
-                                                                    </span>
-                                                                </div>
-                                                                <div class=" d-flex flex-column">
-                                                                    <a href="javascript:void(0)" class="ProcessFlow_New-List-Title Procurement-list" onclick="axProcessObj.openTask(this, '${plst.taskname}','${plst.tasktype}','${plst.transid}','${plst.keyfield}','${plst.keyvalue}','${plst.recordid}','${plst.taskid}', '${plst.indexno}','${plst.hlink_transid}','${plst.hlink_params}','${plst.processname}','${plst.msgtype}', 'LeftPanel');" data-caption="${plst.taskname}" data-keyvalue="${plst.keyvalue}" data-keyfield="${plst.keyfield}" data-processname="${plst.processname}" data-taskid="${plst.taskid}">${plst.displaytitle}</a>
-                                                                </div>
-                                                            </div>
-                                                            <div class=" ms-14 Ticket-Description">${plst.displaycontent}</div>
-                                                            <div class="Ticket-Details ms-14 ">
-                                                                <div class="Ticket-Value">
-                                                                    <span class="Assigned-By"><span class="material-icons material-icons-style material-icons-2">person</span>${plst.fromuser}</span>
-                                                                </div>
-                                                                <div class="Ticket-Value">
-                                                                    <span class="Assigned-Date">
-                                                                        <span class="material-icons material-icons-style material-icons-2">today</span>
-                                                                        ${plst.eventdatetime.split(' ')[0]}
-                                                                    </span>
-                                                                    <span class="Assigned-Date">
-                                                                        <span class="material-icons material-icons-style material-icons-2">schedule</span>
-                                                                        ${plst.eventdatetime.split(' ')[1]}
-                                                                    </span>
-                                                                </div>
-                                                            </div>
-                                                        </div>`;
-                    break;
-                default: returnData = ``;
-                    break;
-            }
+            let returnData = '';
+            // Group items by date
+            const eventDate = plst.eventdatetime.split(' ')[0]; // '12/11/2024'
+            const groupedData = plst.reduce((acc, item) => {
+                const timeframe = axProcessObj.getTimeframe(eventDate);
+                if (!acc[timeframe]) {
+                    acc[timeframe] = [];
+                }
+                acc[timeframe].push(item);
+                return acc;
+            }, {});
+
+            Object.keys(groupedData).forEach((timeframe, index) => {
+                const sectionId = `section-${index}`;
+                const collapseId = `collapse-${index}`;
+
+                returnData += `
+                      <div class="accordion accordion-flush" id="${sectionId}">
+                        <div class="accordion-item">
+                          <h2 class="accordion-header" id="heading-${index}">
+                            <button class="accordion-button" type="button" data-bs-target="#${collapseId}" aria-expanded="false" aria-controls="${collapseId}">
+                              ${timeframe} 
+                            </button>
+                          </h2>
+                          <div id="${collapseId}" class="accordion-collapse collapse" aria-labelledby="heading-${index}" data-bs-parent="#${sectionId}">
+                            <div class="accordion-body">
+                              ${groupedData[timeframe].map(item => `<p>Content for ${item.date}</p>`).join('')}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    `;
+            });
+
             return returnData;
         } catch (error) {
-            this.catchError(error.message);
+            console.error('Error processing task data:', error.message);
+            return '<p>Error processing task data.</p>';
         }
-    };
+    }
 
     getProStatusDetails(col, plst) {
         let _this = {
@@ -1736,12 +3018,10 @@ class AxProcessFlow {
         ShowDimmer(true);
         let tryFilter = {
             user: document.getElementById("pdFilUser").value || "",
-            from: document.getElementById("pdFilFrom").value?.replaceAll("-", "/") || "",
-            to: document.getElementById("pdFilTo").value?.replaceAll("-", "/") || "",
+            from: document.getElementById("pdFilFrom").value ?.replaceAll("-", "/") || "",
+            to: document.getElementById("pdFilTo").value ?.replaceAll("-", "/") || "",
         };
 
-        //tryFilter.tbl = document.getElementById("completedList");
-        //tryFilter.tbdy = tryFilter.tbl.getElementsByTagName("tbody")[0];
         tryFilter.allTrs = document.querySelectorAll('#pendingList tr, #completedList tr');
 
         if (type == "reset") {
@@ -1759,7 +3039,9 @@ class AxProcessFlow {
         } else {
             let _leftType = $("#PROFLOW_Left li a.active").attr("id");
 
-            let _this = this, data = {}, url = "";
+            let _this = this,
+                data = {},
+                url = "";
             url = "../aspx/AxPEG.aspx/AxGetFilteredActiveTasks";
             data = { filterType: _leftType, pageNo: _pageno, pageSize: _pagesize, fromuser: tryFilter.user, processname: '', fromdate: tryFilter.from, todate: tryFilter.to, searchtext: '' };
 
@@ -1767,7 +3049,7 @@ class AxProcessFlow {
                 if (result.success) {
                     let json = JSON.parse(result.response);
                     let dataResult = _this.dataConvert(json, "ARM");
-                    _pendingTaskCount = dataResult.result.count;
+                    TaskCount = dataResult.result.count;
                     if (typeof _leftType != 'undefined' && _leftType == 'completed') {
                         if (typeof dataResult.result.completedtasks != "undefined" && dataResult.result.completedtasks.length > 0) {
                             completedtasksJson = dataResult.result.completedtasks;
@@ -1775,8 +3057,7 @@ class AxProcessFlow {
                         } else {
                             showAlertDialog("warning", "No task available.");
                         }
-                    }
-                    else {
+                    } else {
                         if (typeof dataResult.result.pendingtasks != "undefined" && dataResult.result.pendingtasks.length > 0) {
                             pendingtasksJson = dataResult.result.pendingtasks;
                             _this.showProcessList('pending');
@@ -1824,7 +3105,7 @@ class AxProcessFlow {
                 if (result.success) {
                     let json = JSON.parse(result.response);
                     let dataResult = _this.dataConvert(json, "ARM");
-                    _pendingTaskCount = dataResult.result.count;
+                    TaskCount = dataResult.result.count;
                     if (typeof _leftType != 'undefined' && _leftType == 'completed') {
                         if (typeof dataResult.result.completedtasks != "undefined" && dataResult.result.completedtasks.length > 0) {
                             completedtasksJson = dataResult.result.completedtasks;
@@ -2566,85 +3847,5 @@ $(document).ready(function () {
     ShowDimmer(true);
     axProcessObj = new AxProcessFlow();
     axProcessObj.init();
-    //var proflowRightLastClasslist = document.querySelector("#PROFLOW_Right_Last").classList;
-    var rightclassList = document.querySelector("#PROFLOW_Right").classList;
-    //if (proflowRightLastClasslist.contains('d-none')) {
-    //    rightclassList.add('col-md-9', 'col-xl-9');
-    //    rightclassList.remove('col-md-7', 'col-xl-7');
 
-    //} else {
-    //    rightclassList.remove('col-md-9', 'col-xl-9');
-    //    rightclassList.add('col-md-7', 'col-xl-7');
-    //}
-
-    var filter = document.querySelector("#filter");
-
-    var reset = document.querySelector("#reset");
-
-    var filterClose = document.querySelector("#filterClose");
-
-
-    var filterCloseAdvanced = document.querySelector("#filterCloseAdvanced");
-
-    var filterResetAdvanced = document.querySelector("#filterResetAdvanced");
-
-    var filterSearchAdvanced = document.querySelector("#filterSearchAdvanced");
-
-
-    filter.addEventListener("click", function () {
-        var container = document.querySelector("#filterProcess");
-        if (container.classList.contains("show")) {
-            container.classList.remove("show");
-        } else {
-            container.classList.add("show");
-        }
-    });
-
-    reset.addEventListener("click", function () {
-        var container = document.querySelector("#filterProcess");
-        if (container.classList.contains("show")) {
-            container.classList.remove("show");
-        } else {
-            container.classList.add("show");
-        }
-    });
-
-    filterClose.addEventListener("click", function () {
-        var container = document.querySelector("#filterProcess");
-        if (container.classList.contains("show")) {
-            container.classList.remove("show");
-        } else {
-            container.classList.add("show");
-        }
-    });
-
-
-    filterSearchAdvanced.addEventListener("click", function () {
-        var container = document.querySelector("#filterProcessAdvanced");
-        if (container.classList.contains("show")) {
-            container.classList.remove("show");
-        } else {
-            container.classList.add("show");
-        }
-    });
-
-    filterResetAdvanced.addEventListener("click", function () {
-        var container = document.querySelector("#filterProcessAdvanced");
-        if (container.classList.contains("show")) {
-            container.classList.remove("show");
-        } else {
-            container.classList.add("show");
-        }
-    });
-
-    filterCloseAdvanced.addEventListener("click", function () {
-        var container = document.querySelector("#filterProcessAdvanced");
-        if (container.classList.contains("show")) {
-            container.classList.remove("show");
-        } else {
-            container.classList.add("show");
-        }
-    });
 });
-
-

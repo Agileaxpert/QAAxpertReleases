@@ -33,8 +33,8 @@
     <script src="../Js/alerts.min.js?v=33" type="text/javascript"></script>
     <%--custom alerts end--%>
     <script src="../Js/gen.min.js?v=14" type="text/javascript"></script>
- 	<script src="../Js/common.min.js?v=149" type="text/javascript"></script>   
- 	<script src="../Js/tstruct.min.js?v=632" type="text/javascript"></script>
+ 	<script src="../Js/common.min.js?v=167" type="text/javascript"></script>   
+ 	<script src="../Js/tstruct.min.js?v=707" type="text/javascript"></script>
 
     <script src="../Js/gridFileUpload.min.js?v=53" type="text/javascript"></script>
    

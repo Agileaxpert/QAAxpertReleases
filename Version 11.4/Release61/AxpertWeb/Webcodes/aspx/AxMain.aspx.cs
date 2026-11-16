@@ -80,21 +80,33 @@ public partial class AxMain : System.Web.UI.Page
     bool errorEnable = false;
     string notifyTimeout = string.Empty;
     string disableSplit = "false";
+    public string axOldModelFlag = "false";
+    public string axListViewAsDefault = string.Empty;
     public string encPublicKey = string.Empty;
     ArrayList globalVariables = new ArrayList();
     ArrayList userVariables = new ArrayList();
     LogFile.Log logobj = new LogFile.Log();
     Util.Util util = new Util.Util();
+    private string authKey = string.Empty;
     protected void Page_Load(object sender, EventArgs e)
     {
         if (!IsPostBack)
-        {
-            string authKey = string.Empty;
+        {           
             string encAuth = string.Empty;
             string pName = string.Empty;
             string pParams = string.Empty;
             if (Request.QueryString["authKey"] != null)
                 authKey = Request.QueryString["authKey"].ToString();
+
+            if (Request.QueryString["signout"] != null && Request.QueryString["signout"].ToString() == "true")
+            {
+                if (Session["project"] != null)
+                {
+                    SignOut();
+                }
+                return;
+            }
+
             if (Request.QueryString["encAuth"] != null)
                 encAuth = util.encrtptDecryptAES(Request.QueryString["encAuth"].ToString(), false);
             if (Request.QueryString["pname"] != null)
@@ -103,6 +115,11 @@ public partial class AxMain : System.Web.UI.Page
             {
                 pParams = Request.QueryString["params"].ToString();
                 pParams = "&" + pParams.Replace("~", "=").Replace("^", "&");
+            }
+
+            if (Request.QueryString["mailapproval"] != null && Request.QueryString["mailapproval"].ToString().ToLower() == "true")
+            {
+                Session.Remove("project");
             }
 
             if (encAuth != string.Empty)
@@ -131,6 +148,7 @@ public partial class AxMain : System.Web.UI.Page
 
                 GetConfigs();
                 DoUtlEncode();
+                LoadARMSessionVariables();
 
                 if (pName != null && pName != string.Empty)
                 {
@@ -141,17 +159,21 @@ public partial class AxMain : System.Web.UI.Page
             {
                 if (authKey != string.Empty)
                 {
+                    proj = authKey.Split('-')[2];
                     FDR fObj = (FDR)HttpContext.Current.Session["FDR"];
                     if (fObj == null)
                     {
-                        fObj = new FDR();
+                        fObj = new FDR(proj);
                     }
-                    //string dd = MD5Hash("12345abc");
-                    //string authKeyInofnew = "{privatekey: \"" + dd + "\",secret: \"abc\",hguid:\"testtttttttttt\",hdeviceid:\"gfhgfhgfhfhg\",project: \"trainee\",username: \"admin\",roles: \"default\",lang: \"english\"}"; //fObj.ReadKeyNoSchema(authKey);
-                    //FDW fdwObj = FDW.Instance;
-                    //fdwObj.WriteKeyNoSchema(authKey, authKeyInofnew, 10);
-                    string authKeyInof = fObj.ReadKeyNoSchema(authKey);
-                    if (authKeyInof != "")
+
+                    string authKeyInof = fObj.ReadKeyStringValueNoSchema(authKey);
+                    if (Request.QueryString["mailapproval"] != null && Request.QueryString["mailapproval"].ToString().ToLower() == "true")
+                    {
+                        FDW fdwObj = new FDW(proj);
+                        fdwObj.Deletekey(authKey);
+                    }
+
+                    if (!string.IsNullOrEmpty(authKeyInof))
                     {
                         dynamic dynJson = JsonConvert.DeserializeObject(authKeyInof);
                         string privateKey = dynJson.privatekey.Value;
@@ -188,25 +210,35 @@ public partial class AxMain : System.Web.UI.Page
                 else
                 {
                     logobj.CreateLog("AxMain authentication error. authKey key should not be empty or null.", Session.SessionID, "axmainauth", "", "true");
-                    Page.ClientScript.RegisterStartupScript(GetType(), "opensessionerror", "<script>authError('Authentication failed please try again.')</script>");
+                    //Page.ClientScript.RegisterStartupScript(GetType(), "opensessionerror", "<script>authError('Authentication failed please try again.')</script>");
+                    string url = util.SESSEXPIRYPATH;
+                    url = url + "?axmain=true";
+                    Response.Write("<script language='javascript'>");
+                    Response.Write("parent.parent.location.href='" + url + "';");
+                    Response.Write("</script>");
                     return;
                 }
                 OpenNewSession(AxRoles, proj, userName, language);
-                GetConfigs();
-                DoUtlEncode();
-                SetLandingPage(pName, pParams);
             }
             else
             {
                 GetSessionVars();
-                LoadAppConfiguration(proj);
-                GetConfigs();
-                DoUtlEncode();
-                SetLandingPage(pName, pParams);
+                LoadAppConfiguration(proj);            
             }
+
+            GetConfigs();
+            DoUtlEncode();
+            SetLandingPage(pName, pParams);
+            LoadARMSessionVariables();
             encPublicKey = util.RSAPublicKey();
+
             InitSessExpiryAlert();
             Page.ClientScript.RegisterStartupScript(GetType(), "axmain vars", "<script>var navigatePage='" + Navigationpage + "';" + "var isCloudApp = '" + isCloudApp.ToString() + "'; " + "var userResp = '" + Session["AxResponsibilities"] + "';" + "var sesslanguage='" + language + "';" + "var mainRestDllPath='" + RestDllPath + "';" + "var mainArmRestDllPath='" + ArmRestDllPath + "';" + "var mainProject='" + proj + "';" + "var mainSessionId='" + sid + "';" + "var mainUserName='" + Session["user"].ToString() + "';" + "var AxHelpIview='';" + " var axUtlGlobalVars='" + axUtlGlobalVars + "'; var axUtlUserVars='" + axUtlUserVars + "'; var axUtlApps='" + axUtlApps + "';var alertsTimeout='" + alertsTimeout.ToString() + "';var errorTimeout='" + errorTimeout.ToString() + "';var errorEnable='" + errorEnable.ToString().ToLower() + "';var notifyTimeout ='" + notifyTimeout + "';var appDiableSplit ='" + disableSplit + "'" + "</script>");
+
+            if (Request.QueryString["mailapproval"] != null && Request.QueryString["mailapproval"].ToString().ToLower() == "true")
+            {
+                Session["mailapproval"] = "true";
+            }
         }
     }
 
@@ -292,6 +324,11 @@ public partial class AxMain : System.Web.UI.Page
                 langType = "en";
                 direction = "ltr";
             }
+
+            string licType = "limited";
+            Session["lictype"] = "limited";
+            string newUser = user + "♦" + sid + "♣" + licType;
+            util.SetDupUserInfo(proj, user, newUser);
         }
     }
     private string GetServerLicDetails()
@@ -366,7 +403,7 @@ public partial class AxMain : System.Web.UI.Page
                     FDR fObj = (FDR)HttpContext.Current.Session["FDR"];
                     if (fObj == null)
                     {
-                        fObj = new FDR();
+                        fObj = new FDR(proj);
                     }
                     hybridInfo = fObj.StringFromRedis(util.GetRedisServerkey(Constants.AXHYBRIDINFO, hybridGUID), "♠");
 
@@ -421,7 +458,7 @@ public partial class AxMain : System.Web.UI.Page
         {
             if (Session["FDR"] == null)
             {
-                FDR fObj = new FDR();
+                FDR fObj = new FDR(proj);
                 fObj.schemaNameKey = Session["dbuser"].ToString();
                 Session["FDR"] = fObj;
             }
@@ -528,10 +565,21 @@ public partial class AxMain : System.Web.UI.Page
                     }
                 }
                 catch (Exception ex) { }
-
-                Session["axGlobalVars"] = "<globalvars>" + childNode.InnerXml + axGridAttachPath + axAttachmentpath + "</globalvars>";
+                bool axp_timezone = false;
+                //string glbVarsFromIni = util.GetGblVarsFromIni();
+                //Session["axGlobalVars"] = "<globalvars>" + childNode.InnerXml + axGridAttachPath + axAttachmentpath + glbVarsFromIni + "</globalvars>";
+                string glbVarsFromIni = util.GetGblVarsFromIni("<globalvars>" + childNode.InnerXml + "</globalvars>");
+                Session["axGlobalVars"] = "<globalvars>" + glbVarsFromIni + axGridAttachPath + axAttachmentpath + "</globalvars>";
                 foreach (XmlNode xmlNode in childNode.ChildNodes)
                 {
+                    if (xmlNode.Name.ToLower() == "axp_timezone" && xmlNode.InnerText != "")
+                    {
+                        axp_timezone = true;
+                        if (childNode.SelectSingleNode("timediff") != null)
+                        {
+                            childNode.SelectSingleNode("timediff").InnerText = "";
+                        }
+                    }
                     if (xmlNode.Name.ToLower() == "axp_lockonread" && (xmlNode.InnerText.ToLower() == "t" || xmlNode.InnerText.ToLower() == "true"))
                     {
                         Session["axp_isLockOnRead"] = "true";
@@ -563,6 +611,11 @@ public partial class AxMain : System.Web.UI.Page
                         Session["AxpImageServerGbl"] = xmlNode.InnerText;
                     if (xmlNode.Name.ToLower() == "axpattachmentpath")
                         Session["AxpAttachmentPathGbl"] = xmlNode.InnerText;
+                }
+                if (axp_timezone)
+                {
+                    string _glbVarsFromIni = util.GetGblVarsFromIni("<globalvars>" + childNode.InnerXml + "</globalvars>");
+                    Session["axGlobalVars"] = "<globalvars>" + _glbVarsFromIni + axGridAttachPath + axAttachmentpath + "</globalvars>";
                 }
             }
             else if (childNode.Name == "uservars")
@@ -712,16 +765,23 @@ public partial class AxMain : System.Web.UI.Page
         string value = string.Empty;
         int paramCnt = 0;
 
-        for (int i = 0; i < globalVariables.Count; i++)
+        //for (int i = 0; i < globalVariables.Count; i++)
+        //{
+        int i = 0;
+        foreach (string item in globalVariables)
         {
-            string[] strVar = globalVariables[i].ToString().Split('=');
+            string[] strVar = item.ToString().Split('=');
             value = strVar[1];
             if (strVar[0].ToString() == "project" && value.Contains(','))
                 Session[strVar[0].ToString()] = value.Split(',')[1];
             else
                 Session[strVar[0].ToString()] = value;
             value = util.CheckSpecialChars(value);
-            paramlist.Append("Parameters[" + i + "] = " + "\"" + strVar[0] + "~" + value + "\";  ");
+            if (!Constants.globalVarPathVaribles.Contains(strVar[0].ToLower()))
+            {
+                paramlist.Append("Parameters[" + i + "] = " + "\"" + strVar[0] + "~" + value + "\";  ");
+                i++;
+            }
         }
         for (int j = 0; j < userVariables.Count; j++)
         {
@@ -746,7 +806,7 @@ public partial class AxMain : System.Web.UI.Page
             if (dtCulture.ToLower() == "en" || dtCulture.ToLower() == "en-us")
                 dtCulture = "en-us";
         }
-        paramCnt = globalVariables.Count + userVariables.Count;
+        paramCnt = i + userVariables.Count;
         paramlist.Append("Parameters[" + paramCnt + "] = " + "\"username~" + user + "\";  ");
         paramlist.Append("Parameters[" + (paramCnt + 1) + "] = " + "\"Culture~" + dtCulture + "\";  ");
 
@@ -866,9 +926,16 @@ public partial class AxMain : System.Web.UI.Page
         if (navigationbutton != string.Empty)
             navigationshow = navigationbutton;
 
-        listviewAsDefault.Value = util.GetAdvConfigs("Listview as Default", "tstruct");
+        axListViewAsDefault = util.GetAdvConfigs("Listview as Default", "tstruct");
+        listviewAsDefault.Value = axListViewAsDefault;
 
         listviewLoadFromSearch.Value = util.GetAdvConfigs("Listview as default from search", "tstruct");
+
+        axOldModelFlag = util.GetAdvConfigs("AxOldDataList");
+        if (axOldModelFlag != string.Empty)
+            Session["IsAxOldDataList"] = axOldModelFlag;
+        else if (axOldModelFlag == string.Empty)
+            axOldModelFlag = "false";
 
         notifyTimeout = util.GetAdvConfigs("notification time interval");
 
@@ -936,7 +1003,40 @@ public partial class AxMain : System.Web.UI.Page
             pName = pName.Substring(1);
             if (pType.ToLower() == "t")
             {
-                Navigationpage = "../aspx/tstruct.aspx?transid=" + pName + "&openerIV=" + pName + "&isIV=false";
+                if (CheckListViewAsDefault(pName) == "true")
+                {
+                    if (axOldModelFlag == "true")
+                    {
+                        Navigationpage = "../aspx/iview.aspx?ivname=" + pName + "&tstcaption=" + pName;
+                    }
+                    else
+                    {
+                        Navigationpage = "../aspx/entity.aspx?tstid=" + pName;
+                    }
+                }
+                else
+                {
+                    Navigationpage = "../aspx/tstruct.aspx?transid=" + pName + pParams + "&openerIV=" + pName + "&isIV=false";
+                }
+            }
+            else if (pType.ToLower() == "l")
+            {
+                if (CheckListViewAsDefault(pName) == "true")
+                {
+
+                    if (axOldModelFlag == "true")
+                    {
+                        Navigationpage = "../aspx/iview.aspx?ivname=" + pName + "&tstcaption=" + pName;
+                    }
+                    else
+                    {
+                        Navigationpage = "../aspx/entity.aspx?tstid=" + pName;
+                    }
+                }
+                else
+                {
+                    Navigationpage = "../aspx/tstruct.aspx?transid=" + pName + pParams + "&openerIV=" + pName + "&isIV=false";
+                }
             }
             else if (pType.ToLower() == "i")
             {
@@ -1006,6 +1106,25 @@ public partial class AxMain : System.Web.UI.Page
         }
     }
 
+    private void LoadARMSessionVariables()
+    {
+        if(HttpContext.Current.Session["ARM_SessionId"] == null || HttpContext.Current.Session["ARM_SessionId"].ToString() == "" || HttpContext.Current.Session["ARM_Token"] == null || HttpContext.Current.Session["ARM_Token"].ToString() == "")
+        {
+            string armSessionId = authKey.Replace("AXPERT-", "");
+            FDR fObj = (FDR)HttpContext.Current.Session["FDR"];
+            if (fObj == null)
+            {
+                fObj = new FDR(proj);
+            }
+            var armToken = fObj.HashGet(armSessionId, "ARMTOKEN");
+            if (armToken != null)
+            {
+                HttpContext.Current.Session["ARM_SessionId"] = armSessionId;
+                HttpContext.Current.Session["ARM_Token"] = armToken;
+            }
+        }        
+    }
+
     private void InitSessExpiryAlert()
     {
         //Session Alert start
@@ -1017,6 +1136,54 @@ public partial class AxMain : System.Web.UI.Page
             ClientScript.RegisterStartupScript(this.GetType(), "SessionAlert", "SessionExpireAlert(" + timeout + ");", true);
         }
         //Session Alert end
+    }
+
+    private string CheckListViewAsDefault(string structName)
+    {
+        try
+        {
+            var jsonArray = JArray.Parse(axListViewAsDefault);
+            var match = jsonArray.FirstOrDefault(x =>
+            {
+                var stypeProp = x.Children<JProperty>()
+                                 .FirstOrDefault(p => p.Name.Equals("stype", StringComparison.OrdinalIgnoreCase));
+                var structProp = x.Children<JProperty>()
+                                  .FirstOrDefault(p => p.Name.Equals("structname", StringComparison.OrdinalIgnoreCase));
+                var stypeVal = stypeProp != null && stypeProp.Value != null ? stypeProp.Value.ToString() : null;
+                var structVal = structProp != null && structProp.Value != null ? structProp.Value.ToString() : null;
+                return string.Equals(stypeVal, "Tstruct", StringComparison.OrdinalIgnoreCase)
+                    && string.Equals(structVal, structName, StringComparison.OrdinalIgnoreCase);
+            });
+
+            if (match != null)
+            {
+                var prop = match.Children<JProperty>()
+                .FirstOrDefault(p => p.Name.Equals("propsval", StringComparison.OrdinalIgnoreCase));
+                return (prop != null && prop.Value != null) ? prop.Value.ToString() : null;
+            }
+            var allForms = jsonArray.FirstOrDefault(x =>
+            {
+                var stypeProp = x.Children<JProperty>()
+                                 .FirstOrDefault(p => p.Name.Equals("stype", StringComparison.OrdinalIgnoreCase));
+                var structProp = x.Children<JProperty>()
+                                  .FirstOrDefault(p => p.Name.Equals("structname", StringComparison.OrdinalIgnoreCase));
+                var stypeVal = (stypeProp != null && stypeProp.Value != null) ? stypeProp.Value.ToString() : null;
+                var structVal = (structProp != null && structProp.Value != null) ? structProp.Value.ToString() : null;
+                return string.Equals(stypeVal, "Tstruct", StringComparison.OrdinalIgnoreCase)
+                    && string.Equals(structVal, "ALL Forms", StringComparison.OrdinalIgnoreCase);
+            });
+
+            if (allForms != null)
+            {
+                var prop = allForms.Children<JProperty>()
+                .FirstOrDefault(p => p.Name.Equals("propsval", StringComparison.OrdinalIgnoreCase));
+                return (prop != null && prop.Value != null) ? prop.Value.ToString() : null;
+            }
+        }
+        catch (Exception ex)
+        {
+        }
+        return "true";
     }
 
     #region WebMethod
@@ -1031,7 +1198,7 @@ public partial class AxMain : System.Web.UI.Page
         if (HttpContext.Current.Session["username"] != null)
             userName = HttpContext.Current.Session["username"].ToString();
         string NotifyKey = schemaName + "-" + userName + Constants.NOTIFICATION_PHASE + key;
-        FDW fdwObj = FDW.Instance;
+        FDW fdwObj = new FDW();
         fdwObj.DeleteAllKeys(NotifyKey, schemaName);
 
     }
@@ -1041,7 +1208,7 @@ public partial class AxMain : System.Web.UI.Page
         JArray finalJArray = new JArray();
         try
         {
-            FDW fdwObj = FDW.Instance;
+            FDW fdwObj = new FDW();
             string showMessage = "";
             string keynotify = "";
             StringBuilder showMessagelist = new StringBuilder();
@@ -1087,28 +1254,11 @@ public partial class AxMain : System.Web.UI.Page
     }
 
     [WebMethod]
-    public static void ExecutionTraceInterval(string jsonData)
+    public static void ExecutionTraceInterval(string ExecutionLongText, bool isSingout)
     {
-        Constants.ExecutionTraceRequestAxMain request = null;
         try
         {
-            JsonSerializerSettings settings = new JsonSerializerSettings();
-            settings.MissingMemberHandling = MissingMemberHandling.Error;
-            request = JsonConvert.DeserializeObject<Constants.ExecutionTraceRequestAxMain>(jsonData, settings);
-        }
-        catch
-        {
-            throw new HttpException(400, "Invalid request.");
-        }
-
-        if (request == null)
-            throw new HttpException(400, "Invalid request.");
-
-        string ExecutionLongText = request.ExecutionLongText;
-        bool isSingout = request.isSingout;
-        try
-        {
-            FDW fdwObj = FDW.Instance;
+            FDW fdwObj = new FDW();
             FDR fdrObj = (FDR)HttpContext.Current.Session["FDR"];
             string userName = string.Empty;
             if (HttpContext.Current.Session["username"] != null)
@@ -1145,8 +1295,86 @@ public partial class AxMain : System.Web.UI.Page
         }
     }
 
-
     #endregion
 
+    private void SignOut()
+    {
+        try
+        {
+            string sXml = string.Empty;
+            string user = string.Empty;
+            string sid = string.Empty;
+            string proj = string.Empty;
+            string Svrlic_redis = string.Empty;
+
+            user = Session["user"].ToString();
+            sid = Session["nsessionid"].ToString();
+
+            if (sid != null)
+            {
+                if (Session["Svrlic_redis"] != null)
+                    Svrlic_redis = Session["Svrlic_redis"].ToString();
+                else
+                    Svrlic_redis = string.Empty;
+
+                proj = Session["project"].ToString();
+                //sXml = sXml + "<root axpapp=" + "\"" + proj + "\"" + " " + Svrlic_redis + " sessionid=" + "\"" + sid + "\"" + " trace=" + "\"" + Session["trace"] + "\"" + " >";
+                //if (Session["axApps"] != null)
+                //    sXml += Session["axApps"].ToString() + Application["axProps"].ToString();
+                //else if (proj != "" && Application[proj + "-axApps"] != null)
+                //    sXml += Application[proj + "-axApps"].ToString() + Application["axProps"].ToString();
+                //sXml += "</root>";
+                util.DeleteKeepAliveWebKey();
+                util.SaveExecutionText();
+                util.DeleteUnwantedKeys();
+                util.TempAttaServerFiles();
+                //util.ClearUserIviewData();
+                util.RemoveLoggedUserDetails(proj, sid, user);
+                //ASBExt.WebServiceExt objWebServiceExt = new ASBExt.WebServiceExt();
+                //string res = objWebServiceExt.CallLogoutWS("sess", sXml);
+
+                string errorLog = logobj.CreateLog("Calling AxMain Signout ws", sid, "Signout", "new");
+                string _axApps = string.Empty;
+                string _axProps = string.Empty;
+                if (Session["axApps"] != null)
+                {
+                    _axApps = Session["axApps"].ToString();
+                    _axProps = Application["axProps"].ToString();
+                }
+                else if (proj != "" && Application[proj + "-axApps"] != null)
+                {
+                    _axApps = Application[proj + "-axApps"].ToString();
+                    _axProps = Application["axProps"].ToString();
+                }
+                if (errorLog != "")
+                    errorLog = errorLog.Replace("\\", "\\\\");
+                _axApps = _axApps.Replace(@"\", "\\\\");
+                string _UserName = string.Empty;
+                if (Session["username"] != null)
+                    _UserName = Session["username"].ToString();
+                string signOutJson = "{\"logout\":{\"axpapp\":\"" + proj + "\",\"username\":\"" + _UserName + "\",\"sessionid\":\"" + sid + "\"," + Svrlic_redis + " \"trace\":\"" + errorLog + "\"},\"axapps\":\"" + _axApps + "\",\"axprops\":\"" + _axProps + "\"}";
+                string res = ALCClient.CallALCClientLogout(_UserName, signOutJson);
+                string scriptsPath = HttpContext.Current.Application["ScriptsPath"].ToString();
+                scriptsPath = scriptsPath + "Axpert\\" + sid;
+
+                if (Directory.Exists(scriptsPath) && sid != null)
+                {
+                    try
+                    {
+                        Directory.Delete(scriptsPath, true);
+                    }
+                    catch
+                    {
+                        // Do Nothing
+                    }
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            util.KillSession();
+        }
+
+    }
 
 }

@@ -74,12 +74,12 @@ Partial Class sessnew
             If Session("project") = "" Then
                 'do nothing
             Else
-                Dim sXml As String
+                'Dim sXml As String
                 Dim user As String
                 Dim sid As String
                 Dim proj As String
                 Dim Svrlic_redis As String
-                sXml = ""
+                'sXml = ""
                 user = Session("user")
                 sid = Session("nsessionid")
                 If sid IsNot Nothing Then
@@ -89,18 +89,35 @@ Partial Class sessnew
                         Svrlic_redis = ""
                     End If
                     proj = Session("project")
-                    sXml = sXml & "<root axpapp=" & Chr(34) & proj & Chr(34) & " " & Svrlic_redis & " sessionid= " & Chr(34) & sid & Chr(34) & " trace=" & Chr(34) & Session("trace") & Chr(34) & " >"
-                    sXml &= Session("axApps").ToString() & Application("axProps").ToString() & "</root>"
+                    'sXml = sXml & "<root axpapp=" & Chr(34) & proj & Chr(34) & " " & Svrlic_redis & " sessionid= " & Chr(34) & sid & Chr(34) & " trace=" & Chr(34) & Session("trace") & Chr(34) & " >"
+                    'sXml &= Session("axApps").ToString() & Application("axProps").ToString() & "</root>"
                     util.DeleteKeepAliveWebKey()
                     util.SaveExecutionText()
                     util.DeleteUnwantedKeys()
                     util.TempAttaServerFiles()
-                    util.ClearUserIviewData()
+                    'util.ClearUserIviewData()
                     Dim res As String
-                    Dim objWebServiceExt As ASBExt.WebServiceExt = New ASBExt.WebServiceExt()
+                    'Dim objWebServiceExt As ASBExt.WebServiceExt = New ASBExt.WebServiceExt()
                     'Call service
-                    util.RemoveLoggedUserDetails(proj, sid)
-                    res = objWebServiceExt.CallLogoutWS("sess", sXml)
+                    util.RemoveLoggedUserDetails(proj, sid, user)
+                    'res = objWebServiceExt.CallLogoutWS("sess", sXml)
+                    Dim _axApps As String = String.Empty
+                    Dim _axProps As String = String.Empty
+                    If Session("axApps") IsNot Nothing Then
+                        _axApps = Session("axApps").ToString()
+                        _axProps = Application("axProps").ToString()
+                    ElseIf proj <> "" AndAlso Application(proj & "-axApps") IsNot Nothing Then
+                        _axApps = Application(proj & "-axApps").ToString()
+                        _axProps = Application("axProps").ToString()
+                    End If
+                    _axApps = _axApps.Replace("\", "\\")
+                    Dim _UserName As String = String.Empty
+                    If Session("username") IsNot Nothing Then
+                        _UserName = Session("username").ToString()
+                    End If
+                    Dim signOutJson As String = "{""logout"":{""axpapp"":""" & proj & """,""username"":""" & _UserName & """,""sessionid"":""" & sid & """," & Svrlic_redis & " ""trace"":""" & Session("trace") & """},""axapps"":""" & _axApps & """,""axprops"":""" & _axProps & """}"
+                    res = ALCClient.CallALCClientLogout(_UserName, signOutJson)
+
                     Dim scriptsPath As String = HttpContext.Current.Application("ScriptsPath").ToString()
                     scriptsPath = scriptsPath + "Axpert\\" + sid
                     If Directory.Exists(scriptsPath) And sid IsNot Nothing Then
@@ -157,12 +174,12 @@ Partial Class sessnew
 
     <System.Web.Services.WebMethod()>
     Public Shared Sub ClearSessExpiry(ByVal jsonData As String)
-        Dim userData As UserRequestNew = Nothing
+        Dim userData As UserRequestNewSess = Nothing
         Try
             Dim settings As New JsonSerializerSettings With {
                 .MissingMemberHandling = MissingMemberHandling.Error
             }
-            userData = JsonConvert.DeserializeObject(Of UserRequestNew)(jsonData, settings)
+            userData = JsonConvert.DeserializeObject(Of UserRequestNewSess)(jsonData, settings)
         Catch ex As Exception
             Throw New HttpException(400, "Invalid request.")
         End Try
@@ -180,7 +197,9 @@ Partial Class sessnew
             Dim Proj As String = parts(0)
             Dim Sid As String = parts(1)
             Dim _util As New Util.Util()
-            _util.RemoveLoggedUserDetails(Proj, Sid)
+            Dim user As String
+            user = HttpContext.Current.Session("user")
+            _util.RemoveLoggedUserDetails(Proj, Sid, user)
 
         Catch ex As Exception
             System.Diagnostics.Trace.TraceError("ClearSessExpiry failed: {0}", ex)
@@ -188,6 +207,6 @@ Partial Class sessnew
         End Try
     End Sub
 End Class
-Public Class UserRequestNew
+Public Class UserRequestNewSess
     Public Property duplicateUser As String
 End Class

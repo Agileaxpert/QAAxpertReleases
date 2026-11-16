@@ -30,10 +30,10 @@
     <title><%=appTitle%></title>
     <link rel="shortcut icon" href="../images/favicon.ico" />
     <script src="../Js/xmlToJson.js?v=2"></script>
-    <script src="../Js/helper.min.js?v=172"></script>
+    <script src="../Js/helper.min.js?v=181"></script>
     <script src="../assets/js/loadingoverlay.min.js?v=3" type="text/javascript"></script>
-    <script type="text/javascript" src="../Js/common.min.js?v=149"></script>
-    <script src="../Js/process.min.js?v=324"></script>
+    <script type="text/javascript" src="../Js/common.min.js?v=167"></script>
+    <script src="../Js/process.min.js?v=362"></script>
     <script type="text/javascript" src="../Js/lang/content-<%=langType%>.js?v=64"></script>
     <script type="text/javascript">
         history.go(1); // disable the browser's back button
@@ -82,7 +82,8 @@
         var navigationshow ='<%=navigationshow%>';
         var requestProcess_logtime ='<%=requestProcess_logtime%>';
         var serverprocesstime ='<%=serverprocesstime%>';
-        var axpProjectCaption ='<%=axpProjectCaption%>';
+        var axpProjectCaption = '<%=axpProjectCaption%>';
+        var axAttachmentSize = '<%=Session["AxAttachmentSize"] == null? "1" :(Session["AxAttachmentSize"].ToString()==""?"1":Session["AxAttachmentSize"].ToString())%>';
         var bundleCss = '<%=Styles.RenderFormat("{0},", direction == "ltr" ? "~/UI/axpertUI/ltrBundleCss" : "~/UI/axpertUI/rtlBundleCss").ToString().Replace("\r\n", "")%>'.split(",").filter(file => file).map(file => window.location.origin + file);
         var bundleJs = '<%=Scripts.RenderFormat("{0},", "~/UI/axpertUI/bundleJs").ToString().Replace("\r\n", "")%>'.split(",").filter(file => file).map(file => window.location.origin + file);
         var reportCss = '<%=Styles.RenderFormat("{0},", "~/Css/report").ToString().Replace("\r\n", "")%>'.split(",").filter(file => file).map(file => window.location.origin + file);
@@ -92,7 +93,7 @@
     </script>
 
     <script type="text/javascript" src="../Js/util.min.js?v=2"></script>
-    <script type="text/javascript" src="../js/axmain.min.js?v=27"></script>
+    <script type="text/javascript" src="../js/axmain.min.js?v=34"></script>
 </head>
 <body id="mainNewPageBody" onload="ChangeDir('<');"
     class="btextDir-<%=direction%> header-fixed header-tablet-and-mobile-fixed toolbar-enabled aside-fixed aside-default-enabled" dir="<%=direction%>" data-kt-aside-minimize="off" onunload="ClosePopUps();">

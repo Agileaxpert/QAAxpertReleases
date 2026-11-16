@@ -1,0 +1,2 @@
+TKT-1626 -BDF- In IView, when the user exports a report to Excel, the decimal values in the downloaded file are not displayed as per the values shown in the front-end report 
+

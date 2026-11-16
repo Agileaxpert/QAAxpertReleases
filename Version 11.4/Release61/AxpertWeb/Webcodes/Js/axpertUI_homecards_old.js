@@ -122,7 +122,7 @@
                                 let isListView = false;
                                 childObj.name = childObj.name.replace(/;bkslh/g, "\\");
                                 try {
-                                    if (typeof isAxOldModel != "undefined" && isAxOldModel == "true") {
+                                    if (typeof axOldModelFlag != "undefined" && axOldModelFlag == "true") {
                                         if (childObj.target && childObj.target.indexOf("tstruct.aspx") > -1) {
                                             if (listviewAsDefault.length > 0) {
                                                 if (openListviewConf = listviewAsDefault.filter(list => list.structname == findGetParameter("transid", childObj.target))?.[0]) {
@@ -130,7 +130,7 @@
                                                 }
 
                                                 if (openListviewConf?.propsval == "true") {
-                                                    childObj.target = `${childObj.target.replace("tstruct.aspx?transid=", "iview.aspx?ivname=")}&tstcaption=${(childObj.name || findGetParameter("transid", childObj.target))}`;
+                                                    childObj.target = `${childObj.target.replace("tstruct.aspx?transid=", "iview.aspx?ivname=")}&tstcaption=${findGetParameter("transid", childObj.target)}`;
 
                                                     isListView = true;
                                                 } else {
@@ -2683,7 +2683,9 @@
                     contentType: "application/json",
                     success: function (data) {
                         gloSrchPageNo = 0;
-                        if (data.d.indexOf("*♦*") != -1) {
+                        if (data.d != null && data.d.startsWith("error:"))
+                            showAlertDialog("error", data.d.replace(/^error:/, ''));
+                        else if (data.d.indexOf("*♦*") != -1) {
                             var srchData = data.d.split("*♦*");
                             gloSrchLimit = srchData[0];
                             console.log("GlobalSearch RowCount-" + srchData[0]);
@@ -2771,12 +2773,12 @@
                             icon = "search";
                         }
                         if (tsLvLoad) {
-                            if (typeof isAxOldModel != "undefined" && isAxOldModel == "true") {
+                            if (typeof axOldModelFlag != "undefined" && axOldModelFlag == "true") {
                                 searchType = "listview";
                                 var qstr = "";
                                 if (srcDtls[1] != "null" && srcDtls[1] != "")
                                     qstr = GetGloSrchQueryString(srcDtls[1]);
-                                loadurl = `iview.aspx?ivname=${srcDtls[0]}&tstcaption=${(itemText || srcDtls[0]) + qstr}`;
+                                loadurl = `iview.aspx?ivname=${srcDtls[0]}&tstcaption=${srcDtls[0] + qstr}`;
                             } else {
                                 loadurl = searchLoadIframe(searchType, data.link.split('♦')[1], true);
 
@@ -2793,7 +2795,7 @@
                         else
                             var loadurl = searchLoadIframe(searchType, data.link.split('♦')[1], true);
                         if (loadurl != "") {
-                            if (typeof isAxOldModel != "undefined" && isAxOldModel == "true") {
+                            if (typeof axOldModelFlag != "undefined" && axOldModelFlag == "true") {
                                 //do nothing
                             } else {
                                 if (loadurl.startsWith("tstruct.aspx?transid=") && loadurl.indexOf("act=load") > -1) {
@@ -2816,10 +2818,30 @@
                                     _thisPType = "i";
                                 else
                                     _thisPType = "p";
-                                loadurl = `openNewtabSite(\"${_thisPType + srcDtls[0]}\",\"${gsoldappurl}\",\"gblsearch\")`;
+                                loadurl = `openNewtabSite(\"${_thisPType + srcDtls[0]}\",\"${gsoldappurl}\",\"gblsearch\");`;
                             }
                         }
-
+                        var viewName = "";
+                        if (loadurl.toLowerCase().indexOf('tstruct.aspx') !== -1) {
+                            viewName = loadurl.match(/(transid=[^"&]+)/)[1];
+                        }
+                        else if (loadurl.toLowerCase().indexOf('entity.aspx') !== -1 || loadurl.toLowerCase().indexOf('entityform.aspx') !== -1) {
+                            viewName = loadurl.match(/(tstid=[^"&]+)/)[1];
+                        }
+                        else if (loadurl.toLowerCase().indexOf('iview.aspx') !== -1) {
+                            viewName = loadurl.match(/(ivname=[^"&]+)/)[1];
+                        }
+                        else if (toolTip.toLowerCase() == "active list") {
+                            viewName = toolTip;
+                        } else if (loadurl.toLowerCase().startsWith('opennewtabsite(')) {
+                            loadurl.replace('openNewtabSite(', '').split(',')[0].replace('"', '').replace('"', '');
+                        }
+                        else {
+                            if (loadurl.indexOf('axpage_id=') > -1)
+                                viewName = loadurl.match(/axpage_id=([^"&]+)/)[1].replace(/^HP/, "");
+                            else
+                                viewName = loadurl.match(/load=([^"&]+)/)[1];
+                        }
                         $(searchObj.resultsElement).find("div:first").append(`
                         <a href='#' class="d-flex text-dark text-hover-primary align-items-center mb-5" title="${toolTip}" data-ax-click="${axCspEncodeHtmlAttribute(`$.axpertUI.search.hideKTSearch();${loadurl}`)}" >
                             <div class="symbol symbol-40px me-4">
