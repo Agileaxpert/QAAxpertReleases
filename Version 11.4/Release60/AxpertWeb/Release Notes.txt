@@ -8,7 +8,7 @@ Important Notes:
 Recommendation: Configure the 'Refresh on Save' property only when necessary, and use the 'Refresh' button when updated database values are required.
 Note: After applying this patch, all existing in-memory cache keys must be cleared to ensure the updated caching mechanism works correctly.
 
-TSK-0895 -- Enhancement: ADS-Level PageSize Configuration
+TSK-0895 Enhancement: ADS-Level PageSize Configuration
 The ADS definition has been enhanced to support configuring the PageSize for individual ADS definitions.
 Changes:
 1. Previous Behavior: If the ADS payload did not contain the 'PageSize' parameter, the product-level default value of '100' was used.
@@ -96,7 +96,7 @@ Structures:
 TSK-0895 -- Enhancement: ADS-Level PageSize Configuration
 The ADS definition has been enhanced to support configuring the PageSize for individual ADS definitions.
 Changes:
-1. Previous Behavior: If the ADS payload did not contain the 'PageSize' parameter, the product-level default value of '100' was used.
+1. Previous Behavior:If the ADS payload did not contain the 'PageSize' parameter, the product-level default value of '100' was used.
 2. New Configuration Field: A new field, 'Pagesize for API', has been added to the ADS definition with the following dropdown values:25, 50, 100, 500, 1000, 5000
 3. Updated Behavior:
    a. If the ADS payload contains 'PageSize', the value specified in the payload will be used.
