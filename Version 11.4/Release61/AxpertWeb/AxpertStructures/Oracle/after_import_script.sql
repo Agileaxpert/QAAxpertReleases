@@ -258,7 +258,8 @@ INSERT INTO HTMLSECTIONS (HTMLSECTIONSID, CANCEL, SOURCEID, MAPNAME, USERNAME, M
 >>
 
 <<
-INSERT INTO SECT2 (SECT2ID, HTMLSECTIONSID, HTML_EDITOR_HTMLSRC) VALUES(7626330000010, 7626330000009, '<html lang="en"><head>
+INSERT INTO SECT2 (SECT2ID, HTMLSECTIONSID, HTML_EDITOR_HTMLSRC) VALUES(7626330000010, 7626330000009, 
+    TO_NCLOB('<html lang="en"><head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Excel Import — T-Struct</title>
@@ -311,7 +312,8 @@ INSERT INTO SECT2 (SECT2ID, HTMLSECTIONSID, HTML_EDITOR_HTMLSRC) VALUES(76263300
     </div>
 
     <div class="eip-topbar-item eip-checkbox-row" id="eipPriorApiItemWrap">
-      <input type="checkbox" id="eipPriorApiCheckbox" checked="">
+      <input type="checkbox" id="')
+    || TO_NCLOB('eipPriorApiCheckbox" checked="">
       <label for="eipPriorApiCheckbox">Use prior version of API</label>
     </div>
 
@@ -352,7 +354,8 @@ INSERT INTO SECT2 (SECT2ID, HTMLSECTIONSID, HTML_EDITOR_HTMLSRC) VALUES(76263300
     </div>
     <div class="eip-bottom-toolbar-actions">
       <button type="button" class="eip-btn" id="eipRefreshBtn">Refresh status</button>
-      <button type="button" class="eip-btn eip-hidden" id="eipDownloadErrorsBtn">Download errors</button>
+      <button type="button" class="eip-btn eip-hi')
+    || TO_NCLOB('dden" id="eipDownloadErrorsBtn">Download errors</button>
       <button type="button" class="eip-btn" id="eipSaveMappingBtn">Save Mapping</button>
       <button type="button" class="eip-btn" id="eipValidateBtn">Validate</button>
       <button type="button" class="eip-btn eip-btn-primary" id="eipImportBtn">Import</button>
@@ -395,7 +398,8 @@ INSERT INTO SECT2 (SECT2ID, HTMLSECTIONSID, HTML_EDITOR_HTMLSRC) VALUES(76263300
         <input type="text" class="eip-select" id="eipValMin" placeholder="Min">
         <input type="text" class="eip-select" id="eipValMax" placeholder="Max">
       </div>
-      <span class="eip-hint">Dates: dd/mm/yyyy. Leave blank to skip a bound.</span>
+      <span class="eip-hint">Dates: dd/mm/yyyy. Leave ')
+    || TO_NCLOB('blank to skip a bound.</span>
     </div>
 
     <div class="eip-field">
@@ -438,7 +442,8 @@ INSERT INTO SECT2 (SECT2ID, HTMLSECTIONSID, HTML_EDITOR_HTMLSRC) VALUES(76263300
 
    ASSUMPTIONS FLAGGED FOR CONFIRMATION (see chat reply):
      1. ax_mode -> action mapping: n/new->create, e/edit->update,
-        d/delete->delete. Only literal "create" is confirmed by
+        d/delete->delete. Only literal "c')
+    || TO_NCLOB('reate" is confirmed by
         the README; update/delete strings are my best guess.
      2. Per-transaction success/failure isn''t available yet (the
         feedback mechanism hasn''t been released), so a bundled
@@ -472,7 +477,8 @@ const EIP_MAX_PAYLOAD_BYTES = 9 * 1024 * 1024; // 9 MB cap per queue push
    Two stores:
      - jobs (keyPath "jobId")       — one record per import job
      - rows (keyPath "id", indexed by "jobId") — staged Excel rows
-   ========================================================= */
+   =========================================================')
+    || TO_NCLOB(' */
 class ExcelImportDatabase {
   static DB_NAME = "eip_excel_import_db";
   static DB_VERSION = 3;
@@ -519,7 +525,8 @@ class ExcelImportDatabase {
 
   getJob(jobId) {
     return new Promise((resolve, reject) => {
-      const tx = this._db.transaction(ExcelImportDatabase.JOBS_STORE, "readonly");
+      const tx = this._db.transactio')
+    || TO_NCLOB('n(ExcelImportDatabase.JOBS_STORE, "readonly");
       const request = tx.objectStore(ExcelImportDatabase.JOBS_STORE).get(jobId);
       request.onsuccess = () => resolve(request.result || null);
       request.onerror = () => reject(request.error);
@@ -566,7 +573,8 @@ class ExcelImportDatabase {
 
   putRows(rows) {
     return new Promise((resolve, reject) => {
-      const tx = this._db.transaction(ExcelImportDatabase.ROWS_STORE, "readwrite");
+      const tx = this._db.transac')
+    || TO_NCLOB('tion(ExcelImportDatabase.ROWS_STORE, "readwrite");
       const store = tx.objectStore(ExcelImportDatabase.ROWS_STORE);
       rows.forEach((row) => store.put(row));
       tx.oncomplete = () => resolve();
@@ -611,7 +619,8 @@ class ExcelImportDatabase {
    trigger/panel/search-filter pattern as brsv2.html''s
    searchableDropdownHtml/attachSdDropdown.
 
-   The panel is appended to document.body and positioned with
+   The panel is append')
+    || TO_NCLOB('ed to document.body and positioned with
    position:fixed so it always floats above the grid''s sticky
    headers and scroll container, exactly like brsv2''s approach.
    ========================================================= */
@@ -660,7 +669,8 @@ class SearchableDropdown {
     this.trigger.type = "button";
     this.trigger.className = "eip-sd-trigger";
     this.triggerLabel = document.createElement("span");
-    this.triggerLabel.className = "eip-sd-trigger-label";
+    ')
+    || TO_NCLOB('this.triggerLabel.className = "eip-sd-trigger-label";
     this.trigger.appendChild(this.triggerLabel);
     const arrow = document.createElement("span");
     arrow.className = "eip-sd-trigger-arrow";
@@ -702,7 +712,8 @@ class SearchableDropdown {
     const match = this.options.find((o) => o.value === this.value);
     const label = match ? match.label : "";
     this.triggerLabel.textContent = label || this.placeholder;
-    this.triggerLabel.classList.toggle("eip-sd-placeholder", !label);
+    this.triggerLabel.classList.toggle("eip-sd-p')
+    || TO_NCLOB('laceholder", !label);
   }
 
   _renderList(term) {
@@ -747,7 +758,8 @@ class SearchableDropdown {
       const el = document.createElement("div");
       el.className = "eip-sd-option" + (isSelected ? " eip-sd-selected" : "");
       el.dataset.value = opt.value;
-      el.title = opt.label;
+      el.title = ')
+    || TO_NCLOB('opt.label;
       el.tabIndex = -1;
       const labelHtml = t ? SearchableDropdown._highlightTerm(opt.label, t) : SearchableDropdown._escapeHtml(opt.label);
       if (this.multiSelect) {
@@ -790,7 +802,8 @@ class SearchableDropdown {
       if (e.key === "ArrowDown") { e.preventDefault(); opts[Math.min(idx + 1, opts.length - 1)]?.focus(); }
       else if (e.key === "ArrowUp") {
         e.preventDefault();
-        if (idx <= 0) this.searchInput.focus(); else opts[idx - 1]?.focus();
+        if (idx <= 0) this.')
+    || TO_NCLOB('searchInput.focus(); else opts[idx - 1]?.focus();
       } else if (e.key === "Escape") { this.close(); this.trigger.focus(); }
       else if (e.key === "Enter") { e.preventDefault(); document.activeElement.click(); }
     });
@@ -838,7 +851,8 @@ class SearchableDropdown {
 
     const panelH = this.panel.offsetHeight || 260;
     const maxTop = window.innerHeight - panelH - 8;
-    if (parseFloat(this.panel.style.top) > maxTop) this.panel.style.top = `${Math.max(8, maxTop)}px`;
+    if (parseFloat(this.panel.style.top) > maxTop) this.panel.style.top =')
+    || TO_NCLOB(' `${Math.max(8, maxTop)}px`;
 
     const panelW = parseFloat(this.panel.style.width) || 220;
     if (rect.left + panelW > window.innerWidth - 8) {
@@ -892,7 +906,8 @@ document.addEventListener("scroll", (e) => {
   const active = SearchableDropdown.activeInstance;
   if (!active) return;
   // Ignore scrolling inside the panel itself (e.g. the option list) —
-  // only close when something outside it (the page, the grid wrapper)
+  // only close when ')
+    || TO_NCLOB('something outside it (the page, the grid wrapper)
   // scrolls, so the panel doesn''t end up detached from its trigger.
   if (active.panel.contains(e.target)) return;
   active.close();
@@ -924,7 +939,8 @@ class ExcelImportPageController {
     // Elapsed-time tracking for imports (see _onImportClicked /
     // _runCombinedImport / _pollRedisForUpdates): callerId -> { startedAt,
     // totalRows } for every push still awaiting full confirmation, so we
-    // can log the real total duration once every row for that callerId
+    // can log the real total duration once every row ')
+    || TO_NCLOB('for that callerId
     // reaches a terminal status, and roll it into a small history used to
     // estimate future imports'' duration from their record count.
     this._importStartTimes = new Map();
@@ -957,7 +973,8 @@ class ExcelImportPageController {
       summaryLabel: document.getElementById("eipSummaryLabel"),
       timingLabel: document.getElementById("eipTimingLabel"),
       validateBtn: document.getElementById("eipValidateBtn"),
-      importBtn: document.getElementById("eipImportBtn"),
+      importBtn: document.getElementB')
+    || TO_NCLOB('yId("eipImportBtn"),
       refreshBtn: document.getElementById("eipRefreshBtn"),
       saveMappingBtn: document.getElementById("eipSaveMappingBtn"),
       downloadErrorsBtn: document.getElementById("eipDownloadErrorsBtn"),
@@ -995,7 +1012,8 @@ class ExcelImportPageController {
 
     const jobs = await this._database.getAllJobs();
     if (jobs.length > 0) {
-      jobs.sort((a, b) => (b.lastActiveAt || 0) - (a.lastActiveAt || 0));
+ ')
+    || TO_NCLOB('     jobs.sort((a, b) => (b.lastActiveAt || 0) - (a.lastActiveAt || 0));
       await this._loadJob(jobs[0].jobId);
     }
 
@@ -1041,7 +1059,8 @@ class ExcelImportPageController {
     };
 
     this._jobDropdown = new SearchableDropdown(this._dom.jobSelect, {
-      options: [],
+      op')
+    || TO_NCLOB('tions: [],
       value: "",
       placeholder: "(no jobs yet)",
       allowClear: false,
@@ -1073,7 +1092,8 @@ class ExcelImportPageController {
     const armSessionId = (typeof ARMSessionId !== "undefined" ? ARMSessionId : "") || (parent.ARMSessionId || "");
     const armToken = (typeof ARMToken !== "undefined" ? ARMToken : "") || (parent.ARMToken || "");
     const project = parent.mainProject ? parent.mainProject : "";
-    const username = parent.mainUserName ? parent.mainUserName : (parent.gll_userName || "");
+    const username = parent.mainUserName ? parent.mainUserNa')
+    || TO_NCLOB('me : (parent.gll_userName || "");
     const sessionId = (typeof sessionid !== "undefined" && sessionid) ? sessionid : (parent.sessionid || "");
     return { armSessionId, armToken, project, username, sessionId };
   }
@@ -1108,7 +1128,8 @@ var userResp = getParentWindowValue("userResp");
   // calls this directly instead of going through _loadFieldsForTStruct.
   async _fetchFieldsForTStruct(transId, dcNames = []) {
     if (!transId || !dcNames || dcNames.length === 0) return [];
-    const callParams = {
+    const callParam')
+    || TO_NCLOB('s = {
       adsNames: [EIP_data_ing_tstruct_fields],
       refreshCache: true,
       sqlParams: { transid: transId, dcname: dcNames.join(",") },
@@ -1150,7 +1171,8 @@ var userResp = getParentWindowValue("userResp");
     const callParams = {
       adsNames: [EIP_data_ing_tstruct_fields],
       refreshCache: true,
-      sqlParams: { transid: transId, dcname: allDcNames.join(",") },
+      ')
+    || TO_NCLOB('sqlParams: { transid: transId, dcname: allDcNames.join(",") },
       props: { ADS: true, getallrecordscount: false, pageno: 1, pagesize: 0 },
     };
     const rows = await new Promise((resolve) => {
@@ -1187,7 +1209,8 @@ var userResp = getParentWindowValue("userResp");
     return rows.map((row) => ({
       value: row.value,
       // Show both caption and the underlying DC name, same "Caption(name)"
-      // convention used for field mapping dropdowns elsewhere in the page.
+      // convention used for field mapping dropdowns elsewh')
+    || TO_NCLOB('ere in the page.
       label: row.text ? `${row.text}(${row.value})` : row.value,
       badge: String(row.asgrid).trim().toUpperCase() === "T" ? "Grid" : "Non-Grid",
     }));
@@ -1231,7 +1254,8 @@ var userResp = getParentWindowValue("userResp");
   /* ---------------------------------------------------------
      T-Struct change
      --------------------------------------------------------- */
-  async _onTStructChange(transId) {
+  async _onTStructChange(tr')
+    || TO_NCLOB('ansId) {
     const opToken = Symbol("tstructChange");
     this._latestLoadJobToken = opToken;
     const isStale = () => this._latestLoadJobToken !== opToken;
@@ -1274,7 +1298,8 @@ var userResp = getParentWindowValue("userResp");
   // The first sheet (by upload/tab order) targeting a given T-Struct is
   // unrestricted — it can mix grid and non-grid DCs freely. Every OTHER
   // sheet targeting the same T-Struct is restricted to either:
-  //   - exactly one grid DC (and no non-grid DCs), or
+  //   - exac')
+    || TO_NCLOB('tly one grid DC (and no non-grid DCs), or
   //   - one or more non-grid DCs (and no grid DC at all)
   // never a mix of the two, and never more than one grid DC.
   async _isFirstSheetOfTStructGroup(job) {
@@ -1310,7 +1335,8 @@ var userResp = getParentWindowValue("userResp");
     if (!validation.valid) {
       // Revert the widget to the last valid selection and explain why.
       this._dcDropdown.setValue(this._currentJob.selectedDcNames || []);
-      this._showToast(validation.message, "error");
+      this._sho')
+    || TO_NCLOB('wToast(validation.message, "error");
       return;
     }
 
@@ -1352,7 +1378,8 @@ var userResp = getParentWindowValue("userResp");
   // one row per mapped column), so every returned row carries the SAME
   // groupfield/keyfield values (from dc1). groupfield holds the Excel
   // HEADER TEXT of whichever column was the group column (not a T/F
-  // flag) — a column is the group column iff its header matches that
+  // flag) —')
+    || TO_NCLOB(' a column is the group column iff its header matches that
   // value.
   //
   // No timestamp column exists yet, and every save currently INSERTs
@@ -1396,7 +1423,8 @@ var userResp = getParentWindowValue("userResp");
 
   // Looks up this T-Struct''s remembered header->field mappings (built up
   // from every prior job''s manual choices) and pre-fills any column
-  // whose Excel header text matches — matching by header TEXT, not file
+  // whose Excel header text matches — matching b')
+    || TO_NCLOB('y header TEXT, not file
   // identity, so it works for "same file re-uploaded" as well as "a
   // different file with the same/similar column headers". Only applies
   // a remembered field if it still exists on the current T-Struct (in
@@ -1434,7 +1462,8 @@ var userResp = getParentWindowValue("userResp");
     }
 
     if (appliedCount > 0) {
-      console.log(`[EIP] Auto-applied ${appliedCount} remembered column mapping(s) for T-Struct "${job.transId}".`);
+      console.log(`[EIP] Auto-applied ${appliedCount} remembered column mapping(s) for T-Struct "${job.transId}".`)')
+    || TO_NCLOB(';
       this._showToast(`Auto-mapped ${appliedCount} column(s) from a previous import — review and adjust if needed.`, "info");
     }
   }
@@ -1476,7 +1505,8 @@ var userResp = getParentWindowValue("userResp");
 
   // Saves the current job''s column mappings to the shared a__im T-Struct
   // — triggered by clicking Import (silent, fire-and-forget) OR by
-  // clicking "Save Mapping" directly (showFeedback:true, gives the user
+  // clicking "Save Mapping" direc')
+    || TO_NCLOB('tly (showFeedback:true, gives the user
   // a toast either way), letting mappings be shared even before anyone
   // actually runs an import.
   // dc1 (header, single row) holds form/groupfield/keyfield; dc2
@@ -1515,7 +1545,8 @@ var userResp = getParentWindowValue("userResp");
     const payload = {
       "_parameters": [{
         "ARMSessionId": armSessionId,
-        "ARMToken": armToken,
+        "ARMToken":')
+    || TO_NCLOB(' armToken,
         "isaxput": "true",
         "mobile": "false",
         "project": project,
@@ -1563,7 +1594,8 @@ var userResp = getParentWindowValue("userResp");
     });
   }
 
-  // Pushes the originally-uploaded Excel file itself (as a base64
+  // Pushes the originally-uploaded Excel file itself')
+    || TO_NCLOB(' (as a base64
   // attachment) to the a__ic T-Struct — completely separate from the
   // actual data import and the mapping-memory save. Triggered once per
   // Import click (not per sheet — one physical file, possibly several
@@ -1604,7 +1636,8 @@ var userResp = getParentWindowValue("userResp");
             "action": "create",
             "submitdata": {
               "dc1": {
-                "row1": {
+               ')
+    || TO_NCLOB(' "row1": {
                   "importedby": username,
                   "docdate": docdate,
                   "doctime": doctime,
@@ -1651,7 +1684,8 @@ var userResp = getParentWindowValue("userResp");
   // (the same setup _runCombinedImport pushes as ONE cross-sheet
   // transaction per Key Field value), a single error can only be fully
   // understood by looking at ALL the connected sheets'' data for that Key
-  // Field value — not just whichever tab you happen to be sitting on. So
+  // Field value — not just whichever tab you happ')
+    || TO_NCLOB('en to be sitting on. So
   // in that case we build one combined export with every sibling
   // sheet''s own columns side by side, matched by Key Field value,
   // instead of the naive single-sheet export (which was the bug: it
@@ -1695,7 +1729,8 @@ var userResp = getParentWindowValue("userResp");
     XLSX.utils.book_append_sheet(workbook, worksheet, "Errors");
 
     const fileName = this._buildErrorFileName(job.sheetName ? `${job.fileName}_${job.sheetName}` : job.fileName);
-    XLSX.writeFile(workbook, fileName);
+    XLSX.writeFi')
+    || TO_NCLOB('le(workbook, fileName);
     this._log("info", `Downloaded ${errorRows.length} error row(s) as "${fileName}".`);
     this._showToast(`Downloaded ${errorRows.length} error row(s).`, "success");
   }
@@ -1734,7 +1769,8 @@ var userResp = getParentWindowValue("userResp");
       const keyColumnIndex = keyColumnIndexByJobId.get(job.jobId);
       if (keyColumnIndex === -1) return;
       (rowsByJobId.get(job.jobId) || []).forEach((row) => {
-        if (row.status !== "error" && row.status !== "failed") return;
+       ')
+    || TO_NCLOB(' if (row.status !== "error" && row.status !== "failed") return;
         const keyValue = row.cells[keyColumnIndex];
         if (keyValue === undefined || keyValue === null || keyValue === "" || seenKeyValues.has(keyValue)) return;
         seenKeyValues.add(keyValue);
@@ -1779,7 +1815,8 @@ var userResp = getParentWindowValue("userResp");
     XLSX.utils.book_append_sheet(workbook, worksheet, "Errors");
 
     const fileName = this._buildErrorFileName(`${this._currentJob.fileName}_combined`);
-    XLSX.writeFile(workbook, fileName);
+    ')
+    || TO_NCLOB('XLSX.writeFile(workbook, fileName);
     this._log("info", `Downloaded ${erroredKeyValues.length} combined error row(s) across ${siblings.length} sheet(s) as "${fileName}".`);
     this._showToast(`Downloaded ${erroredKeyValues.length} error row(s) across ${siblings.length} sheet(s).`, "success");
   }
@@ -1815,7 +1852,8 @@ var userResp = getParentWindowValue("userResp");
   async _onKeyFieldChanged(fieldName) {
     if (!this._currentJob) return;
     const siblings = await this._getTStructGroupSiblings(this._currentJob);
-    for (const sibling of siblings) {
+    for (c')
+    || TO_NCLOB('onst sibling of siblings) {
       // siblings are FRESH copies read from IndexedDB (_getTStructGroupSiblings ->
       // getAllJobs), not the same object as this._currentJob — mutating a sibling
       // alone leaves this._currentJob.keyFieldName stale in memory even though the
@@ -1853,7 +1891,8 @@ var userResp = getParentWindowValue("userResp");
       sheets = await this._readExcelWorkbook(file);
     } catch (err) {
       console.error("[EIP] Failed to parse Excel file", err);
-      this._showToast(`Could not read "${file.name}" — check it''s a valid Excel/CSV file.`, "error");
+      this._showToast(`Could ')
+    || TO_NCLOB('not read "${file.name}" — check it''s a valid Excel/CSV file.`, "error");
       return;
     }
 
@@ -1898,7 +1937,8 @@ var userResp = getParentWindowValue("userResp");
 
       const stagedRows = parsedSheet.dataRows.map((cells, rowIndex) => {
         const sheetRowIndex = parsedSheet.dataRowSheetIndices[rowIndex];
-        // Normalize any cell Excel itself stored as a true date type — done
+        // Normalize any cell Excel itself ')
+    || TO_NCLOB('stored as a true date type — done
         // once, here, so the grid, validation, and import all see the same
         // clean "dd/MM/yyyy" string from this point on (no re-detection or
         // ambiguity later, including after the page is reloaded and the
@@ -1943,7 +1983,8 @@ var userResp = getParentWindowValue("userResp");
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
       reader.onload = (event) => {
-        try {
+ ')
+    || TO_NCLOB('       try {
           const data = new Uint8Array(event.target.result);
           const workbook = XLSX.read(data, { type: "array", cellDates: true });
           const sheets = workbook.SheetNames.map((sheetName) => {
@@ -1976,7 +2017,8 @@ var userResp = getParentWindowValue("userResp");
                 .map((o) => o.idx)
             );
             if (stripIndices.size > 0) {
-              headers = headers.filter((_, idx) => !stripIndices.has(idx));
+              headers = headers.filter((_, idx)')
+    || TO_NCLOB(' => !stripIndices.has(idx));
               dataRows = dataRows.map((row) => row.filter((_, idx) => !stripIndices.has(idx)));
               columnInda__im = columnInda__im.filter((originalIdx) => !stripIndices.has(originalIdx));
             }
@@ -2018,7 +2060,8 @@ var userResp = getParentWindowValue("userResp");
     return dt.getFullYear() === year && dt.getMonth() === month - 1 && dt.getDate() === day;
   }
 
-  _formatDdMmYyyy(year, month, day) {
+  _formatDdMmYyyy(year')
+    || TO_NCLOB(', month, day) {
     return `${String(day).padStart(2, "0")}/${String(month).padStart(2, "0")}/${year}`;
   }
 
@@ -2066,7 +2109,8 @@ var userResp = getParentWindowValue("userResp");
       return null;
     }
 
-    m = s.match(/^(\d{1,2})[\/\-]([A-Za-z]{3,})(?:[\/\-](\d{2,4}))?$/);
+    m = s.match(/^(\d{1,2})[\/\-]')
+    || TO_NCLOB('([A-Za-z]{3,})(?:[\/\-](\d{2,4}))?$/);
     if (m) {
       const monthNum = ExcelImportPageController.MONTH_NAMES[m[2].slice(0, 3).toLowerCase()];
       if (monthNum && m[3]) {
@@ -2106,7 +2150,8 @@ var userResp = getParentWindowValue("userResp");
     // dropdown occasionally showing wrong/blank ("glitchy").
     const loadToken = Symbol(jobId);
     this._latestLoadJobToken = loadToken;
-    const isStale = () => this._latestLoadJobToken !== loadToken;
+    const isStale = () => this._latestLoadJobToken !== loadTok')
+    || TO_NCLOB('en;
 
     this._currentJobId = jobId;
     this._currentJob = job;
@@ -2154,7 +2199,8 @@ var userResp = getParentWindowValue("userResp");
       this._tstructDropdown.setValue("");
       this._dcDropdown.setOptions([]);
       this._dcDropdown.setValue([]);
-      this._dcDropdown.setDisabled(true);
+  ')
+    || TO_NCLOB('    this._dcDropdown.setDisabled(true);
       this._allFields = [];
       this._keyFieldCandidates = [];
     }
@@ -2199,7 +2245,8 @@ var userResp = getParentWindowValue("userResp");
       tab.textContent = j.sheetName || j.fileName;
       tab.title = `${j.fileName} — ${j.sheetName || ""}`;
       tab.addEventListener("click", () => {
-        if (j.jobId !== this._currentJobId) this._loadJob(j.jobId);
+        if (j.jobId !== this._currentJobId) this._')
+    || TO_NCLOB('loadJob(j.jobId);
       });
       this._dom.sheetTabs.appendChild(tab);
     });
@@ -2240,7 +2287,8 @@ var userResp = getParentWindowValue("userResp");
 
   async _saveCurrentJob() {
     if (!this._currentJob) return;
-    this._currentJob.lastActiveAt = Date.now();
+    this._c')
+    || TO_NCLOB('urrentJob.lastActiveAt = Date.now();
     await this._database.putJob(this._currentJob);
     await this._refreshJobSelector();
   }
@@ -2281,7 +2329,8 @@ var userResp = getParentWindowValue("userResp");
   async _onDeleteJobClicked() {
     const jobId = this._currentJobId;
     const job = this._currentJob;
-    if (!jobId || !job) {
+    if (!')
+    || TO_NCLOB('jobId || !job) {
       this._showToast("No import job selected to delete.", "error");
       return;
     }
@@ -2324,7 +2373,8 @@ var userResp = getParentWindowValue("userResp");
   /* ---------------------------------------------------------
      Grid rendering
      --------------------------------------------------------- */
-  static ROW_HEIGHT = 28; // px — must match the fixed row height set in CSS (trimmed
+  static ROW_HEIGHT = 28; // px — must mat')
+    || TO_NCLOB('ch the fixed row height set in CSS (trimmed
     // from 32 so more rows fit in the same grid height)
   static ROW_BUFFER = 10; // extra rows rendered above/below the visible window
 
@@ -2364,7 +2414,8 @@ var userResp = getParentWindowValue("userResp");
     const mappings = this._currentJob.columnMappings;
     const axModeIdx = this._currentJob.axModeColumnIndex;
 
-    // --- Mapping row (dropdown + group-field checkbox + validation gear) ---
+    // --- Mapping row (dropdown + group-field checkbox + va')
+    || TO_NCLOB('lidation gear) ---
     this._dom.gridMappingRow.innerHTML = "";
     const statusHeaderCell = document.createElement("th");
     statusHeaderCell.className = "eip-grid-status-col";
@@ -2402,7 +2453,8 @@ var userResp = getParentWindowValue("userResp");
         if (keyFieldMeta) {
           fieldOptions.push({
             value: keyFieldMeta.fieldName,
-            label: keyFieldMeta.caption || keyFieldMeta.fieldName,
+    ')
+    || TO_NCLOB('        label: keyFieldMeta.caption || keyFieldMeta.fieldName,
             group: "Key field",
           });
         }
@@ -2438,7 +2490,8 @@ var userResp = getParentWindowValue("userResp");
         groupLabel.appendChild(groupCheckbox);
         groupLabel.appendChild(document.createTextNode(" Group field"));
         controlsRow.appendChild(groupLabel);
-      } else if (isNonGridMapped && keyFieldIsSet && mappedField.fieldName === this._currentJob.keyFieldName) {
+      } else if (isNonGridMapped && keyFieldIsSet && mappedField.fieldName === ')
+    || TO_NCLOB('this._currentJob.keyFieldName) {
         const badge = document.createElement("span");
         badge.className = "eip-key-field-badge";
         badge.textContent = "Key field (join column)";
@@ -2479,7 +2532,8 @@ var userResp = getParentWindowValue("userResp");
       this._dom.gridHeaderRow.appendChild(th);
     });
     const headerFillerTh = document.createElement("th");
-    headerFillerTh.className = "eip-grid-filler-col";
+    headerFillerTh.c')
+    || TO_NCLOB('lassName = "eip-grid-filler-col";
     this._dom.gridHeaderRow.appendChild(headerFillerTh);
   }
 
@@ -2523,7 +2577,8 @@ var userResp = getParentWindowValue("userResp");
 
     let startIndex = Math.floor(adjustedScrollTop / rowHeight) - ExcelImportPageController.ROW_BUFFER;
     let endIndex = Math.ceil((adjustedScrollTop + viewportHeight) / rowHeight) + ExcelImportPageController.ROW_BUFFER;
-    startIndex = Math.max(0, startIndex);
+    startIndex = Math.max(0, startIn')
+    || TO_NCLOB('dex);
     endIndex = Math.min(totalRows, endIndex);
 
     const topSpacerHeight = startIndex * rowHeight;
@@ -2565,7 +2620,8 @@ var userResp = getParentWindowValue("userResp");
           // ASBRest just has no way to represent Delete (no keyfield/keyvalue path for it yet).
           const isIgnored = !this._currentJob.useAxPut && action === "delete";
           const badge = document.createElement("span");
-          badge.className = `eip-ax-mode-badge eip-ax-mode-${action}` + (isIgnored ? " eip-ax-mode-ignored" : "");
+          badge.className = `ei')
+    || TO_NCLOB('p-ax-mode-badge eip-ax-mode-${action}` + (isIgnored ? " eip-ax-mode-ignored" : "");
           badge.textContent = AX_MODE_ACTION_DISPLAY_LABEL[action] || "Create";
           td.appendChild(badge);
           const rawNote = displayValue ? `Raw value: "${displayValue}"` : "Blank — defaults to Create";
@@ -2608,7 +2664,8 @@ var userResp = getParentWindowValue("userResp");
       icon.textContent = "✓";
       icon.title = "Uploaded";
     } else if (row.status === "submitted") {
-      icon.classList.add("eip-status-submitted");
+      icon.cla')
+    || TO_NCLOB('ssList.add("eip-status-submitted");
       icon.textContent = "…";
       icon.title = "Submitted — awaiting confirmation";
     } else if (row.status === "failed") {
@@ -2645,7 +2702,8 @@ var userResp = getParentWindowValue("userResp");
       `${this._rows.length} row(s) — ${pending} pending, ${submitted} submitted, ${errored} error(s), ${failed} failed, ${uploaded} uploaded.`;
 
     // Only worth showing once nothing is still in-flight (no rows
-    // awaiting Redis confirmation) and there''s actually something to
+    // awaiting Redis ')
+    || TO_NCLOB('confirmation) and there''s actually something to
     // download — not mid-import, not when everything''s clean.
     const hasErrors = errored > 0 || failed > 0;
     const hasInFlight = submitted > 0;
@@ -2682,7 +2740,8 @@ var userResp = getParentWindowValue("userResp");
     }
 
     if (this._currentJob.lastImportDurationMs && this._currentJob.lastImportTotalRows) {
-      const msPerRecord = this._currentJob.lastImportDurationMs / this._currentJob.lastImportTotalRows;
+      const msPerRecord =')
+    || TO_NCLOB(' this._currentJob.lastImportDurationMs / this._currentJob.lastImportTotalRows;
       const perRecordLabel = msPerRecord < 1000 ? `${Math.round(msPerRecord)}ms` : `${(msPerRecord / 1000).toFixed(2)}s`;
       el.textContent = `â± Last import: ${this._currentJob.lastImportTotalRows} record(s) in ${this._formatDuration(this._currentJob.lastImportDurationMs)} (~${perRecordLabel}/record)`;
       return;
@@ -2720,7 +2779,8 @@ var userResp = getParentWindowValue("userResp");
 
   /* ---------------------------------------------------------
      Validation popup
-     --------------------------------------------------------- */
+     -------------------------------')
+    || TO_NCLOB('-------------------------- */
   _openValidationModal(colIndex) {
     this._validationModalColumnIndex = colIndex;
     const rules = this._currentJob.validationRules[colIndex] || {};
@@ -2761,7 +2821,8 @@ var userResp = getParentWindowValue("userResp");
     this._renderGridHeader(); // only the gear icon''s highlight changes here
   }
 
-  /* ---------------------------------------------------------
+  /* -------------------------------------------------------')
+    || TO_NCLOB('--
      Validate
      --------------------------------------------------------- */
   _onValidateClicked() {
@@ -2799,7 +2860,8 @@ var userResp = getParentWindowValue("userResp");
 
         if (rule && rule.mandatory && stringValue === "") {
           errors.push({ columnIndex: colIndex, message: `"${columnLabel}" is mandatory` });
-          return; // skip further checks on an empty mandatory field
+          return;')
+    || TO_NCLOB(' // skip further checks on an empty mandatory field
         }
         if (stringValue === "") return; // nothing more to check on a blank, non-mandatory cell
 
@@ -2829,7 +2891,8 @@ var userResp = getParentWindowValue("userResp");
               }
             }
           } else if (looksNumeric) {
-            if (rule.minValue && !isNaN(parseFloat(rule.minValue)) && numericValue < parseFloat(rule.minValue)) {
+            if (rule.minValue && !isNaN(parseFloat(rule.minValue)) && numericValu')
+    || TO_NCLOB('e < parseFloat(rule.minValue)) {
               errors.push({ columnIndex: colIndex, message: `"${columnLabel}" is below the allowed minimum` });
             }
             if (rule.maxValue && !isNaN(parseFloat(rule.maxValue)) && numericValue > parseFloat(rule.maxValue)) {
@@ -2869,7 +2932,8 @@ var userResp = getParentWindowValue("userResp");
     // set -> combine them into cross-sheet transactions instead of
     // importing this sheet alone. No Key Field -> sheets stay
     // independent, exactly like a single-sheet import.
-    const siblings = await this._getTStructGroupSiblings(this._currentJob);
+    const siblings = await this._getTStructGroupSiblings(this._curre')
+    || TO_NCLOB('ntJob);
     if (siblings.length > 1 && this._currentJob.keyFieldName) {
       await this._runCombinedImport(siblings);
       return;
@@ -2911,7 +2975,8 @@ var userResp = getParentWindowValue("userResp");
       const field = this._allFields.find((f) => f.fieldName === mapping.mappedFieldName);
       if (!field) return;
       if (!fieldsByFormNumber.has(field.formNumber)) fieldsByFormNumber.set(field.formNumber, []);
-      fieldsByFormNumber.get(field.formNumber).push({ ...field, columnIndex: colIndex });
+      fieldsByFormNumber.get')
+    || TO_NCLOB('(field.formNumber).push({ ...field, columnIndex: colIndex });
     });
 
     const groupColumnIndices = mappings
@@ -2944,7 +3009,8 @@ var userResp = getParentWindowValue("userResp");
       } catch (err) {
         console.error(`[EIP] Row ${row.rowIndex} failed to resolve — marking as error`, err);
         row.status = "error";
-        row.errorMessage = `Processing error: ${err.message || err}`;
+        row.errorMessage = `Processing ')
+    || TO_NCLOB('error: ${err.message || err}`;
       }
     });
 
@@ -2994,7 +3060,8 @@ var userResp = getParentWindowValue("userResp");
     }));
 
     const buildFn = (subset) =>
-      useAxPut
+      useAxP')
+    || TO_NCLOB('ut
         ? this._buildAxPutPayload(this._currentJob.transId, subset, fieldsByFormNumber, callerId)
         : this._buildAsbRestPayload(this._currentJob.transId, subset, fieldsByFormNumber, callerId);
 
@@ -3022,7 +3089,8 @@ var userResp = getParentWindowValue("userResp");
         // Pushed to the queue successfully — this does NOT mean Axpert has
         // processed it yet. Mark "submitted" and record callerId/sequenceNo
         // so the Redis poll can later confirm success/failure per row.
-        chunkGroupsWithSequence.forEach(({ group, sequenceNo }) => {
+        chunkGroupsWithSequence.forEach(({ g')
+    || TO_NCLOB('roup, sequenceNo }) => {
           group.forEach((resolved) => {
             resolved.row.status = "submitted";
             resolved.row.callerId = callerId;
@@ -3057,7 +3125,8 @@ var userResp = getParentWindowValue("userResp");
     if (successCount > 0) {
       this._setProgress(100, "Awaiting confirmation…");
       this._log("info", "Checking for confirmation…");
-      await this._pollRedisForUpdates(false, true); // popup stays open until the first result lands
+      await this._pollRedisForUpdates(false, true); // popup stays open until the first ')
+    || TO_NCLOB('result lands
     } else {
       this._closeProgressPopup();
     }
@@ -3105,7 +3174,8 @@ var userResp = getParentWindowValue("userResp");
   _resolveActionForGroup(group) {
     const firstRowAxMode = group[0].axModeValue;
     if (!firstRowAxMode) return "create";
-    return AX_MODE_ACTION_MAP[firstRowAxMode] || "create";
+    return AX_MODE_ACTIO')
+    || TO_NCLOB('N_MAP[firstRowAxMode] || "create";
   }
 
   // axRowAction (when passed, currently only "edit") is stamped onto EVERY
@@ -3144,7 +3214,8 @@ var userResp = getParentWindowValue("userResp");
     const data = groupsWithSequence.map(({ group, sequenceNo }) => {
       const action = this._resolveActionForGroup(group);
       const entry = {
-        "transid": transId,
+        "transid": ')
+    || TO_NCLOB('transId,
         "action": action,
         "sequenceno": sequenceNo,
         ...(keyFieldName ? { "returnfield": keyFieldName } : {}),
@@ -3188,7 +3259,8 @@ var userResp = getParentWindowValue("userResp");
         const rows = group.map((resolved, idx) => {
           const columns = {};
           fields.forEach((f) => { columns[f.fieldName] = resolved.values[f.fieldName] !== undefined ? resolved.values[f.fieldName] : ""; });
-          return { rowno: String(idx + 1).padStart(3, "0"), text: idx === 0 ? "0" : "", columns };
+          return { rowno: String(idx + 1).padStart(3, "0"), tex')
+    || TO_NCLOB('t: idx === 0 ? "0" : "", columns };
         });
         recdata.push({ [recIdKey]: rows });
       } else {
@@ -3229,7 +3301,8 @@ var userResp = getParentWindowValue("userResp");
         } : {}),
         "sequenceno": sequenceNo,
         ...(keyFieldName ? { "returnfield": keyFieldName } : {}),
-        "changedrows": changedrows,
+        "changedrows": changedrows,')
+    || TO_NCLOB('
         "recdata": recdata,
       };
       parameters[`transaction${groupIndex + 1}`] = transaction;
@@ -3267,7 +3340,8 @@ var userResp = getParentWindowValue("userResp");
             const trueCellDate = this._getTrueCellDate(row.sheetRowIndex, field.columnIndex);
             const fieldSuggestsDate = field.dataType && String(field.dataType).toLowerCase().includes("date");
             const shouldTreatAsDate = trueCellDate !== null || fieldSuggestsDate;
-            if (shouldTreatAsDate && rawValue !== "" && rawValue !== undefined && rawValue !== null) {
+            if (shouldTreatAsDate && rawValue !== "" && rawValue !== u')
+    || TO_NCLOB('ndefined && rawValue !== null) {
               const normalized = this._normalizeDateValue(trueCellDate !== null ? trueCellDate : rawValue);
               values[field.fieldName] = normalized !== null ? normalized : String(rawValue);
             } else {
@@ -3313,7 +3387,8 @@ var userResp = getParentWindowValue("userResp");
   }
 
   // Builds submitdata for ONE merged (cross-sheet) transaction, keyed by
-  // the shared Key Field''s value. For each dc/formNumber, only the
+  // the shared Key Field''s value. For each dc/')
+    || TO_NCLOB('formNumber, only the
   // sheet(s) that actually mapped fields for that formNumber contribute
   // rows — this avoids blending unrelated sheets'' rows into the wrong
   // dc (e.g. a header sheet''s single row leaking into a grid dc it
@@ -3347,7 +3422,8 @@ var userResp = getParentWindowValue("userResp");
         submitData[dcKey] = rows;
       } else {
         const columns = {};
-        if (axRowAction) columns.axrow_action = axRowAction;
+        if (axRowAction) columns.axrow_action')
+    || TO_NCLOB(' = axRowAction;
         fields.forEach((f) => { columns[f.fieldName] = contributingRows[0].values[f.fieldName] !== undefined ? contributingRows[0].values[f.fieldName] : ""; });
         submitData[dcKey] = { row1: columns };
       }
@@ -3384,7 +3460,8 @@ var userResp = getParentWindowValue("userResp");
         recdata.push({ [recIdKey]: rows });
       } else {
         const columns = {};
-        fields.forEach((f) => { columns[f.fieldName] = contributingRows[0].values[f.fieldName] !== undefined ? contributingRows[0].values[f.fieldName] : ""; });
+        fields.forEach((f) => { columns[f.fieldName] = contr')
+    || TO_NCLOB('ibutingRows[0].values[f.fieldName] !== undefined ? contributingRows[0].values[f.fieldName] : ""; });
         recdata.push({ [recIdKey]: [{ rowno: "001", text: "0", columns }] });
       }
     });
@@ -3423,7 +3500,8 @@ var userResp = getParentWindowValue("userResp");
     });
     return {
       "_parameters": [{
-        "ARMSessionId": armSessionId,
+        "ARMSessionId": armSession')
+    || TO_NCLOB('Id,
         "ARMToken": armToken,
         "isaxput": "true",
         "project": project,
@@ -3468,7 +3546,8 @@ var userResp = getParentWindowValue("userResp");
       };
       parameters[`transaction${groupIndex + 1}`] = transaction;
     });
-    return { "_parameters": [parameters] };
+    return { "_parameters": [parameters] ')
+    || TO_NCLOB('};
   }
 
   // Orchestrates a combined multi-sheet import: validates every sibling
@@ -3502,7 +3581,8 @@ var userResp = getParentWindowValue("userResp");
     for (const job of siblings) {
       this._saveMappingMemoryToServer(job); // fire-and-forget, per sheet
       const rows = (await this._database.getRowsByJobId(job.jobId)).sort((a, b) => a.rowIndex - b.rowIndex);
-      this._validateRowsForJob(job, rows);
+      thi')
+    || TO_NCLOB('s._validateRowsForJob(job, rows);
       await this._database.putRows(rows);
       rowsByJobId.set(job.jobId, rows);
     }
@@ -3540,7 +3620,8 @@ var userResp = getParentWindowValue("userResp");
       const sheetFields = fieldsBySheetJobId.get(job.jobId) || [];
       const fieldsByFormNumber = new Map();
       job.columnMappings.forEach((mapping, colIndex) => {
-        if (!mapping.mappedFieldName) return;
+        if (!mapping.')
+    || TO_NCLOB('mappedFieldName) return;
         const field = sheetFields.find((f) => f.fieldName === mapping.mappedFieldName);
         if (!field) return;
         if (!fieldsByFormNumber.has(field.formNumber)) fieldsByFormNumber.set(field.formNumber, []);
@@ -3572,7 +3653,8 @@ var userResp = getParentWindowValue("userResp");
     //    sheets'' matching groups (by Key Field value) are merged in.
     const primary = perSheet.find((s) => s.localGroups.length > 0);
     const mergedGroupsWithSequence = primary.localGroups.map((primaryGroupRows) => {
-      const keyValue = primaryGroupRows[0].row.cells[primary.keyColumnIndex];
+      const keyValue = primaryGroupRows[0].row.cel')
+    || TO_NCLOB('ls[primary.keyColumnIndex];
       return { keyValue, sequenceNo: primaryGroupRows[0].row.rowIndex + 1 };
     });
 
@@ -3608,7 +3690,8 @@ var userResp = getParentWindowValue("userResp");
     this._setProgress(20, `Building payload for ${mergedGroupsWithSequence.length} transaction(s)…`);
 
     const totalRowsAttempted = Array.from(involvedRowsByKeyValue.values()).reduce((sum, rows) => sum + rows.length, 0);
-    const estimate = this._estimateImportDuration(totalRowsAttempted);
+    const estimate = this._estimateImportDuration(totalRowsAttempted')
+    || TO_NCLOB(');
     if (estimate) {
       this._log("info", `Estimated time: ~${this._formatDuration(estimate.estimatedMs)} for ${totalRowsAttempted} record(s) across ${siblings.length} sheet(s), based on ${estimate.sampleCount} previous import(s) (~${estimate.msPerRecord.toFixed(0)}ms/record).`);
     }
@@ -3640,7 +3723,8 @@ var userResp = getParentWindowValue("userResp");
             row.errorMessage = null;
           });
         });
-        this._log("success", `Push ${i + 1}/${chunks.length}: posted ${chunk.length} transaction(s) (${involvedRows.length} row(s) across ${siblings.length} sheet(s)) — awaiting confirmation.`);
+        this._log("success", `Push ${i + 1}/${chunks.length}: posted ${chunk.length} transaction(s) (${invol')
+    || TO_NCLOB('vedRows.length} row(s) across ${siblings.length} sheet(s)) — awaiting confirmation.`);
         successCount += chunk.length;
         submittedRowCount += involvedRows.length;
       } catch (err) {
@@ -3678,7 +3762,8 @@ var userResp = getParentWindowValue("userResp");
 
   _pushToQueue(jsonDataString) {
     return new Promise((resolve, reject) => {
-      parent.AxPushtoQueueAPI(jsonDataString, (res) => resolve(res), (err) => reject(err));
+      parent.AxPushtoQueueAPI(jsonDataString, (res) => resol')
+    || TO_NCLOB('ve(res), (err) => reject(err));
     });
   }
 
@@ -3715,7 +3800,8 @@ var userResp = getParentWindowValue("userResp");
           console.warn("[EIP] Could not JSON.parse the outer AxRedisReadAPI response:", e);
         }
         // Some Axpert API responses arrive wrapped in a ".d" envelope
-        // (same pattern already handled for GetDataFromAxList) — unwrap
+        // (same patt')
+    || TO_NCLOB('ern already handled for GetDataFromAxList) — unwrap
         // it here too if present.
         if (parsed && parsed.d !== undefined) {
           try {
@@ -3749,7 +3835,8 @@ var userResp = getParentWindowValue("userResp");
             bySequenceNo[sequenceNo] = value;
           });
           console.log("[EIP] Extracted bySequenceNo map:", bySequenceNo);
-          resolve({ found: Object.keys(bySequenceNo).length > 0, bySequenceNo });
+          resolve({ found: Object.keys(bySequenceNo).len')
+    || TO_NCLOB('gth > 0, bySequenceNo });
         } else {
           console.log(`[EIP] Wildcard read for callerid="${callerId}" -> no usable result (success=${parsed && parsed.success}, hasResult=${!!(parsed && parsed.result)}).`);
           resolve({ found: false, bySequenceNo: {} }); // no keys yet, or a transient error — try again next poll
@@ -3785,7 +3872,8 @@ var userResp = getParentWindowValue("userResp");
 
       if (!result) {
         return { isSuccess: false, message: "Unrecognized response (no result entry)." };
-      }
+     ')
+    || TO_NCLOB(' }
 
       // NEW shape: plain object with an explicit success flag.
       if (!Array.isArray(result) && typeof result === "object" && "success" in result) {
@@ -3822,7 +3910,8 @@ var userResp = getParentWindowValue("userResp");
   // ONE wildcard call, and updates row status accordingly:
   //   success -> uploaded (terminal, confirmed)
   //   failure -> failed (processing error — does NOT block future
-  //              imports; re-validating will move it back to "pending"
+  //      ')
+    || TO_NCLOB('        imports; re-validating will move it back to "pending"
   //              so the next Import retries it)
   // A key not yet present -> its rows stay "submitted", checked again
   // next poll.
@@ -3859,7 +3948,8 @@ var userResp = getParentWindowValue("userResp");
         const submittedRows = rows.filter((r) => r.status === "submitted" && r.callerId && r.sequenceNo !== undefined);
         if (submittedRows.length === 0) continue;
 
-        // Group by callerId first (usually just one per job, but a job
+        // Group by caller')
+    || TO_NCLOB('Id first (usually just one per job, but a job
         // could have multiple if Import was clicked more than once),
         // then by sequenceNo within each callerId.
         const rowsByCallerId = new Map();
@@ -3894,7 +3984,8 @@ var userResp = getParentWindowValue("userResp");
               if (!groupRows) return; // a key for a sequenceno we''re not (or no longer) waiting on
 
               const outcome = this._parseRedisTransactionResult(rawValue);
-              console.log(`[EIP] Redis: callerid="${callerId}" sequenceno=${sequenceNo} -> ${outcome.isSuccess ? "SUCCESS" : "FAILURE"}: "${outcome.message}" (${groupRows.length} row(s) marked ${outcome.isSuccess ? "uploaded" : "failed"}).`);
+              console.log(`[EIP] Redis: callerid="${callerId}" sequenceno=${sequenceNo} -> ${outcome.isSuccess ? "SUCCESS" : "FAILURE"}')
+    || TO_NCLOB(': "${outcome.message}" (${groupRows.length} row(s) marked ${outcome.isSuccess ? "uploaded" : "failed"}).`);
               groupRows.forEach((r) => {
                 r.status = outcome.isSuccess ? "uploaded" : "failed";
                 r.errorMessage = outcome.isSuccess ? null : outcome.message;
@@ -3937,7 +4028,8 @@ var userResp = getParentWindowValue("userResp");
       // whole pass (a manual refresh that came up empty, or an
       // import-triggered poll where confirmation hasn''t landed yet) —
       // close it so it doesn''t sit open indefinitely; the grid''s own
-      // status icons remain the source of truth, and the 30s background
+      ')
+    || TO_NCLOB('// status icons remain the source of truth, and the 30s background
       // poll will keep checking regardless of popup state.
       if (showPopup && this._isProgressPopupOpen()) this._closeProgressPopup();
     } finally {
@@ -3984,7 +4076,8 @@ var userResp = getParentWindowValue("userResp");
         _stopElapsedTicker) — just UI feedback, discarded on close.
      2. The REAL total duration of an import — from the moment Import
         was clicked to the moment every one of its rows has a terminal
-        status (uploaded/failed), which can span several 30s background
+')
+    || TO_NCLOB('        status (uploaded/failed), which can span several 30s background
         poll cycles — tracked per callerId in this._importStartTimes and
         finalized from _pollRedisForUpdates (see
         _finalizeCompletedImportTimings below). That total is what feeds
@@ -4023,7 +4116,8 @@ var userResp = getParentWindowValue("userResp");
   // call with rows that actually made it to "submitted" (i.e. the push
   // succeeded) — rows that failed to push are never going to show up in
   // Redis, so including them would leave this callerId waiting forever.
-  _trackImportStart(callerId, startedAt, totalRows) {
+  _trackImportStart(callerId, startedAt')
+    || TO_NCLOB(', totalRows) {
     if (!totalRows || totalRows <= 0) return;
     this._importStartTimes.set(callerId, { startedAt, totalRows });
   }
@@ -4060,7 +4154,8 @@ var userResp = getParentWindowValue("userResp");
       this._recordImportTiming(info.totalRows, elapsedMs);
 
       // Persist onto every job this push touched, so the inline summary
-      // label can show "last import" timing for a job even after a
+ ')
+    || TO_NCLOB('     // label can show "last import" timing for a job even after a
       // reload or switching tabs and back — see _updateTimingLabel.
       const touchedJobs = jobsByCallerId.get(callerId) || [];
       for (const job of touchedJobs) {
@@ -4095,7 +4190,8 @@ var userResp = getParentWindowValue("userResp");
 
     let history = [];
     try {
-      history = JSON.parse(localStorage.getItem("eip_import_timings") || "[]");
+      history = JSON.parse(localStorage.getItem("')
+    || TO_NCLOB('eip_import_timings") || "[]");
       if (!Array.isArray(history)) history = [];
     } catch (e) {
       history = [];
@@ -4140,7 +4236,8 @@ var userResp = getParentWindowValue("userResp");
   }
 
   // In-app replacement for window.confirm — same modal look as the rest
-  // of the page (title bar, Cancel/OK buttons) instead of the browser''s
+  // of th')
+    || TO_NCLOB('e page (title bar, Cancel/OK buttons) instead of the browser''s
   // own "<site> says" dialog. Returns a Promise<boolean>; only one can be
   // open at a time (Delete Job is the only caller today).
   _confirmDialog({ title = "Are you sure?", message = "", okLabel = "OK", danger = false } = {}) {
@@ -4182,7 +4279,8 @@ function getParentWindowValue(propName) {
             while (currentWindow) {
 
                 if (typeof currentWindow[propName] !== "undefined") {
-                    return currentWindow[propName];
+       ')
+    || TO_NCLOB('             return currentWindow[propName];
                 }
 
                 if (currentWindow === currentWindow.parent) {
@@ -4210,14 +4308,14 @@ function getParentWindowValue(propName) {
 
 </body></html>
 ')
+)
 >>
 
 <<
-INSERT INTO SECT4
-    (SECT4ID, HTMLSECTIONSID, SECT4ROW, FILENAME, FILETYPE, CSS_JS_SRC)
-VALUES
-    (9626330000011, 9626330000009, 1, 'Data_Ingestor', 'Css',
-     TO_NCLOB('/* =========================================================
+INSERT INTO SECT4 (SECT4ID, HTMLSECTIONSID, SECT4ROW, FILENAME, FILETYPE, CSS_JS_SRC)
+VALUES (
+    7626330000011, 7626330000009, 1, 'Data_Ingestor', 'Css',
+    TO_NCLOB('/* =========================================================
    Excel → T-Struct Import — Custom Page Styles
    Follows the same visual conventions as other Axpert custom
    pages (brsv2.html): plain panels, hairline borders, a single
@@ -4291,7 +4389,7 @@ body {
 
 .eip-panel-title {
   fo')
-     || TO_NCLOB('nt-size: 13px;
+    || TO_NCLOB('nt-size: 13px;
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.03em;
@@ -4370,7 +4468,7 @@ body {
   background: #fff;
   border-radius: var(--eip-radius);
   padding: ')
-     || TO_NCLOB('8px 14px;
+    || TO_NCLOB('8px 14px;
   font-size: 13.5px;
   font-weight: 500;
   cursor: pointer;
@@ -4464,7 +4562,7 @@ body {
   gap: 8px;
   border: 1px solid var(--eip-color-border-strong);
   background: #fff;')
-     || TO_NCLOB('
+    || TO_NCLOB('
   color: var(--eip-color-text);
   border-radius: var(--eip-radius);
   padding: 9px 18px;
@@ -4550,7 +4648,7 @@ body {
   border-bottom: 1px solid var(--eip-color-border);
   white-space: pre-wrap;
   word-break: break-wor')
-     || TO_NCLOB('d;
+    || TO_NCLOB('d;
 }
 
 .eip-log-entry:last-child { border-bottom: none; }
@@ -4613,7 +4711,7 @@ body {
 .eip-app-v2 > * {
   flex-shrink: 0; /* header, topbar, toolbar keep their natural height */
   min-width: 0; ')
-     || TO_NCLOB('/* same fix as .eip-grid-wrapper — prevents ANY direct child (topbar, tab
+    || TO_NCLOB('/* same fix as .eip-grid-wrapper — prevents ANY direct child (topbar, tab
                    controls row, etc.) from blowing out the page width if its own content
                    ever gets wide (e.g. many DC names, a long file name) */
 }
@@ -4693,7 +4791,7 @@ body {
   border: 1px solid var(--eip-color-border);
   border-radius: 8px;
   box-shadow: var(--eip-shadow-sm')
-     || TO_NCLOB(');
+    || TO_NCLOB(');
   overflow: auto;
   flex: 1 1 auto; /* always stretch to fill available width/height, regardless of column count */
   min-height: 0;
@@ -4733,7 +4831,7 @@ body {
    ExcelImportPageController.ROW_HEIGHT (28) in the JS exactly, since
    the scroll-position math depends on every row being this height. */
 .eip-grid-table tbody tr')
-     || TO_NCLOB('.eip-grid-row td {
+    || TO_NCLOB('.eip-grid-row td {
   height: 28px;
   box-sizing: border-box;
   padding-top: 0;
@@ -4796,7 +4894,7 @@ body {
    get stretched into the "huge empty column" look. With enough columns
    to already exceed the available width, this column simply has nothing
    left to claim and collapses to 0 width, same ')
-     || TO_NCLOB('as if it weren''t there. */
+    || TO_NCLOB('as if it weren''t there. */
 .eip-grid-filler-col {
   width: 100%;
   padding: 0 !important;
@@ -4884,7 +4982,7 @@ body {
   color: var(--eip-color-text);
   font-size: 12px;
   font-weight: 6')
-     || TO_NCLOB('00;
+    || TO_NCLOB('00;
   line-height: 1.5;
 }
 
@@ -4950,7 +5048,7 @@ body {
 .eip-summary-group {
   display: flex;
   align-item')
-     || TO_NCLOB('s: center;
+    || TO_NCLOB('s: center;
   flex-wrap: wrap;
   gap: 4px 12px;
   min-width: 0;
@@ -5039,7 +5137,7 @@ body {
   padding-top: 0; 
   height: 34px;
   margin-bottom: 2')
-     || TO_NCLOB('px; /* Slight nudge to align with the text inputs */
+    || TO_NCLOB('px; /* Slight nudge to align with the text inputs */
 }
 
 /* 2. Fill the full grid width even with few columns, WITHOUT stretching
@@ -5090,7 +5188,7 @@ body {
 
 /* =========================================================
    Data')
-     || TO_NCLOB(' Injestor — UI Polish & Alignment Fixes
+    || TO_NCLOB(' Injestor — UI Polish & Alignment Fixes
    ========================================================= */
 
 /* --- Header Styling --- */
@@ -5161,7 +5259,7 @@ body {
 }
 
 .eip-grid-table thead t')
-     || TO_NCLOB('r:last-child th {
+    || TO_NCLOB('r:last-child th {
   background: #f4f5f7; /* Distinct header color for the actual data columns */
   border-bottom: 2px solid var(--eip-color-border-strong);
   padding: 10px 16px;
@@ -5238,7 +5336,7 @@ select.eip-disabled-visual {
 
 /* The host (.eip-select) still carries the plain-<select> look (border,
    padding, a background-image chevron) ')
-     || TO_NCLOB('for the native <select> elements
+    || TO_NCLOB('for the native <select> elements
    it''s also used for elsewhere. For a SearchableDropdown, though, that
    padding and chevron sit OUTSIDE the <button> above (which is sized to
    fill the host, inset by that same padding) — so the visible arrow was
@@ -5306,7 +5404,7 @@ select.eip-disabled-visual {
 .eip-sd-search {
   width: 100%;
   border: 1px solid var(-')
-     || TO_NCLOB('-eip-color-border-strong);
+    || TO_NCLOB('-eip-color-border-strong);
   border-radius: 4px;
   padding: 6px 8px;
   font-size: 13px;
@@ -5399,7 +5497,7 @@ select.eip-disabled-visual {
   border: none;
   background: none;
   font')
-     || TO_NCLOB('-size: 22px;
+    || TO_NCLOB('-size: 22px;
   line-height: 1;
   color: var(--eip-color-text-muted);
   cursor: pointer;
@@ -5477,7 +5575,7 @@ select.eip-disabled-visual {
   border: 1px solid var(--eip-color-border);
   border-radius: 8px;
   box')
-     || TO_NCLOB('-shadow: var(--eip-shadow-sm);
+    || TO_NCLOB('-shadow: var(--eip-shadow-sm);
   padding: 10px 20px;
   margin-bottom: 10px;
   width: fit-content;
@@ -5569,7 +5667,7 @@ body {
 .eip-grid-table thead .eip-grid-filler-col {
     background: #f4f5f7 !important;
     border-bottom: none !im')
-     || TO_NCLOB('portant;
+    || TO_NCLOB('portant;
 }
 
 
@@ -5579,9 +5677,8 @@ body {
 
 
 ')
-    )
+)
 >>
-
 
 <<
 INSERT INTO AXPAGES (NAME, CAPTION, PROPS, BLOBNO, IMG, VISIBLE, "TYPE", PARENT, ORDNO, LEVELNO, UPDATEDON, CREATEDON, IMPORTEDON, CREATEDBY, UPDATEDBY, IMPORTEDBY, READONLY, UPDUSERNAME, CATEGORY, PAGETYPE, INTVIEW, WEBENABLE, SHORTCUT, ICON, WEBSUBTYPE, WORKFLOW, OLDAPPURL) VALUES('HP1794547992681', 'Data Ingestor', 'htmlPages.aspx?load=1794547992681', 1, NULL, 'T', 'p', NULL, 220, 0, '13/11/2026 11:21:24 AM', '13/11/2026 10:57:22 AM', NULL, 'admin', 'admin', NULL, NULL, NULL, NULL, 'web', NULL, NULL, NULL, NULL, 'htmlpage', NULL, NULL)
