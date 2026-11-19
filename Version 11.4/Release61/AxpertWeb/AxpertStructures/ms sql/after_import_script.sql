@@ -1,4 +1,12 @@
 <<
+alter table sect2 add html_editor_htmlsrc nvarchar(MAX);
+>>
+
+<<
+alter table sect4 add css_js_src nvarchar(MAX);
+>>
+
+<<
 INSERT INTO AXDIRECTSQL (axdirectsqlid, cancel, sourceid, mapname, username, modifiedon, createdby, createdon, wkid, app_level, app_desc, app_slevel, cancelremarks, wfroles, sqlname, ddldatatype, sqltext, paramcal, sqlparams, accessstring, groupname, sqlsrc, sqlsrccnd, sqlquerycols, encryptedflds, cachedata, cacheinterval, smartlistcnd, adsdesc, pagination, applydimensions, fetchsize) VALUES(7116010000000, N'F', 0, NULL, N'admin', '2026-11-13 10:28:05.000', N'admin', '2026-11-13 10:28:05.000', NULL, 1, 1, 0, NULL, NULL, N'data_ing_field_mapping', NULL, N'SELECT
     dc2.excelheader AS value,
     dc2.mappedfield AS text,
@@ -49,7 +57,7 @@ ORDER BY 2', N'pusername,puserrole,presponsiblity', N'pusername~Character~,puser
 >>
 
 <<
-INSERT INTO HTMLSECTIONS (htmlsectionsid, cancel, sourceid, mapname, username, modifiedon, createdby, createdon, wkid, app_level, app_desc, app_slevel, cancelremarks, wfroles, pageno, caption, axpfile_hpimages, axpfilepath_hpimages, addtomenu, isacoretrans, menuposition, menulist, params, template) VALUES(7116770000000, N'F', 0, NULL, N'admin', '2026-11-13 11:24:04.000', N'admin', '2026-11-13 11:24:04.000', NULL, 1, 1, 0, NULL, NULL, N'1794549778473', N'Data Ingestor', NULL, N'D:\qabiz\Axpert11.4Base\AxpertWeb\defmssql112\HTMLPages\images\*', NULL, N'Yes', N'Default', NULL, NULL, NULL);
+INSERT INTO HTMLSECTIONS (htmlsectionsid, cancel, sourceid, mapname, username, modifiedon, createdby, createdon, wkid, app_level, app_desc, app_slevel, cancelremarks, wfroles, pageno, caption, axpfile_hpimages, axpfilepath_hpimages, addtomenu, isacoretrans, menuposition, menulist, params, template) VALUES(7116770000000, N'F', 0, NULL, N'admin', '2026-11-13 11:24:04.000', N'admin', '2026-11-13 11:24:04.000', NULL, 1, 1, 0, NULL, NULL, N'1794547992681', N'Data Ingestor', NULL, N'D:\qabiz\Axpert11.4Base\AxpertWeb\defmssql112\HTMLPages\images\*', NULL, N'Yes', N'Default', NULL, NULL, NULL);
 >>
 
 <<
